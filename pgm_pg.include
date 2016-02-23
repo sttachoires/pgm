@@ -50,11 +50,10 @@ function startInstance()
   pgm_options=""
   ping -c 1 ${PGM_PGLISTENER} 2>&1 > /dev/null
   if [ $? -ne 0 ]; then
-    pgm_options="${pgm_options} -h ${PGM_PGHOST}"
+    pgm_options="${pgm_options} --host=${PGM_PGHOST}"
   fi
 
-  pg_ctl -o "${pgm_options}" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PGLOG} start
-  sleep 10
+  pg_ctl -w -o "${pgm_options}" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PGLOG} start
 }
 
 function stopInstance()
@@ -67,6 +66,65 @@ function stopInstance()
   setInstance ${pgm_version} ${pgm_sid}
 
   pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=fast stop
+}
+
+function reloadInstance()
+{
+  if [ $# -ne 2 ]; then
+    return 1
+  fi
+  pgm_version=$1
+  pgm_sid=$2
+  setInstance ${pgm_version} ${pgm_sid}
+
+  pg_ctl --pgdata=${PGM_PGDATA_DIR} reload
+}
+
+function stateInstance()
+{
+  if [ $# -ne 2 ]; then
+    return 1
+  fi
+  pgm_version=$1
+  pgm_sid=$2
+  setInstance ${pgm_version} ${pgm_sid}
+
+  pg_ctl --pgdata=${PGM_PGDATA_DIR} status
+}
+
+
+function promoteInstance()
+{
+  if [ $# -ne 2 ]; then
+    return 1
+  fi
+  pgm_version=$1
+  pgm_sid=$2
+  setInstance ${pgm_version} ${pgm_sid}
+
+  pg_ctl --pgdata=${PGM_PGDATA_DIR} promote
+}
+
+function killInstance()
+{
+  if [ $# -ne 2 ]; then
+    return 1
+  fi
+  pgm_version=$1
+  pgm_sid=$2
+  setInstance ${pgm_version} ${pgm_sid}
+
+  pg_ctl --pgdata=${PGM_PGDATA} --mode=immediate stop
+  if [ $? -ne 0 ]; then
+    if [ -e ${PGM_PGDATA}/postmaster.pid ]; then
+      pgm_pgpid=$(head -1 ${PGM_PGDATA}/postmaster.pid)
+      if [ $? -ne 0 ]; then
+        return 2
+      else
+        pg_ctl TERM ${pgm_pgpid} kill
+      fi
+    fi
+  fi
 }
 
 function setInstance()
@@ -116,14 +174,14 @@ function setInstance()
     pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA_DIR}[[:space:]]" 2>&1)
     if [ $? -eq 0 ]; then
       export PGM_PGSTATUS="started"
-      pgm_hostline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-h[[:space:]][[:space:]]*[^[:space:]][^[:space:]]*[[:space:]]")
+      pgm_hostline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-\(h|-host)[[:space:]][[:space:]]*[^[:space:]][^[:space:]]*[[:space:]]")
       if [ $? -eq 0 ]; then
-        pgm_hostline=${pgm_hostline/ -h /}
+        pgm_hostline=${pgm_hostline/ -\(h|host\)[ =]/}
         export PGM_PGREALHOST=${pgm_hostline// /}
       fi
-      pgm_portline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-p[[:space:]][[:space:]]*[0-9][0-9]*[[:space:]]")
+      pgm_portline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-\(p|-port\)[[:space:]][[:space:]]*[0-9][0-9]*[[:space:]]")
       if [ $? -eq 0 ]; then
-        pgm_portline=${pgm_portline/ -p /}
+        pgm_portline=${pgm_portline/ -\(p|-port\)[ =]/}
         export PGM_PGREALPORT=${pgm_portline// /}
       fi
     else
