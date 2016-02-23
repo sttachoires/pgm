@@ -36,7 +36,7 @@ function checkParameters ()
     exitError "Cannot set ${pgm_sid} version ${pgm_version} \n"
   fi
 
-  export PGM_LOGFILE="${PGM_LOGDIR}/create_instance.log"
+  export PGM_LOG="${PGM_LOG_DIR}/create_instance.log"
 }
 
 function checkFS ()
@@ -49,33 +49,33 @@ function checkFS ()
     fi
   done
 
-  printf "Filesystems ${PGM_PGFSLIST} are present\n" | tee -a ${PGM_LOGFILE}
+  printf "Filesystems ${PGM_PGFSLIST} are present\n" | tee -a ${PGM_LOG}
   return 0
 }
   
 function buildDirectories()
 {
-  mkdir -p ${PGM_PGDATA}
+  mkdir -p ${PGM_PGDATA_DIR}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGDATA}"
+    exitError "Cannot create ${PGM_PGDATA_DIR}"
   else
-    chmod u=rwx,go= ${PGM_PGDATA}
+    chmod u=rwx,go= ${PGM_PGDATA_DIR}
     if [ $? -ne 0 ]; then
-      exitError "Cannot adjust ${PGM_PGDATA} access policy to 700"
+      exitError "Cannot adjust ${PGM_PGDATA_DIR} access policy to 700"
     fi
   fi
-  mkdir -p ${PGM_PGXLOG}
+  mkdir -p ${PGM_PGXLOG_DIR}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGXLOG}"
+    exitError "Cannot create ${PGM_PGXLOG_DIR}"
   fi
 
-  printf "Directories ${PGM_PGDATA} and ${PGM_PGXLOG} are ok\n" | tee -a ${PGM_LOGFILE} 
+  printf "Directories ${PGM_PGDATA_DIR} and ${PGM_PGXLOG_DIR} are ok\n" | tee -a ${PGM_LOG} 
 }
 
 function initDB ()
 {
   # Create cluster
-  ${PGM_PGHOME}/bin/initdb --pgdata=${PGM_PGDATA} --encoding=UTF8 --xlogdir=${PGM_PGXLOG} --data-checksums --no-locale 2>&1 | tee -a ${PGM_LOGFILE}
+  ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale 2>&1 | tee -a ${PGM_LOG}
   if [ $? -ne 0 ]; then
     exitError "Cannot create instance ${PGM_PGSID} with PostgreSQL ${PGM_FULL_VERSION}\n"
   fi
@@ -83,53 +83,53 @@ function initDB ()
   setInstance ${PGM_FULL_VERSION} ${PGM_PGSID}
   export PGM_PGHOST=${pgm_listener}
   export PGM_PGPORT=${pgm_port}
-  printf "Instance ${PGM_PGSID} created\n" | tee -a ${PGM_LOGFILE}
+  printf "Instance ${PGM_PGSID} created\n" | tee -a ${PGM_LOG}
 }
 
 function createRecovery ()
 {
   pgm_name=$(basename ${PGM_PGRECOVER})
-  pgm_tpl=${PGM_TEMPLATE}/${pgm_name}.tpl
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   instantiateTemplate ${pgm_tpl} ${PGM_PGRECOVER}
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGRECOVER} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGRECOVER} created\n" | tee -a ${PGM_LOGFILE}
+  printf "${PGM_PGRECOVER} created\n" | tee -a ${PGM_LOG}
 }
 
 
 function createConf ()
 {
   pgm_name=$(basename ${PGM_PGCONF})
-  pgm_tpl=${PGM_TEMPLATE}/${pgm_name}.tpl
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   instantiateTemplate ${pgm_tpl} ${PGM_PGCONF}
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGCONF} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGCONF} created\n" | tee -a ${PGM_LOGFILE}
+  printf "${PGM_PGCONF} created\n" | tee -a ${PGM_LOG}
 }
 
 
 function createHBA ()
 {
   pgm_name=$(basename ${PGM_PGHBA})
-  pgm_tpl=${PGM_TEMPLATE}/${pgm_name}.tpl
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   instantiateTemplate ${pgm_tpl} ${PGM_PGHBA}
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGHBA} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGHBA} created\n" | tee -a ${PGM_LOGFILE}
+  printf "${PGM_PGHBA} created\n" | tee -a ${PGM_LOG}
 }
 
 function createIdent ()
 {
   pgm_name=$(basename ${PGM_PGIDENT})
-  pgm_tpl=${PGM_TEMPLATE}/${pgm_name}.tpl
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   instantiateTemplate ${pgm_tpl} ${PGM_PGIDENT}
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGIDENT} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGHBA} created\n" | tee -a ${PGM_LOGFILE}
+  printf "${PGM_PGHBA} created\n" | tee -a ${PGM_LOG}
 }
 
 function createTabEntry()
@@ -140,19 +140,19 @@ function createTabEntry()
   egrep -q "^[[:space:]]*\*:${PGM_PGSID}:${PGM_FULL_VERSION}:[yYnN]" ${PGM_PGTAB}
   if [ $? -ne 0 ]; then
     echo "*:${PGM_PGSID}:${PGM_FULL_VERSION}:y" >> ${PGM_PGTAB}
-    printf "Line '*:${PGM_PGSID}:${PGM_FULL_VERSION}:y' added to ${PGM_PGTAB}\n" | tee -a ${PGM_LOGFILE}
+    printf "Line '*:${PGM_PGSID}:${PGM_FULL_VERSION}:y' added to ${PGM_PGTAB}\n" | tee -a ${PGM_LOG}
   else
-    printf "Line '*:${PGM_PGSID}:${PGM_FULL_VERSION}:y' already present in ${PGM_PGTAB}\n" | tee -a ${PGM_LOGFILE}
+    printf "Line '*:${PGM_PGSID}:${PGM_FULL_VERSION}:y' already present in ${PGM_PGTAB}\n" | tee -a ${PGM_LOG}
   fi
 }
 
 function createFlags()
 {
   # Create no backup flag
-  touch ${PGM_PGDATA}/.no_backup
+  touch ${PGM_PGDATA_DIR}/.no_backup
   if [ $? -ne 0 ]; then
-    if [ ! -e ${PGM_PGDATA}/.no_backup ]; then
-      exitError "Cannot create ${PGM_PGDATA}/.no_backup file"
+    if [ ! -e ${PGM_PGDATA_DIR}/.no_backup ]; then
+      exitError "Cannot create ${PGM_PGDATA_DIR}/.no_backup file"
     fi
   fi
 }
@@ -192,4 +192,4 @@ if [ $? -ne 0 ]; then
 fi
 createExtentions
 
-printf "Instance ${PGM_PGSID} has been created. You have to create a database in it\n" | tee -a ${PGM_LOGFILE}
+printf "Instance ${PGM_PGSID} has been created. You have to create a database in it\n" | tee -a ${PGM_LOG}

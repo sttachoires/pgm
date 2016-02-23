@@ -64,7 +64,7 @@ function createTabEntry()
 
 checkParameter $*
 cd ${srcdir}
-./configure --prefix=${PGM_PGHOME} --datarootdir="${PGM_PGHOME}/share" --with-openssl --with-ldap | tee -a ${PGM_LOGFILE}
+./configure --prefix=${PGM_PGHOME_DIR} --datarootdir="${PGM_PGHOME}/share" --with-openssl --with-ldap | tee -a ${PGM_LOGFILE}
 if [ $? -ne 0 ]; then
   exitError "Problem configuring compilation:\nplease read preceding ouput and correct problem(s)\n\n"
 fi

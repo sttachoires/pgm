@@ -3,34 +3,16 @@
 # Differents constants to fit pgm scripts
 
 # 19.02.2016	S. Tachoires	Initiate
-#set -xv
+set -xv
 
 if [ "${PGM_SERVER_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
 
-# 
-# W A R N I N G
-#
-export PGM_BASE="/home/stephane/postgres"
-export PGM_EXPORTDIR="/home/stephane/pgdb/export"
-export PGM_TMPDIR="/var/tmp"
-export PGM_INVENTORY="/home/stephane/postgres/inventory"
-export PGM_USER="stephane"
-export PGM_PGTAB="${PGM_INVENTORY}/pgtab"
-export PGM_LOGDIR="${PGM_BASE}/log"
-
-# Pattern for different constants 
-# Pattern PGMPATTERN_CONSTANT will be expanded into PGM_CONSTANT
-# In those pattern you can use, in addition to the previous PGM_ constants above:
-#  ${PGM_FULL_VERSION} that contains full text version of a PostgreSQL server (9.5.0)
-#  ${PGM_FULL_VERSION_NUM} that contains full numeric version (950)
-#  ${PGM_MAJOR_VERSION} the major text version (9.5)
-#  ${PGM_MAJOR_VERSION_NUM} tha major numeric version (95)
-
-PGMSRVPATTERN_PGHOME='${PGM_BASE}/server/${PGM_FULL_VERSION}'
-PGMSRVPATTERN_TEMPLATE='/home/stephane/postgres/github/pgm/template/${PGM_MAJOR_VERSION}'
-
+. /home/stephane/postgres/github/pgm/pgm.conf
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
 function setServer()
 {
@@ -46,19 +28,14 @@ function setServer()
     export PGM_MAJOR_VERSION_NUM=${PGM_MAJOR_VERSION//./}
 
     # Remove trailing slashes.
-    PGM_BASE=${PGM_BASE%/}
-    PGM_EXPORTDIR=${PGM_EXPORTDIR%/}
-    PGM_TMPDIR=${PGM_TMPDIR%/}
-    PGM_INVENTORY=${PGM_INVENTORY%/}
-
-    for pgm_pattern in ${!PGMSRVPATTERN_*}
+    for pgm_pattern in ${!PGMSRV_PTRN_*}
     do
       eval pgm_value=\$${pgm_pattern}
-      eval export ${pgm_pattern/PGMSRVPATTERN_/PGM_}=${pgm_value%/}
+      eval export ${pgm_pattern/#PGMSRV_PTRN_/PGM_}=${pgm_value%/}
     done
     
-    export PATH="${PGM_PGHOME}/bin:${PATH}"
-    export LD_LIBRARY_PATH="${PGM_PGHOME}/lib:${LD_LIBRARY_PATH}"
+    export PATH="${PGM_PGHOME_DIR}/bin:${PATH}"
+    export LD_LIBRARY_PATH="${PGM_PGHOME_DIR}/lib:${LD_LIBRARY_PATH}"
 
     return 0
   else

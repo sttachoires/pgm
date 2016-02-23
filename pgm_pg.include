@@ -10,40 +10,18 @@
 if [ "${PGM_PG_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
-. /home/stephane/postgres/github/pgm/pgm_server.include
-. /home/stephane/postgres/github/pgm/pgm_util.include
-
-# CONSTANTS
-# The starting point of every instance directory
-export PGM_PGBASE_DIR="/home/stephane/postgres/pgdb"
-# List of allowed charater (form of a regular expression) alowed to form instances name
-export PGM_PGSID_AUTHORIZED_CHARS="-a-zA-Z._#0-9"
-# List of allowed charater (form of a regular expression) alowed to form databases name
-export PGM_PGDATABASE_AUTHORIZED_CHARS="-a-zA-Z._#0-9"
-export PGM_PGEXTENTIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
-export PGM_PGEXTENTIONS_TO_CREATE="adminpack pg_stat_statements postgres_fdw sslinfo btree_gin btree_gist"
-export PGM_PGLOG_FILE="postgresql.log"
-
-
-# Pattern for different constants 
-# Pattern PGMPGPATTERN_NAME will be expanded into PGM_NAME
-# In those pattern you can use, in addition to the previous PGM_ constants above and those of includes above:
-#  ${PGM_FULL_VERSION} that contains full text version of a PostgreSQL server (9.5.0)
-#  ${PGM_FULL_VERSION_NUM} that contains full numeric version (950)
-#  ${PGM_MAJOR_VERSION} the major text version (9.5)
-#  ${PGM_MAJOR_VERSION_NUM} the major numeric version (95)
-#  ${PGM_PGSID} the instance name
-PGMPGPATTERN_PGDATA='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data'
-PGMPGPATTERN_PGLOG='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/log'
-PGMPGPATTERN_PGXLOG='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/xlog/wal'
-PGMPGPATTERN_PGARCHIVELOG='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/archivelog'
-PGMPGPATTERN_PGDBBASE='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}'
-#PGMPGPATTERN_PGFSLIST='"${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID} ${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/xlog ${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/archivelog ${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/log"'
-PGMPGPATTERN_PGFSLIST=''
-PGMPGPATTERN_PGRECOVER='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/recovery.conf.bak'
-PGMPGPATTERN_PGCONF='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/postgresql.conf'
-PGMPGPATTERN_PGHBA='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/pg_hba.conf'
-PGMPGPATTERN_PGIDENT='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/pg_ident.conf'
+. /home/stephane/postgres/github/pgm/pgm.conf
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+. ${PGM_BIN_DIR}/pgm_server.include
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+. ${PGM_BIN_DIR}/pgm_util.include
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
 function pgExec()
 {
@@ -53,11 +31,11 @@ function pgExec()
   else
     request=$1
   fi
-  if [ ! -x ${PGM_PGHOME}/bin/psql ]; then
-    printError "Problem with '${PGM_PGHOME}/bin/psql'"
+  if [ ! -x ${PGM_PGHOME_DIR}/bin/psql ]; then
+    printError "Problem with '${PGM_PGHOME_DIR}/bin/psql'"
   fi
 
-  ${PGM_PGHOME}/bin/psql --host=${PGM_PGDATA} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${request}"
+  ${PGM_PGHOME_DIR}/bin/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${request}"
 }
 
 function startInstance()
@@ -75,7 +53,7 @@ function startInstance()
     pgm_options="${pgm_options} -h ${PGM_PGHOST}"
   fi
 
-  pg_ctl -o "${pgm_options}" --pgdata=${PGM_PGDATA} --log=${PGM_PGLOG}/${PGM_PGLOG_FILE} start
+  pg_ctl -o "${pgm_options}" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PGLOG} start
   sleep 10
 }
 
@@ -88,7 +66,7 @@ function stopInstance()
   pgm_sid=$2
   setInstance ${pgm_version} ${pgm_sid}
 
-  pg_ctl --pgdata=${PGM_PGDATA} --mode=fast stop
+  pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=fast stop
 }
 
 function setInstance()
@@ -105,23 +83,21 @@ function setInstance()
     return 2
   fi
 
-  if [[ ${pgm_sid} =~ [${PGM_PGSID_AUTHORIZED_CHARS}]+ ]]; then
+  if [[ ${pgm_sid} =~ [${PGM_PGSID_AUTHORIZED_REGEXP}]+ ]]; then
     # First set versions constants
     export PGM_PGSID=${pgm_sid}
 
     # Remove trailing slashes.
-    PGM_PGBASE_DIR=${PGM_PGBASE_DIR%/}
-    for pgm_pattern in ${!PGMPGPATTERN_*}
+    for pgm_pattern in ${!PGMPG_PTRN_*}
     do
       eval pgm_value=\$${pgm_pattern}
-      eval export ${pgm_pattern/PGMPGPATTERN_/PGM_}=${pgm_value%/}
+      eval export ${pgm_pattern/PGMPG_PTRN_/PGM_}=${pgm_value%/}
     done
 
     # Try to determine host, port, autolaunch configuration, and running configuration
-    export PGM_PGHOST=$(uname --nodename)
     pgm_line=$(egrep "^[[:space:]]*listen_addresses[[:space:]]*=" ${PGM_PGCONF} 2>&1)
     if [ $? -eq 0 ]; then
-      export PGM_PGLISTENER="$(echo ${pgm_line} | cut --delimiter='=' --fields=2)"
+      export PGM_PGLISTENER=$(echo ${pgm_line} | cut --delimiter='=' --fields=2)
     fi
     PGM_PGHOST=${PGM_PGHOST// /}
     PGM_PGLISTENER=${PGM_PGLISTENER// /}
@@ -135,7 +111,9 @@ function setInstance()
     fi
     PGM_PGPORT=${PGM_PGPORT// /}
 
-    pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA}[[:space:]]" 2>&1)
+    PGM_PGLOG=${PGM_PGLOG_DIR}/${PGM_PGLOG_FILE}
+
+    pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA_DIR}[[:space:]]" 2>&1)
     if [ $? -eq 0 ]; then
       export PGM_PGSTATUS="started"
       pgm_hostline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-h[[:space:]][[:space:]]*[^[:space:]][^[:space:]]*[[:space:]]")
@@ -182,7 +160,7 @@ function setDatabase()
     return 2
   fi
 
-  if [[ "${pgm_database}" =~ [${PGM_PGDATABASE_AUTHORIZED_CHARS}]+ ]]; then
+  if [[ "${pgm_database}" =~ [${PGM_PGDATABASE_AUTHORIZED_REGEXP}]+ ]]; then
     # First set versions constants
     export PGM_PGDBNAME="${pgm_database}"
 

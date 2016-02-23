@@ -21,7 +21,7 @@ logging_collector = on                  # Enable capturing of stderr and csvlog
 #syslog_ident = 'postgres'
 
 # These are only used if logging_collector is on:
-log_directory = '${PGM_PGLOG}'   # directory where log files are written,
+log_directory = '${PGM_PGLOG_DIR}'   # directory where log files are written,
                                         # can be absolute or relative to PGDATA
 log_filename = '${PGM_PGLOG_FILE}'   # log file name pattern,
                                         # can include strftime() escapes
@@ -88,10 +88,10 @@ lc_messages = 'C'	                        # locale for system error message
 default_text_search_config = 'pg_catalog.english'
 
 # Connection
-listen_addresses = '${PGM_PGHOST}'
+listen_addresses = ${PGM_PGHOST}
 port = ${PGM_PGPORT}
 superuser_reserved_connections = 3
-unix_socket_directories = '${PGM_PGDATA}'
+unix_socket_directories = '${PGM_PGDATA_DIR}'
 
 # - Security and Authentication -
 ssl = off                                       # (change requires restart)
@@ -119,7 +119,7 @@ checkpoint_warning = 30s               # 0 disables
 wal_level = hot_standby
 archive_mode = on
 archive_command = 'true'
-#archive_command = 'rsync %p ${PGM_PGARCHIVELOG}/%f'
+#archive_command = 'rsync %p ${PGM_PGARCHIVELOG_DIR}/%f'
 # WAL sender
 max_wal_senders = 2
 
