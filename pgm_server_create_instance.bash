@@ -4,7 +4,7 @@
 #
 # 21.02.2016	S. Tachoires	Initial version
 #
-set -xv
+#set -xv
 
 # Constants
 PRGNAME=$(basename $0 2> /dev/null)
