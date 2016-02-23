@@ -23,7 +23,7 @@ logging_collector = on                  # Enable capturing of stderr and csvlog
 # These are only used if logging_collector is on:
 log_directory = '${PGM_PGLOG}'   # directory where log files are written,
                                         # can be absolute or relative to PGDATA
-log_filename = '${PGM_PGLOGFILE}'   # log file name pattern,
+log_filename = '${PGM_PGLOG_FILE}'   # log file name pattern,
                                         # can include strftime() escapes
 log_truncate_on_rotation = on           # If on, an existing log file of the
                                         # same name as the new log file will be

@@ -15,14 +15,14 @@ fi
 
 # CONSTANTS
 # The starting point of every instance directory
-export PGM_PGBASE="/home/stephane/postgres/pgdb"
+export PGM_PGBASE_DIR="/home/stephane/postgres/pgdb"
 # List of allowed charater (form of a regular expression) alowed to form instances name
 export PGM_PGSID_AUTHORIZED_CHARS="-a-zA-Z._#0-9"
 # List of allowed charater (form of a regular expression) alowed to form databases name
 export PGM_PGDATABASE_AUTHORIZED_CHARS="-a-zA-Z._#0-9"
 export PGM_PGEXTENTIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
 export PGM_PGEXTENTIONS_TO_CREATE="adminpack pg_stat_statements postgres_fdw sslinfo btree_gin btree_gist"
-export PGM_PGLOGFILE="postgresql.log"
+export PGM_PGLOG_FILE="postgresql.log"
 
 
 # Pattern for different constants 
@@ -33,17 +33,17 @@ export PGM_PGLOGFILE="postgresql.log"
 #  ${PGM_MAJOR_VERSION} the major text version (9.5)
 #  ${PGM_MAJOR_VERSION_NUM} the major numeric version (95)
 #  ${PGM_PGSID} the instance name
-PGMPGPATTERN_PGDATA='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data'
-PGMPGPATTERN_PGLOG='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/log'
-PGMPGPATTERN_PGXLOG='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/xlog/wal'
-PGMPGPATTERN_PGARCHIVELOG='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/archivelog'
-PGMPGPATTERN_PGDBBASE='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}'
-#PGMPGPATTERN_PGFSLIST='"${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID} ${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/xlog ${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/archivelog ${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/log"'
+PGMPGPATTERN_PGDATA='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data'
+PGMPGPATTERN_PGLOG='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/log'
+PGMPGPATTERN_PGXLOG='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/xlog/wal'
+PGMPGPATTERN_PGARCHIVELOG='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/archivelog'
+PGMPGPATTERN_PGDBBASE='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}'
+#PGMPGPATTERN_PGFSLIST='"${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID} ${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/xlog ${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/archivelog ${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/log"'
 PGMPGPATTERN_PGFSLIST=''
-PGMPGPATTERN_PGRECOVER='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/recovery.conf.bak'
-PGMPGPATTERN_PGCONF='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/postgresql.conf'
-PGMPGPATTERN_PGHBA='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/pg_hba.conf'
-PGMPGPATTERN_PGIDENT='${PGM_PGBASE}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/pg_ident.conf'
+PGMPGPATTERN_PGRECOVER='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/recovery.conf.bak'
+PGMPGPATTERN_PGCONF='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/postgresql.conf'
+PGMPGPATTERN_PGHBA='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/pg_hba.conf'
+PGMPGPATTERN_PGIDENT='${PGM_PGBASE_DIR}/${PGM_MAJOR_VERSION}/${PGM_PGSID}/data/pg_ident.conf'
 
 function pgExec()
 {
@@ -75,7 +75,7 @@ function startInstance()
     pgm_options="${pgm_options} -h ${PGM_PGHOST}"
   fi
 
-  pg_ctl -o "${pgm_options}" --pgdata=${PGM_PGDATA} --log=${PGM_PGLOG}/${PGM_PGLOGFILE} start
+  pg_ctl -o "${pgm_options}" --pgdata=${PGM_PGDATA} --log=${PGM_PGLOG}/${PGM_PGLOG_FILE} start
   sleep 10
 }
 
@@ -110,7 +110,7 @@ function setInstance()
     export PGM_PGSID=${pgm_sid}
 
     # Remove trailing slashes.
-    PGM_PGBASE=${PGM_PGBASE%/}
+    PGM_PGBASE_DIR=${PGM_PGBASE_DIR%/}
     for pgm_pattern in ${!PGMPGPATTERN_*}
     do
       eval pgm_value=\$${pgm_pattern}
