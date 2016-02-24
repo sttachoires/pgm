@@ -1,4 +1,4 @@
-#! /bin/bash
+#! @BASH@
 #
 # Create a PostgreSQL instance.
 #
@@ -13,7 +13,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. {install_dir}/pgm_util.include
+. @PREFIX@/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_pg.include
 

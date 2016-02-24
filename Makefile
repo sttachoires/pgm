@@ -2,50 +2,93 @@
 
 include config.mk
 
-SRCS = bin/
-	pitrery.bash \
-	restore_xlog.bash
-HELPERS = backup_pitr.bash \
-	list_pitr.bash \
-	purge_pitr.bash \
-	restore_pitr.bash \
-	check_pitr.bash
-SRCCONFS = pitr.conf.sample
-DOCS = COPYRIGHT INSTALL.md UPGRADE.md CHANGELOG
-SRCMANPAGES = pitrery.1.man archive_xlog.1.man restore_xlog.1.man
+SRC_BINS = $(wildcard bin/*.bash)
+SRC_LIBS = $(wildcard lib/*.include.bash)
+SRC_TEMPLATES = $(wildcard template/*/*.tpl)
+SRC_CONFS = $(wildcard *.conf.sample)
+SRC_DOCS = COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
+SRC_MANPAGES = $(wildcard man/*.man)
 
-BINS = $(basename $(SRCS))
-LIBS = $(basename $(HELPERS))
-CONFS = $(basename $(SRCCONFS))
-MANPAGES = $(basename $(SRCMANPAGES))
+BINS = $(basename $(SRC_BINS))
+LIBS = $(basename $(SRC_LIBS))
+CONFS = $(basename $(SRC_CONFS))
+MANPAGES = $(basename $(SRC_MANPAGES))
+TEMPLATES = $(basename $(SRC_TEMPLATES))
+DOCS = $(SRC_DOCS)
 
-all: options $(BINS) $(LIBS) $(CONFS) $(MANPAGES)
+all: options $(BINS) $(LIBS) $(TEMPLATES) $(CONFS) $(MANPAGES) $(DOCS)
 
 options:
-	@echo ${NAME} ${VERSION} install options:
+	@echo "${NAME} ${VERSION} install options:"
+	@echo "BASH       = ${BASH}"
+	@echo "USER       = ${USER}"
 	@echo "PREFIX     = ${PREFIX}"
 	@echo "BINDIR     = ${BINDIR}"
-	@echo "LIBDIR     = ${LIBDIR}/${NAME}"
+	@echo "LIBDIR     = ${LIBDIR}"
 	@echo "SYSCONFDIR = ${SYSCONFDIR}"
 	@echo "DOCDIR     = ${DOCDIR}"
+	@echo "MANDIR     = ${MANDIR}"
+	@echo
+	@echo "SRC_BINS       = ${SRC_BINS}"
+	@echo "SRC_LIBS       = ${SRC_LIBS}"
+	@echo "SRC_TEMPLATES  = ${SRC_TEMPLATES}"
+	@echo "SRC_CONFS      = ${SRC_CONFS}"
+	@echo "SRC_MANPAGES   = ${SRC_MANPAGES}"
+	@echo "SRC_DOCS       = ${SRC_DOCS}"
+	@echo
+	@echo "BINS       = ${BINS}"
+	@echo "LIBS       = ${LIBS}"
+	@echo "TEMPLATES  = ${TEMPLATES}"
+	@echo "CONFS      = ${CONFS}"
+	@echo "MANPAGES   = ${MANPAGES}"
+	@echo "DOCS       = ${DOCS}"
 	@echo
 
-$(BINS) $(LIBS): $(SRCS) $(HELPERS)
+$(BINS): $(SRC_BINS)
 	@echo translating paths in bash scripts: $@
 	@sed -e "s%@BASH@%${BASH}%" \
-		-e "s%@VERSION@%${VERSION}%" \
+		-e "s%@USER@%${USER}%" \
+		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@SYSCONFDIR@%${SYSCONFDIR}%" \
-		-e "s%@LIBDIR@%${LIBDIR}/${NAME}%" $(addsuffix .bash,$@) > $@
+		-e "s%@DOCDIR@%${DOCDIR}%" \
+		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .bash,$@) > $@
+	@echo done
+
+$(LIBS): $(SRC_LIBS)
+	@echo translating paths in bash scripts: $@
+	@sed -e "s%@BASH@%${BASH}%" \
+		-e "s%@USER@%${USER}%" \
+		-e "s%@PREFIX@%${PREFIX}%" \
+		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@LIBDIR@%${LIBDIR}%" \
+		-e "s%@SYSCONFDIR@%${SYSCONFDIR}%" \
+		-e "s%@DOCDIR@%${DOCDIR}%" \
+		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .bash,$@) > $@
 
 $(CONFS): $(SRCCONFS)
 	@echo translating paths in configuration files: $@
-	@sed -e "s%@SYSCONFDIR@%${SYSCONFDIR}%" \
-		-e "s%@LIBDIR@%${LIBDIR}/${NAME}%" $(addsuffix .sample,$@) > $@
+	@sed -e "s%@BASH@%${BASH}%" \
+		-e "s%@USER@%${USER}%" \
+		-e "s%@PREFIX@%${PREFIX}%" \
+		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@LIBDIR@%${LIBDIR}%" \
+		-e "s%@SYSCONFDIR@%${SYSCONFDIR}%" \
+		-e "s%@DOCDIR@%${DOCDIR}%" \
+		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .sample,$@) > $@
 
 $(MANPAGES): $(SRCMANPAGES)
 	@echo translating paths in manual pages: $@
-	@sed -e "s%@SYSCONFDIR@%${SYSCONFDIR}%" $(addsuffix .man,$@) > $@
+	@sed -e "s%@BASH@%${BASH}%" \
+		-e "s%@USER@%${USER}%" \
+		-e "s%@PREFIX@%${PREFIX}%" \
+		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@LIBDIR@%${LIBDIR}%" \
+		-e "s%@SYSCONFDIR@%${SYSCONFDIR}%" \
+		-e "s%@DOCDIR@%${DOCDIR}%" \
+		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .man,$@) > $@
+
 
 clean:
 	@echo cleaning

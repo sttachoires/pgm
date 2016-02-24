@@ -1,4 +1,4 @@
-#! /bin/bash
+#! @BASH@
 #
 # Install PostgreSQL server
 #
@@ -13,7 +13,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. {install_dir}/pgm.conf
+. @PREFIX@/pgm.conf
 . ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_util.include
 
