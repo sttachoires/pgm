@@ -1,0 +1,13 @@
+PGM 0.01
+============
+
+  * First packaged version
+
+  * PostgreSQL server installation
+
+  * Instance creation
+
+  * Wrapper to control managed instances (start, stop, reload, promote..)
+
+  * Wrapper to psql managed instances
+

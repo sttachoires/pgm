@@ -14,11 +14,11 @@ fi
 if [ $? -ne 0 ]; then
   exit 1
 fi
-. ${PGM_BIN_DIR}/pgm_server.include
+. ${PGM_LIB_DIR}/pgm_server.include
 if [ $? -ne 0 ]; then
   exit 1
 fi
-. ${PGM_BIN_DIR}/pgm_util.include
+. ${PGM_LIB_DIR}/pgm_util.include
 if [ $? -ne 0 ]; then
   exit 1
 fi
@@ -141,7 +141,7 @@ function setInstance()
     return 2
   fi
 
-  if [[ ${pgm_sid} =~ [${PGM_PGSID_AUTHORIZED_REGEXP}]+ ]]; then
+  if [[ ${pgm_sid} =~ ${PGM_PGSID_AUTHORIZED_REGEXP} ]]; then
     # First set versions constants
     export PGM_PGSID=${pgm_sid}
 
@@ -218,7 +218,7 @@ function setDatabase()
     return 2
   fi
 
-  if [[ "${pgm_database}" =~ [${PGM_PGDATABASE_AUTHORIZED_REGEXP}]+ ]]; then
+  if [[ "${pgm_database}" =~ ${PGM_PGDATABASE_AUTHORIZED_REGEXP} ]]; then
     # First set versions constants
     export PGM_PGDATABASE="${pgm_database}"
 

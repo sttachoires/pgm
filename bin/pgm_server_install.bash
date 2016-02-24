@@ -13,8 +13,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. {install_dir}/pgm_server.include
-. {install_dir}/pgm_util.include
+. {install_dir}/pgm.conf
+. ${PGM_LIB_DIR}/pgm_server.include
+. ${PGM_LIB_DIR}/pgm_util.include
 
 USAGE="Usage: ${PRGNAME} FULLVERSION SRCDIR\nwhere\n\tFULLVERSION is the full PostgreSQL you are about to install (9.5.0)\n\tSRCDIR is the directory where you've put uncompressed source directory (/var/tmp/postgres-9.5.0-master)"
 
