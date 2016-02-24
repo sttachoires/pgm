@@ -16,10 +16,10 @@ fi
 options=""
 
 # INCLUDE
-. /home/stephane/postgres/github/pgm/pgm.conf
-. /home/stephane/postgres/github/pgm/pgm_util.include
-. /home/stephane/postgres/github/pgm/pgm_server.include
-. /home/stephane/postgres/github/pgm/pgm_pg.include
+. {install_dir}/pgm.conf
+. {install_dir}/pgm_util.include
+. {install_dir}/pgm_server.include
+. {install_dir}/pgm_pg.include
 
 
 USAGE="${PRGNAME} VERSION SID start|stop|restart|monitor|clean|reload\nwhere:\n\tVERSION : Server full version\n\tSID : database identifier\n\tstart : start database if not already running\n\tstop : stop database\n\trestart : stop, start, when reload isn't enough\n\tmonitor : check that database is running and active\n\tclean : force quit\n\treload : reload cofiguration (postgres.conf, pg_hba.conf, et pg_ident.conf)\n"

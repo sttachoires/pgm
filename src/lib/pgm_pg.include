@@ -10,7 +10,7 @@
 if [ "${PGM_PG_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
-. /home/stephane/postgres/github/pgm/pgm.conf
+. {install_dir}/pgm.conf
 if [ $? -ne 0 ]; then
   exit 1
 fi

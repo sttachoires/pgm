@@ -13,10 +13,10 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. /home/stephane/postgres/github/pgm/pgm.conf
-. /home/stephane/postgres/github/pgm/pgm_util.include
-. /home/stephane/postgres/github/pgm/pgm_server.include
-. /home/stephane/postgres/github/pgm/pgm_pg.include
+. {install_dir}/pgm.conf
+. {install_dir}/pgm_util.include
+. {install_dir}/pgm_server.include
+. {install_dir}/pgm_pg.include
 
 USAGE="Usage: ${PRGNAME} VERSION SID \nwhere:\n\tVERSION is the full version of PostgreSQL to use (ie: 9.3.4)\n\tPGSID stands for the cluster name\n"
 

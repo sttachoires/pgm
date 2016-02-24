@@ -13,9 +13,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. /home/stephane/postgres/github/pgm/pgm_util.include
-. /home/stephane/postgres/github/pgm/pgm_server.include
-. /home/stephane/postgres/github/pgm/pgm_pg.include
+. {install_dir}/pgm_util.include
+. {install_dir}/pgm_server.include
+. {install_dir}/pgm_pg.include
 
 USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION is the major version of PostgreSQL to use (ie: 9.3)\n\tPGSID stands for the cluster name (Oracle SID equivalent)\n\tPGPORT is the port the server is listening from\n\tPGLISTENER  is the hostname/ip listening on the PGPORT (default wil be '*')\n"
 
