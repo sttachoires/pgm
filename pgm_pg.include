@@ -220,7 +220,7 @@ function setDatabase()
 
   if [[ "${pgm_database}" =~ [${PGM_PGDATABASE_AUTHORIZED_REGEXP}]+ ]]; then
     # First set versions constants
-    export PGM_PGDBNAME="${pgm_database}"
+    export PGM_PGDATABASE="${pgm_database}"
 
     # Remove trailing slashes.
     for pgm_pattern in ${!PGMDBPATTERN_*}
@@ -236,112 +236,5 @@ function setDatabase()
   fi
 }
 
-function loadDataFromTab()
-{
-  pgm_set1='.+'
-  pgm_set2='.+'
-  pgm_set3='.+'
-
-  case $3 in
-    1) pgm_set1=$1
-       ;;
-
-    2) pgm_set1=$1
-       pgm_set2=$2
-       ;;
-
-    3) pgm_set1=$1
-       pgm_set2=$2
-       pgm_set3=$3
-       ;;
-
-    *) return 1
-       ;;
-  esac
-
-  # Check environement
-  if [ ! -r ${PGM_PGTAB} ]; then
-    return 2
-  else
-    # Get instance environement
-    pgm_line=$(egrep "^[:space:]*${pgm_set1}:${pgm_set2}:${pgm_set3}:[ynYN]" ${PGM_PGTAB})
-    if [ $? -ne 0 ]; then
-      pgm_line=""
-    elif [ $(echo "${pgm_pgline}" | wc -l) -gt 1 ]; then
-      pgm_pgline=$(echo "${pgm_pgline}" | head 1)
-    fi
-    # If nothing found, search with another switch
-    if [ -z "${pgm_line}" ]; then
-      pgm_line=$(egrep "^[:space:]*${pgm_set1}:${pgm_set3}:${pgm_set2}:[ynYN]" ${PGM_PGTAB})
-      if [ $? -ne 0 ]; then
-        pgm_line=""
-      elif [ $(echo "${pgm_pgline}" | wc -l) -gt 1 ]; then
-        pgm_pgline=$(echo "${pgm_pgline}" | head 1)
-      fi
-    fi    
-    # If nothing found, search with another switch
-    if [ -z "${pgm_line}" ]; then
-      pgm_line=$(egrep "^[:space:]*${pgm_set2}:${pgm_set1}:${pgm_set3}:[ynYN]" ${PGM_PGTAB})
-      if [ $? -ne 0 ]; then
-        pgm_line=""
-      elif [ $(echo "${pgm_pgline}" | wc -l) -gt 1 ]; then
-        pgm_pgline=$(echo "${pgm_pgline}" | head 1)
-      fi
-    fi    
-    # If nothing found, search with another switch
-    if [ -z "${pgm_line}" ]; then
-      pgm_line=$(egrep "^[:space:]*${pgm_set2}:${pgm_set3}:${pgm_set1}:[ynYN]" ${PGM_PGTAB})
-      if [ $? -ne 0 ]; then
-        pgm_line=""
-      elif [ $(echo "${pgm_pgline}" | wc -l) -gt 1 ]; then
-        pgm_pgline=$(echo "${pgm_pgline}" | head 1)
-      fi
-    fi    
-    # If nothing found, search with another switch
-    if [ -z "${pgm_line}" ]; then
-      pgm_line=$(egrep "^[:space:]*${pgm_set3}:${pgm_set1}:${pgm_set2}:[ynYN]" ${PGM_PGTAB})
-      if [ $? -ne 0 ]; then
-        pgm_line=""
-      elif [ $(echo "${pgm_pgline}" | wc -l) -gt 1 ]; then
-        pgm_pgline=$(echo "${pgm_pgline}" | head 1)
-      fi
-    fi    
-    # If nothing found, search with another switch
-    if [ -z "${pgm_line}" ]; then
-      pgm_line=$(egrep "^[:space:]*${pgm_set3}:${pgm_set2}:${pgm_set1}:[ynYN]" ${PGM_PGTAB})
-      if [ $? -ne 0 ]; then
-        pgm_line=""
-      elif [ $(echo "${pgm_pgline}" | wc -l) -gt 1 ]; then
-        pgm_pgline=$(echo "${pgm_pgline}" | head 1)
-      fi
-    fi    
-
-
-    if [ ! -z "${pgm_line}" ]; then
-      pgm_db=$(echo "${pgline}" | cut -d : -f 1)
-      pgm_instance=$(echo "${pgline}" | cut -d : -f 2)
-      pgm_version=$(echo "${pgline}" | cut -d : -f 3)
-
-      if [ "${pgm_db}" == '*' ] && [ "${pgm_instance}" == '*' ]; then
-        setServer ${pgm_version}
-        if [ $? -ne 0 ]; then
-          return 4
-        fi
-      elif [ "${pgm_db}" == '*' ]; then
-        setInstance ${pgm_version} ${pgm_instance}
-        if [ $? -ne 0 ]; then
-          return 5
-        fi
-      else
-        setDatabase ${pgm_version} ${pgm_instance} ${pgm_db}
-        if [ $? -ne 0 ]; then
-          return 6
-        fi
-      fi
-    else
-      return 3
-    fi
-  fi
-}
 # Nothing should happens after next line
 export PGM_PG_INCLUDE="LOADED"
