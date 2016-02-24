@@ -13,7 +13,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. /home/stephane/postgres/github/pgm/pgm_util.conf
+. /home/stephane/postgres/github/pgm/pgm.conf
 . /home/stephane/postgres/github/pgm/pgm_util.include
 . /home/stephane/postgres/github/pgm/pgm_server.include
 . /home/stephane/postgres/github/pgm/pgm_pg.include
@@ -28,7 +28,7 @@ case $# in
 
   2 ) pgm_version=$1
       pgm_instance=$2
-      pgm_database=""
+      pgm_database="postgres"
       ;;
 
   *) exitError "${USAGE}\n"
@@ -47,16 +47,10 @@ if [ $? -ne 0 ]; then
   exitError "Unmanaged SID ${pgm_instance}\n"
 fi
 
-if [ "${pgm_database}" == "" ]; then
-  setInstance ${pgm_version} ${pgm_instance}
-  if [ $? -ne 0 ]; then
-    exitError "Cannot set instance ${pgm_instance} of ${pgm_version} server\n"
-  fi
-else
-  setDatabase ${pgm_version} ${pgm_instance} ${pgm_database}
-  if [ $? -ne 0 ]; then
-    exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} of ${pgm_version} server\n"
-  fi
+setDatabase ${pgm_version} ${pgm_instance} ${pgm_database}
+if [ $? -ne 0 ]; then
+  exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} of ${pgm_version} server\n"
 fi
+
 
 ${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} ${PGM_PGDATABASE}

@@ -37,11 +37,12 @@ function checkParameters ()
   fi
 
   export PGM_LOG="${PGM_LOG_DIR}/create_instance.log"
+  printf "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_sid}'\n  VERSION : '${pgm_version}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n" | tee -a ${PGM_LOG}
 }
 
 function checkFS ()
 {
-  for pgm_fs in ${PGM_PGFSLIST}
+  for pgm_fs in ${PGM_PGFSLIST} 
   do
     mount -l | grep -q "${pgm_fs}"
     if [ $? -ne 0 ]; then
@@ -75,7 +76,7 @@ function buildDirectories()
 function initDB ()
 {
   # Create cluster
-  ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale 2>&1 | tee -a ${PGM_LOG}
+  ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale 2>&1 >> ${PGM_LOG} 2>&1
   if [ $? -ne 0 ]; then
     exitError "Cannot create instance ${PGM_PGSID} with PostgreSQL ${PGM_FULL_VERSION}\n"
   fi
@@ -188,7 +189,7 @@ createTabEntry
 createFlags
 startInstance "${PGM_FULL_VERSION}" "${PGM_PGSID}"
 if [ $? -ne 0 ]; then
-  exitError "Cannot start instance ${PGM_PGSID} (${PGM_FULL_VERSION})\n"
+  exitError "Cannot start instance ${PGM_PGSID} (${PGM_FULL_VERSION}) read ${PGM_LOG}\n"
 fi
 createExtentions
 
