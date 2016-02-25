@@ -32,81 +32,112 @@ GREPUSER:=$(shell grep --only-matching "^$(USER):x" /etc/passwd)
 USEREXISTS:=$(patsubst %:x,%,$(GREPUSER))
 USERCREATE:=$(if $(USEREXISTS),$(NOUSER),$(USER))
 
-SAVE_TPLS=save_tplptrns
-NO_SAVE_TPLS=no_save_tplptrns
+SAVE_TPLS=save_tpls
+NO_SAVE_TPLS=no_save_tpls
 TPLS_TO_SAVE:=$(wildcard $(TPLDIR)/*/*.tpl)
-BACKUP_OLD_TPLS:=$(if $(TPLS_TO_SAVE),$(SAVE_TPLS), $(NO_SAVE_TPLS))
-SAVE_CONFS=save_conf
-NO_SAVE_CONFS=no_save_conf
-CONFS_TO_SAVE:=$(wildcard $(CONFDIR)/*)
+BACKUP_OLD_TPLS:=$(filter-out %/save.%, $(if $(TPLS_TO_SAVE),$(SAVE_TPLS),$(NO_SAVE_TPLS)))
+SAVE_CONFS=save_confs
+NO_SAVE_CONFS=no_save_confs
+CONFS_TO_SAVE:=$(filter-out $(CONFDIR)/save.%, $(wildcard $(CONFDIR)/*))
 BACKUP_OLD_CONFS:=$(if $(CONFS_TO_SAVE),$(SAVE_CONFS),$(NO_SAVE_CONFS))
+ADD_PATH=add_path
+NO_ADD_PATH=no_add_path
+GREP_PATH:=$(shell grep --extended-regexp --only-matching "[[:space:]]*(export)?[[:space:]]*PATH[[:space:]]*=[[:space:]]*.*:${BINDIR}:" ~${USER}.bash_profile)
+PATH_TO_ADD:=$(if $(GREP_PATH),$(NO_ADD_PATH),$(ADD_PATH))
 
 all: options $(BINS) $(LIBS) $(CONFS) $(MANPAGES) $(TPLS) $(DOCS)
-	@echo "TPLS_TO_SAVE=${TPLS_TO_SAVE}"
-	@echo "BACKUP_OLD_TPLS=${BACKUP_OLD_TPLS}"
-	@echo "CONFS_TO_SAVE=${CONFS_TO_SAVE}"
-	@echo "BACKUP_OLD_CONFS=${BACKUP_OLD_CONFS}"
 	@echo
 
-install: | all ${GROUPCREATE} $(USERCREATE) $(DEST_BINS) $(DEST_LIBS) $(BACKUP_OLD_TPLS) $(DEST_TPLS) $(BACKUP_OLD_CONFS) $(DEST_CONFS) $(DEST_DOCS) $(DEST_MANPAGES)
+add_path:
+	@echo add pgm path to ${USER} environment
+	sed --in-place=".$(shell date +'%Y.%m.%d_%H.%M.%S')" "s%PATH=%PATH=${BINDIR}:%" ~${USER}/.bash_profile
+	@echo
+
+no_add_path:
+	@echo pgm path already added to ${USER} environement
+
+install: | all ${GROUPCREATE} $(USERCREATE) $(DEST_BINS) $(DEST_LIBS) $(BACKUP_OLD_TPLS) $(DEST_TPLS) $(BACKUP_OLD_CONFS) $(DEST_CONFS) $(DEST_DOCS) $(DEST_MANPAGES) $(PATH_TO_ADD)
 	chmod u=rwx,go= ${PREFIX}
 	chown --recursive ${USER}:${GROUP} ${PREFIX}
+	touch ~${USER}/.bash_profile
+	echo "export PATH=\"${BINDIR}:${PATH}\"" >> ~${USER}/.bash_profile
+	chown ${USER}:${GROUP} ~${USER}/.bash_profile
 	@echo
 
 uninstall:
 	@echo removing all files from ${PREFIX}
-	rm -f $(DEST_ALL)
+	@rm -f $(DEST_BINS)
+	@rm -f $(DEST_LIBS)
+	@rm -f $(DEST_TPLS)
+	@rm -f $(DEST_CONFS)
+	@rm -f $(DEST_DOCS)
+	@rm -f $(DEST_MANPAGES)
+	@echo
+
+cleansave:
+	@echo removing all backup configutations and templates and dirs from ${PREFIX}
+	@rm -f $(wildcard $(TPLDIR)/save.*)
+	@rm -f $(wildcard $(CONFIR)/save.*)
 	@echo
 
 clean:
 	@echo cleaning
-	rm -f $(BINS)
-	rm -f $(LIBS)
-	rm -f $(TPLS)
-	rm -f $(CONFS)
-	rm -f $(MANPAGES)
+	@rm -f $(BINS)
+	@rm -f $(LIBS)
+	@rm -f $(TPLS)
+	@rm -f $(CONFS)
+	@rm -f $(MANPAGES)
 	@echo
 
 options:
+	@echo
+	@echo "######"
 	@echo "${NAME} ${VERSION} install options:"
-	@echo "BASH           :=${BASH}"
-	@echo "USER           :=${USER}"
-	@echo "USERNUM        :=${USERNUM}"
-	@echo "GROUP          :=${GROUP}"
-	@echo "GROUPNUM       :=${GROUPNUM}"
-	@echo "PREFIX         :=${PREFIX}"
-	@echo "BINDIR         :=${BINDIR}"
-	@echo "LIBDIR         :=${LIBDIR}"
-	@echo "TPLDIR         :=${TPLDIR}"
-	@echo "CONFDIR        :=${CONFDIR}"
-	@echo "DOCDIR         :=${DOCDIR}"
-	@echo "MANDIR         :=${MANDIR}"
+	@echo "######"
+	@echo "BASH             =${BASH}"
+	@echo "USER             =${USER}"
+	@echo "USERNUM          =${USERNUM}"
+	@echo "GROUP            =${GROUP}"
+	@echo "GROUPNUM         =${GROUPNUM}"
+	@echo "PREFIX           =${PREFIX}"
+	@echo "BINDIR           =${BINDIR}"
+	@echo "LIBDIR           =${LIBDIR}"
+	@echo "TPLDIR           =${TPLDIR}"
+	@echo "CONFDIR          =${CONFDIR}"
+	@echo "DOCDIR           =${DOCDIR}"
+	@echo "MANDIR           =${MANDIR}"
 	@echo
-	@echo "SRC_BINS       :=${SRC_BINS}"
-	@echo "SRC_LIBS       :=${SRC_LIBS}"
-	@echo "SRC_TPLS       :=${SRC_TPLS}"
-	@echo "SRC_CONFS      :=${SRC_CONFS}"
-	@echo "SRC_DOCS       :=${SRC_DOCS}"
-	@echo "SRC_MANPAGES   :=${SRC_MANPAGES}"
+	@echo "SRC_BINS         =${SRC_BINS}"
+	@echo "SRC_LIBS         =${SRC_LIBS}"
+	@echo "SRC_TPLS         =${SRC_TPLS}"
+	@echo "SRC_CONFS        =${SRC_CONFS}"
+	@echo "SRC_DOCS         =${SRC_DOCS}"
+	@echo "SRC_MANPAGES     =${SRC_MANPAGES}"
 	@echo
-	@echo "BINS           :=${BINS}"
-	@echo "LIBS           :=${LIBS}"
-	@echo "TPLS           :=${TPLS}"
-	@echo "CONFS          :=${CONFS}"
-	@echo "DOCS           :=${DOCS}"
-	@echo "MANPAGES       :=${MANPAGES}"
+	@echo "BINS             =${BINS}"
+	@echo "LIBS             =${LIBS}"
+	@echo "TPLS             =${TPLS}"
+	@echo "CONFS            =${CONFS}"
+	@echo "DOCS             =${DOCS}"
+	@echo "MANPAGES         =${MANPAGES}"
 	@echo
-	@echo "DEST_BINS      :=${DEST_BINS}"
-	@echo "DEST_LIBS      :=${DEST_LIBS}"
-	@echo "DEST_TPLS      :=${DEST_TPLS}"
-	@echo "DEST_CONFS     :=${DEST_CONFS}"
-	@echo "DEST_DOCS      :=${DEST_DOCS}"
-	@echo "DEST_MANPAGES  :=${DEST_MANPAGES}"
+	@echo "DEST_BINS        =${DEST_BINS}"
+	@echo "DEST_LIBS        =${DEST_LIBS}"
+	@echo "DEST_TPLS        =${DEST_TPLS}"
+	@echo "DEST_CONFS       =${DEST_CONFS}"
+	@echo "DEST_DOCS        =${DEST_DOCS}"
+	@echo "DEST_MANPAGES    =${DEST_MANPAGES}"
+	@echo
+	@echo "TPLS_TO_SAVE     =${TPLS_TO_SAVE}"
+	@echo "BACKUP_OLD_TPLS  =${BACKUP_OLD_TPLS}"
+	@echo "CONFS_TO_SAVE    =${CONFS_TO_SAVE}"
+	@echo "BACKUP_OLD_CONFS =${BACKUP_OLD_CONFS}"
+	@echo "######"
 	@echo
 
 bin/%:bin/%.bash
 	@echo translating paths in bash scripts: $@
-	sed -e "s%@BASH@%${BASH}%" \
+	@sed -e "s%@BASH@%${BASH}%" \
 		-e "s%@USER@%${USER}%" \
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
@@ -123,7 +154,7 @@ bin/%:bin/%.bash
 
 lib/%:lib/%.bash
 	@echo translating paths in bash scripts: $@
-	sed -e "s%@BASH@%${BASH}%" \
+	@sed -e "s%@BASH@%${BASH}%" \
 		-e "s%@USER@%${USER}%" \
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
@@ -140,7 +171,7 @@ lib/%:lib/%.bash
 
 $(TPLS): $(SRC_TPL) 
 	@echo translating paths in bash scripts: $@
-	sed -e "s%@BASH@%${BASH}%" \
+	@sed -e "s%@BASH@%${BASH}%" \
 		-e "s%@USER@%${USER}%" \
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
@@ -157,7 +188,7 @@ $(TPLS): $(SRC_TPL)
 
 $(CONFS): $(SRC_CONFS)
 	@echo translating paths in configuration files: $@
-	sed -e "s%@BASH@%${BASH}%" \
+	@sed -e "s%@BASH@%${BASH}%" \
 		-e "s%@USER@%${USER}%" \
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
@@ -174,7 +205,7 @@ $(CONFS): $(SRC_CONFS)
 
 $(MANPAGES): $(SRCMANPAGES)
 	@echo translating paths in manual pages: $@
-	sed -e "s%@BASH@%${BASH}%" \
+	@sed -e "s%@BASH@%${BASH}%" \
 		-e "s%@USER@%${USER}%" \
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
@@ -191,7 +222,7 @@ $(MANPAGES): $(SRCMANPAGES)
 
 $(USER) :
 	@echo adding ${USER} user
-	adduser --gid=${GROUPNUM} --system --shell=${BASH} --uid=${USERNUM} ${USER}
+	@adduser --gid=${GROUPNUM} --system --shell=${BASH} --uid=${USERNUM} ${USER}
 	@echo
 
 $(NOUSER) :
@@ -200,7 +231,7 @@ $(NOUSER) :
 
 $(GROUP) :
 	@echo adding ${GROUP} group
-	addgroup --gid=${GROUPNUM} --system ${GROUP}
+	@addgroup --gid=${GROUPNUM} --system ${GROUP}
 	@echo
 
 $(NOGROUP) :
@@ -209,18 +240,18 @@ $(NOGROUP) :
 
 $(DEST_BINS) : $(SRC_BINS)
 	@echo installing executable files to ${BINDIR}
-	mkdir --parents ${BINDIR}
-	cp --force --recursive $(BINS) ${BINDIR}
-	chmod u=rx,go= $(DEST_BINS)
-	chown --recursive ${USER}:${GROUP} ${BINDIR}
+	@mkdir --parents ${BINDIR}
+	@cp --force --recursive $(BINS) ${BINDIR}
+	@chmod u=rx,go= $(DEST_BINS)
+	@chown --recursive ${USER}:${GROUP} ${BINDIR}
 	@echo
 
 $(DEST_LIBS) :$(SRC_LIBS)
 	@echo installing library files to ${LIBDIR}
-	mkdir --parents ${LIBDIR}
-	cp --force --recursive $(LIBS) ${LIBDIR}
-	chmod u=r,go= $(DEST_LIBS)
-	chown --recursive ${USER}:${GROUP} ${LIBDIR}
+	@mkdir --parents ${LIBDIR}
+	@cp --force --recursive $(LIBS) ${LIBDIR}
+	@chmod u=r,go= $(DEST_LIBS)
+	@chown --recursive ${USER}:${GROUP} ${LIBDIR}
 	@echo
 
 $(NO_SAVE_TPLS) :
@@ -229,15 +260,15 @@ $(NO_SAVE_TPLS) :
 
 $(SAVE_TPLS) :
 	@echo saving old templates $(TPLS_TO_SAVE)
-	tar --preserve-permissions --exclude $(TPLDIR)/save.* --create --gzip --file $(TPLDIR)/save.$(shell date +'%Y.%m.%d_%H.%M.%S') $(TPLS_TO_SAVE)
+	@tar --preserve-permissions --exclude $(TPLDIR)/save.* --create --gzip --file $(TPLDIR)/save.$(shell date +'%Y.%m.%d_%H.%M.%S') $(TPLS_TO_SAVE)
 	@echo
 
 $(TPLDIR)/%:$(TPLS:template/%=%)
 	@echo installing tplptrn files $< to ${TPLDIR}
-	mkdir --parents $(dir $@)
-	cp --recursive $< $@
-	chmod  u=r,go= $@
-	chown  ${USER}:${GROUP} $@
+	@mkdir --parents $(dir $@)
+	@cp --recursive $< $@
+	@chmod  u=r,go= $@
+	@chown  ${USER}:${GROUP} $@
 	@echo
 
 $(NO_SAVE_CONFS) :
@@ -246,31 +277,31 @@ $(NO_SAVE_CONFS) :
 
 $(SAVE_CONFS) :
 	@echo saving old configuration $(TPLS_TO_SAVE)
-	tar --preserve-permissions --exclude $(CONFDIR)/save.* --create --gzip --file $(CONFDIR)/save.$(shell date +'%Y.%m.%d_%H.%M.%S') "$(CONFDIR)"
+	@tar --preserve-permissions --exclude $(CONFDIR)/save.* --create --gzip --file $(CONFDIR)/save.$(shell date +'%Y.%m.%d_%H.%M.%S') "$(CONFDIR)"
 	@echo
 
 $(DEST_CONFS): | $(BACKUP_OLD_CONF) $(SRC_CONFS)
 	@echo installing configuration files to ${CONFDIR}
-	mkdir --parents ${CONFDIR}
-	cp --force --recursive $(CONFS) $(CONFDIR)
-	chmod --recursive u=rw,go= $(CONFDIR)
-	chown --recursive ${USER}:${GROUP} ${CONFDIR}
+	@mkdir --parents ${CONFDIR}
+	@cp --force --recursive $(CONFS) $(CONFDIR)
+	@chmod --recursive u=rw,go= $(CONFDIR)
+	@chown --recursive ${USER}:${GROUP} ${CONFDIR}
 	@echo
 
 $(DEST_DOCS): $(SRC_DOCS)
 	@echo installing documentation to ${DOCDIR}
-	mkdir --parents ${DOCDIR}
-	cp --force --recursive $(DOCS) $(DOCDIR)
-	chmod a=r $(DEST_DOCS)
-	chown --recursive ${USER}:${GROUP} ${DOCDIR}
+	@mkdir --parents ${DOCDIR}
+	@cp --force --recursive $(DOCS) $(DOCDIR)
+	@chmod a=r $(DEST_DOCS)
+	@chown --recursive ${USER}:${GROUP} ${DOCDIR}
 	@echo
 
 $(DEST_MANPAGES): $(SRC_MANPAGES)
 	@echo installing manual files to ${MANDIR}
-	mkdir --parents $(MANDIR)/man1
-	cp --force --recursive $(MANPAGES) $(MANDIR)/man1
-	chmod a=r $(DEST_MANPAGES)
-	chown --recursive $(USER):${GROUP} $(MANDIR)/man1
+	@mkdir --parents $(MANDIR)/man1
+	@cp --force --recursive $(MANPAGES) $(MANDIR)/man1
+	@chmod a=r $(DEST_MANPAGES)
+	@chown --recursive $(USER):${GROUP} $(MANDIR)/man1
 	@echo
 
-.PHONY: all options clean install uninstall nogrouptocreate nousertocreate
+.PHONY: all options clean install uninstall nogroup nouser nosavetpls nosaveconfs
