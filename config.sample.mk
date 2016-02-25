@@ -17,4 +17,4 @@ LIBDIR = ${PREFIX}/lib/${NAME}
 CONFDIR = ${PREFIX}/etc/${NAME}
 DOCDIR = ${PREFIX}/share/${NAME}
 MANDIR = ${PREFIX}/share/man
-TEMPLATEDIR = ${PREFIX}/template/${NAME}
+TPLDIR = ${PREFIX}/templates/${NAME}
