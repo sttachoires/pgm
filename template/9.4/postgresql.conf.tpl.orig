@@ -1,0 +1,185 @@
+
+max_connections = 200
+# Note:  Increasing max_connections costs ~400 bytes of shared memory per
+# connection slot, plus lock space (see max_locks_per_transaction).
+
+shared_buffers = 2GB			# min 128kB
+                                        # (change requires restart)
+
+# Logging
+log_destination = 'stderr'              # Valid values are combinations of
+                                        # stderr, csvlog, syslog and eventlog,
+                                        # depending on platform.  csvlog
+                                        # requires logging_collector to be on.
+logging_collector = on                  # Enable capturing of stderr and csvlog
+                                        # into log files. Required to be on for
+                                        # csvlogs.
+                                        # (change requires restart)
+
+# These are relevant when logging to syslog:
+#syslog_facility = 'LOCAL0'
+#syslog_ident = 'postgres'
+
+# These are only used if logging_collector is on:
+log_directory = '${PGM_PGLOG_DIR}'   # directory where log files are written,
+                                        # can be absolute or relative to PGDATA
+log_filename = '${PGM_PGLOG_FILE}'   # log file name pattern,
+                                        # can include strftime() escapes
+log_truncate_on_rotation = on           # If on, an existing log file of the
+                                        # same name as the new log file will be
+                                        # truncated rather than appended to.
+                                        # But such truncation only occurs on
+                                        # time-driven rotation, not on restarts
+                                        # or size-driven rotation.  Default is
+                                        # off, meaning append to existing files
+                                        # in all cases.			
+log_rotation_age = 1d                   # Automatic rotation of logfiles will
+                                        # happen after that time.  0 disables.
+log_rotation_size = 1GB                 # Automatic rotation of logfiles will 
+                                        # happen after that much log output.
+                                        # 0 disables.	
+
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d - PG-%e ' # special values:
+                                        #   %u = user name
+                                        #   %d = database name
+                                        #   %r = remote host and port
+                                        #   %h = remote host
+                                        #   %p = process ID
+                                        #   %t = timestamp without milliseconds
+                                        #   %m = timestamp with milliseconds
+                                        #   %i = command tag
+                                        #   %e = SQLSTATE error code
+                                        #   %c = session ID
+                                        #   %l = session line number
+                                        #   %s = session start timestamp
+                                        #   %v = virtual transaction ID
+                                        #   %x = transaction ID (0 if none)
+                                        #   %q = stop here in non-session
+                                        #        processes
+                                        #   %% = '%'
+                                        # e.g. '<%u%%%d> '
+# - What to Log -
+log_connections = off
+log_disconnections = off
+log_checkpoints = off
+log_lock_waits = off                    # log lock waits >= deadlock_timeout
+log_temp_files = -1                     # log temporary files equal or larger
+                                        # than the specified size in kilobytes;
+                                        # -1 disables, 0 logs all temp files
+log_duration = off
+log_statement = 'none'                  # none, ddl, mod, all
+log_min_duration_statement = -1         # -1 is disabled, 0 logs all statements
+                                        # and their durations, > 0 logs only
+                                        # statements running at least this number
+                                        # of milliseconds
+
+# - Locale and Formatting -
+
+datestyle = 'iso, mdy'
+
+# These settings are initialized by initdb, but they can be changed.
+lc_messages = 'C'	                        # locale for system error message
+                                                # strings
+#lc_monetary = 'en_US.UTF-8'                    # locale for monetary formatting
+#lc_numeric = 'en_US.UTF-8'                     # locale for number formatting
+#lc_time = 'en_US.UTF-8'                        # locale for time formatting
+
+# default configuration for text search
+default_text_search_config = 'pg_catalog.english'
+
+# Connection
+listen_addresses = ${PGM_PGHOST}
+port = ${PGM_PGPORT}
+superuser_reserved_connections = 3
+unix_socket_directories = '${PGM_PGDATA_DIR}'
+
+# - Security and Authentication -
+ssl = off                                       # (change requires restart)
+ssl_ciphers = 'ALL'                             # allowed SSL ciphers
+                                                # 'ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH'
+# Ressources consumption
+max_prepared_transactions = 500
+
+# Write ahead log
+# Parameters
+fsync = on                             # turns forced synchronization on or off
+synchronous_commit = on                # immediate fsync at commit
+wal_buffers = -1                       # min 32kB
+                                       # (change requires restart)
+
+# Checkpoints
+checkpoint_segments = 16
+checkpoint_timeout = 1min              # range 30s-1h
+checkpoint_completion_target = 0.9     # checkpoint target duration, 0.0 - 1.0
+checkpoint_warning = 30s               # 0 disables
+
+# Archive
+wal_level = hot_standby
+archive_mode = on
+archive_command = 'true'
+#archive_command = 'rsync %p ${PGM_PGARCHIVELOG_DIR}/%f'
+# WAL sender
+max_wal_senders = 2
+
+#------------------------------------------------------------------------------
+# RUNTIME STATISTICS
+#------------------------------------------------------------------------------
+
+# - Query/Index Statistics Collector -
+
+track_activities = on
+track_counts = on
+track_functions = all                 # none, pl, all
+track_activity_query_size = 4096
+track_io_timing = on
+update_process_title = on
+#stats_temp_directory = 'pg_stat_tmp'
+
+# - Statistics Monitoring -
+
+log_parser_stats = off
+log_planner_stats = off
+log_executor_stats = off
+log_statement_stats = off
+
+#------------------------------------------------------------------------------
+# AUTOVACUUM PARAMETERS
+#------------------------------------------------------------------------------
+
+autovacuum = on                         # Enable autovacuum subprocess?  'on'
+                                        # requires track_counts to also be on.
+log_autovacuum_min_duration = 0         # -1 disables, 0 logs all actions and
+                                        # their durations, > 0 logs only
+                                        # actions running at least this number
+                                        # of milliseconds.
+#autovacuum_max_workers = 3             # max number of autovacuum subprocesses
+#autovacuum_naptime = 1min              # time between autovacuum runs
+#autovacuum_vacuum_threshold = 50       # min number of row updates before
+                                        # vacuum
+#autovacuum_analyze_threshold = 50      # min number of row updates before
+                                        # analyze
+#autovacuum_vacuum_scale_factor = 0.2   # fraction of table size before vacuum
+#autovacuum_analyze_scale_factor = 0.1  # fraction of table size before analyze
+#autovacuum_freeze_max_age = 200000000  # maximum XID age before forced vacuum
+                                        # (change requires restart)
+#autovacuum_vacuum_cost_delay = 20ms    # default vacuum cost delay for
+                                        # autovacuum, in milliseconds;
+                                        # -1 means use vacuum_cost_delay
+#autovacuum_vacuum_cost_limit = -1      # default vacuum cost limit for
+                                        # autovacuum, -1 means use
+                                        # vacuum_cost_limit
+
+#------------------------------------------------------------------------------
+# Preload shared libraries that extents PostgreSQL capabilities
+#------------------------------------------------------------------------------
+shared_preload_libraries = '${PGM_PGEXTENTIONS}'
+
+# Libraries parameters
+auto_explain.log_min_duration = '1s'   # Request min duration to be explained
+auto_explain.log_analyze = off         # EXPLAIN ANALYSE if on, off by default
+auto_explain.log_verbose = off         # EXPLAIN VERBOSE if on
+auto_explain.log_buffers = off         # EXPLAIN ANALYSE BUFFERS if on (analyse should be on too
+auto_explain.log_timing = off          # Log timing on every EXPLAIN nodes
+pg_stat_statements.max = 5000          # Max number of stored statements in view
+pg_stat_statements.track = none        # none, top, all
+pg_stat_statements.save = off          # Make pg_stat_statements persistent

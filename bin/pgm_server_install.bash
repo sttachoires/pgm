@@ -50,8 +50,8 @@ function createTabEntry()
       exitError "Unable to write into ${PGM_PGTAB}\n"
     fi
   fi
-  pgmline="*:*:${PGM_FULL_VERSION}:n"
-  egrep -q "^[[:space:]]*\*:\*:${PGM_FULL_VERSION}:.?" ${PGM_PGTAB}
+  pgmline="*:*:${PGM_PGFULL_VERSION}:n"
+  egrep -q "^[[:space:]]*\*:\*:${PGM_PGFULL_VERSION}:.?" ${PGM_PGTAB}
   if [ $? -ne 0 ]; then
     echo "${pgmline}" >> ${PGM_PGTAB}
     printf "Line '${pgmline}' added to ${PGM_PGTAB}\n" | tee -a ${PGM_LOG}
@@ -89,4 +89,4 @@ fi
 
 createTabEntry
 
-printf "PostgreSQL ${PGM_FULL_VERSION} is installed in ${PGM_PGHOME_DIR}\n" | tee -a ${PGM_LOG}
+printf "PostgreSQL ${PGM_PGFULL_VERSION} is installed in ${PGM_PGHOME_DIR}\n" | tee -a ${PGM_LOG}

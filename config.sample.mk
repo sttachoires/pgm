@@ -8,9 +8,13 @@ BASH = /bin/bash
 
 # paths
 USER = postgres
+USERNUM = 533
+GROUP = dba
+GROUPNUM = 533
 PREFIX = /home/pgm
 BINDIR = ${PREFIX}/bin
 LIBDIR = ${PREFIX}/lib/${NAME}
-SYSCONFDIR = ${PREFIX}/etc/${NAME}
-DOCDIR = ${PREFIX}/share/doc/${NAME}
+CONFDIR = ${PREFIX}/etc/${NAME}
+DOCDIR = ${PREFIX}/share/${NAME}
 MANDIR = ${PREFIX}/share/man
+TEMPLATEDIR = ${PREFIX}/template/${NAME}

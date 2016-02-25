@@ -20,12 +20,12 @@ function setServer()
     return 1
   fi
 
-  PGM_FULL_VERSION=$1
-  if [[ "${PGM_FULL_VERSION}" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
+  PGM_PGFULL_VERSION=$1
+  if [[ "${PGM_PGFULL_VERSION}" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
     # First set versions constants
-    export PGM_FULL_VERSION_NUM=${PGM_FULL_VERSION//./}
-    export PGM_MAJOR_VERSION=${PGM_FULL_VERSION%.*}
-    export PGM_MAJOR_VERSION_NUM=${PGM_MAJOR_VERSION//./}
+    export PGM_PGFULL_VERSION_NUM=${PGM_PGFULL_VERSION//./}
+    export PGM_PGMAJOR_VERSION=${PGM_PGFULL_VERSION%.*}
+    export PGM_PGMAJOR_VERSION_NUM=${PGM_PGMAJOR_VERSION//./}
 
     # Remove trailing slashes.
     for pgm_pattern in ${!PGMSRV_PTRN_*}
