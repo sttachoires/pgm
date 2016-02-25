@@ -15,7 +15,7 @@ CONFS:=$(basename $(SRC_CONFS))
 MANPAGES:=$(basename $(SRC_MANPAGES))
 TPLS:=$(basename $(SRC_TPLS))
 DOCS:=$(SRC_DOCS)
-
+BASH_PROFILE:="$(shell echo "/home/${USER}")/.bash_profile"
 DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
 DEST_CONFS:=$(CONFS:%=${CONFDIR}/%)
@@ -40,28 +40,13 @@ SAVE_CONFS=save_confs
 NO_SAVE_CONFS=no_save_confs
 CONFS_TO_SAVE:=$(filter-out $(CONFDIR)/save.%, $(wildcard $(CONFDIR)/*))
 BACKUP_OLD_CONFS:=$(if $(CONFS_TO_SAVE),$(SAVE_CONFS),$(NO_SAVE_CONFS))
-ADD_PATH=add_path
-NO_ADD_PATH=no_add_path
-GREP_PATH:=$(shell grep --extended-regexp --only-matching "[[:space:]]*(export)?[[:space:]]*PATH[[:space:]]*=[[:space:]]*.*:${BINDIR}:" ~${USER}.bash_profile)
-PATH_TO_ADD:=$(if $(GREP_PATH),$(NO_ADD_PATH),$(ADD_PATH))
 
 all: options $(BINS) $(LIBS) $(CONFS) $(MANPAGES) $(TPLS) $(DOCS)
 	@echo
 
-add_path:
-	@echo add pgm path to ${USER} environment
-	sed --in-place=".$(shell date +'%Y.%m.%d_%H.%M.%S')" "s%PATH=%PATH=${BINDIR}:%" ~${USER}/.bash_profile
-	@echo
-
-no_add_path:
-	@echo pgm path already added to ${USER} environement
-
-install: | all ${GROUPCREATE} $(USERCREATE) $(DEST_BINS) $(DEST_LIBS) $(BACKUP_OLD_TPLS) $(DEST_TPLS) $(BACKUP_OLD_CONFS) $(DEST_CONFS) $(DEST_DOCS) $(DEST_MANPAGES) $(PATH_TO_ADD)
+install: | all ${GROUPCREATE} $(USERCREATE) $(DEST_BINS) $(DEST_LIBS) $(BACKUP_OLD_TPLS) $(DEST_TPLS) $(BACKUP_OLD_CONFS) $(DEST_CONFS) $(DEST_DOCS) $(DEST_MANPAGES)
 	chmod u=rwx,go= ${PREFIX}
 	chown --recursive ${USER}:${GROUP} ${PREFIX}
-	touch ~${USER}/.bash_profile
-	echo "export PATH=\"${BINDIR}:${PATH}\"" >> ~${USER}/.bash_profile
-	chown ${USER}:${GROUP} ~${USER}/.bash_profile
 	@echo
 
 uninstall:
@@ -106,6 +91,7 @@ options:
 	@echo "CONFDIR          =${CONFDIR}"
 	@echo "DOCDIR           =${DOCDIR}"
 	@echo "MANDIR           =${MANDIR}"
+	@echo "BASH_PROFILE     =${BASH_PROFILE}"
 	@echo
 	@echo "SRC_BINS         =${SRC_BINS}"
 	@echo "SRC_LIBS         =${SRC_LIBS}"
@@ -188,7 +174,7 @@ $(TPLS): $(SRC_TPL)
 
 $(CONFS): $(SRC_CONFS)
 	@echo translating paths in configuration files: $@
-	@sed -e "s%@BASH@%${BASH}%" \
+	sed -e "s%@BASH@%${BASH}%" \
 		-e "s%@USER@%${USER}%" \
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
@@ -222,11 +208,17 @@ $(MANPAGES): $(SRCMANPAGES)
 
 $(USER) :
 	@echo adding ${USER} user
-	@adduser --gid=${GROUPNUM} --system --shell=${BASH} --uid=${USERNUM} ${USER}
+	adduser --gid=${GROUPNUM} --system --shell=${BASH} --uid=${USERNUM} --home=${PREFIX} ${USER}
+	touch ${BASH_PROFILE}
+	cp -f ${BASH_PROFILE} ${BASH_PROFILE}.save
+	echo "export PATH=\"${BINDIR}:${PATH}\"" > ${BASH_PROFILE}
+	echo "alias ll='ls -laF $*'" >> ${BASH_PROFILE}
+	echo "alias pgmsql='pgm_psql $*'" >> ${BASH_PROFILE}
+	chown ${USER}:${GROUP} ${BASH_PROFILE}
 	@echo
 
 $(NOUSER) :
-	@echo ${USER} already exists
+	@echo ${USER} already exists, you should add 'export PATH=\"${BINDIR}:${PATH}\"' to his .bash_profile
 	@echo
 
 $(GROUP) :

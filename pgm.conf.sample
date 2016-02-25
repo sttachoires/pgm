@@ -12,13 +12,13 @@ if [ "${PGM_CONF}" == "LOADED" ]; then
 fi
 
 # PGM CONSTANTS
-export PGM_USER="%USER%"
-export PGM_HOME_DIR="%PREFIX%"
-export PGM_BIN_DIR="%BINDIR%"
-export PGM_LIB_DIR="%LIBDIR%"
-export PGM_CONFIG_DIR="%SYSCONFDIR%"
-export PGM_MAN_DIR="%CONFDIR%"
-export PGM_VERSION="%VERSION%"
+export PGM_USER="@USER@"
+export PGM_HOME_DIR="@PREFIX@"
+export PGM_BIN_DIR="@BINDIR@"
+export PGM_LIB_DIR="@LIBDIR@"
+export PGM_CONFIG_DIR="@SYSCONFDIR@"
+export PGM_MAN_DIR="@CONFDIR@"
+export PGM_VERSION="@VERSION@"
 export PGM_EXPORT_DIR="/${PGM_HOME_DIR}/pgdb/export"
 export PGM_TMP_DIR="/var/tmp"
 export PGM_INVENTORY_DIR="${PGM_HOME_DIR}/inventory"
@@ -29,9 +29,9 @@ export PGM_PGTAB="${PGM_INVENTORY_DIR}/pgtab"
 # The starting point of every instance directory
 export PGM_PGDBHOME_DIR="/${PGM_HOME_DIR}/pgdb"
 # List of allowed charater (form of a regular expression) alowed to form instances name
-export PGM_PGSID_AUTHORIZED_REGEXP="[-a-zA-Z._#0-9]{4,8}"
+export PGM_PGSID_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 # List of allowed charater (form of a regular expression) alowed to form databases name
-export PGM_PGDATABASE_AUTHORIZED_REGEXP="[-a-zA-Z._#0-9]{4,8}"
+export PGM_PGDATABASE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 export PGM_PGEXTENTIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
 export PGM_PGEXTENTIONS_TO_CREATE="adminpack pg_stat_statements"
 
