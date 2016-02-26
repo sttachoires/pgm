@@ -13,10 +13,10 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. @PREFIX@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_server.include
-. ${PGM_LIB_DIR}/pgm_pg.include
+. @CONFDIR@/pgm.conf
+. @LIBDIR@/pgm_util.include
+. @LIBDIR@/pgm_server.include
+. @LIBDIR@/pgm_pg.include
 
 USAGE="Usage: ${PRGNAME} VERSION SID \nwhere:\n\tVERSION is the full version of PostgreSQL to use (ie: 9.3.4)\n\tPGSID stands for the cluster name\n"
 

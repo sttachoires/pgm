@@ -13,9 +13,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. @PREFIX@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_server.include
-. ${PGM_LIB_DIR}/pgm_util.include
+. @CONFDIR@/pgm.conf
+. @LIBDIR@/pgm_server.include
+. @LIBDIR@/pgm_util.include
 
 USAGE="Usage: ${PRGNAME} FULLVERSION SRCDIR\nwhere\n\tFULLVERSION is the full PostgreSQL you are about to install (9.5.0)\n\tSRCDIR is the directory where you've put uncompressed source directory (/var/tmp/postgres-9.5.0-master)"
 
@@ -66,6 +66,7 @@ function createTabEntry()
 
 checkParameter $*
 cd ${pgm_srcdir}
+mkdir --parents ${PGM_PGHOME_DIR}
 ./configure --prefix=${PGM_PGHOME_DIR} --datarootdir="${PGM_PGHOME_DIR}/share" --with-openssl --with-perl --with-python --with-ldap >> ${PGM_LOG} 2>&1
 if [ $? -ne 0 ]; then
   exitError "Problem configuring compilation:\nplease read ${PGM_LOG} and correct problem(s)\n\n"

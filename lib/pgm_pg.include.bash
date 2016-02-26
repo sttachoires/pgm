@@ -10,7 +10,7 @@
 if [ "${PGM_PG_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
-. @PREFIX@/pgm.conf
+. @CONFDIR@/pgm.conf
 if [ $? -ne 0 ]; then
   exit 1
 fi

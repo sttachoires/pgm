@@ -16,10 +16,10 @@ fi
 options=""
 
 # INCLUDE
-. @PREFIX@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_server.include
-. ${PGM_LIB_DIR}/pgm_pg.include
+. @CONFDIR@/pgm.conf
+. @LIBDIR@/pgm_util.include
+. @LIBDIR@/pgm_server.include
+. @LIBDIR@/pgm_pg.include
 
 
 USAGE="${PRGNAME} VERSION SID start|stop|restart|monitor|clean|reload\nwhere:\n\tVERSION : Server full version\n\tSID : database identifier\n\tstart : start database if not already running\n\tstop : stop database\n\trestart : stop, start, when reload isn't enough\n\tmonitor : check that database is running and active\n\tclean : force quit\n\treload : reload cofiguration (postgres.conf, pg_hba.conf, et pg_ident.conf)\n"

@@ -15,7 +15,7 @@ CONFS:=$(basename $(SRC_CONFS))
 MANPAGES:=$(basename $(SRC_MANPAGES))
 TPLS:=$(basename $(SRC_TPLS))
 DOCS:=$(SRC_DOCS)
-BASH_PROFILE:="$(shell echo "/home/${USER}")/.bash_profile"
+BASH_PROFILE:="$(PREFIX)/.bash_profile"
 DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
 DEST_CONFS:=$(CONFS:%=${CONFDIR}/%)
@@ -91,6 +91,7 @@ options:
 	@echo "CONFDIR          =${CONFDIR}"
 	@echo "DOCDIR           =${DOCDIR}"
 	@echo "MANDIR           =${MANDIR}"
+	@echo "LOGDIR           =${LOGDIR}"
 	@echo "BASH_PROFILE     =${BASH_PROFILE}"
 	@echo
 	@echo "SRC_BINS         =${SRC_BINS}"
@@ -135,6 +136,7 @@ bin/%:bin/%.bash
 		-e "s%@GROUP@%${GROUP}%" \
 		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLSDIR@%${TPLSDIR}%" \
+		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 	@echo
 
@@ -152,6 +154,7 @@ lib/%:lib/%.bash
 		-e "s%@GROUP@%${GROUP}%" \
 		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLSDIR@%${TPLSDIR}%" \
+		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 	@echo
 
@@ -169,6 +172,7 @@ $(TPLS): $(SRC_TPL)
 		-e "s%@GROUP@%${GROUP}%" \
 		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLSDIR@%${TPLSDIR}%" \
+		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .ptrn,$@) > $@
 	@echo
 
@@ -186,6 +190,7 @@ $(CONFS): $(SRC_CONFS)
 		-e "s%@GROUP@%${GROUP}%" \
 		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLSDIR@%${TPLSDIR}%" \
+		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .sample,$@) > $@
 	@echo
 
@@ -203,6 +208,7 @@ $(MANPAGES): $(SRCMANPAGES)
 		-e "s%@GROUP@%${GROUP}%" \
 		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLSDIR@%${TPLSDIR}%" \
+		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $(addsuffix .man,$@) > $@
 	@echo
 
@@ -210,15 +216,18 @@ $(USER) :
 	@echo adding ${USER} user
 	adduser --gid=${GROUPNUM} --system --shell=${BASH} --uid=${USERNUM} --home=${PREFIX} ${USER}
 	touch ${BASH_PROFILE}
-	cp -f ${BASH_PROFILE} ${BASH_PROFILE}.save
-	echo "export PATH=\"${BINDIR}:${PATH}\"" > ${BASH_PROFILE}
+	cp --force ${BASH_PROFILE} ${BASH_PROFILE}.save
+	echo "export PATH=\"${BINDIR}:${PATH}\"" >> ${BASH_PROFILE}
+	echo "export MANPATH=\"${MANDIR}:${MANPATH}\"" >> ${BASH_PROFILE}
 	echo "alias ll='ls -laF $*'" >> ${BASH_PROFILE}
 	echo "alias pgmsql='pgm_psql $*'" >> ${BASH_PROFILE}
 	chown ${USER}:${GROUP} ${BASH_PROFILE}
+	mkdir --parents ${LOGDIR}
+	chmod u=rwx,go= ${LOGDIR}
 	@echo
 
 $(NOUSER) :
-	@echo ${USER} already exists, you should add 'export PATH=\"${BINDIR}:${PATH}\"' to his .bash_profile
+	@echo ${USER} already exists, you should include ${BASH_PROFILE} to his .bash_profile
 	@echo
 
 $(GROUP) :
@@ -276,7 +285,7 @@ $(DEST_CONFS): | $(BACKUP_OLD_CONF) $(SRC_CONFS)
 	@echo installing configuration files to ${CONFDIR}
 	@mkdir --parents ${CONFDIR}
 	@cp --force --recursive $(CONFS) $(CONFDIR)
-	@chmod --recursive u=rw,go= $(CONFDIR)
+	@chmod --recursive u=rwX,go= $(CONFDIR)
 	@chown --recursive ${USER}:${GROUP} ${CONFDIR}
 	@echo
 
@@ -284,7 +293,7 @@ $(DEST_DOCS): $(SRC_DOCS)
 	@echo installing documentation to ${DOCDIR}
 	@mkdir --parents ${DOCDIR}
 	@cp --force --recursive $(DOCS) $(DOCDIR)
-	@chmod a=r $(DEST_DOCS)
+	@chmod a=rX $(DEST_DOCS)
 	@chown --recursive ${USER}:${GROUP} ${DOCDIR}
 	@echo
 

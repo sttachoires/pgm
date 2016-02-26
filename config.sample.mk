@@ -18,3 +18,4 @@ CONFDIR = ${PREFIX}/etc/${NAME}
 DOCDIR = ${PREFIX}/share/${NAME}
 MANDIR = ${PREFIX}/share/man
 TPLDIR = ${PREFIX}/templates/${NAME}
+LOGDIR = ${PREFIX}/log
