@@ -1,22 +1,12 @@
-pitrery: Point-In-Time Recovery (PITR) tools for PostgreSQL
-===========================================================
+PGM Set of scripts to help manage  PostgreSQL
+==============================================
 
 
 FEATURES
 --------
 
-pitrery is set of tools to ease the management of PITR backups and
-restores:
-
-- Management of WAL segments archiving with compression to a host
-  reachable with SSH or on the local machine
-
-- Automation of the base backup procedure
-
-- Restore to a particular date
-
-- Management of backup retention
-
+pgm is a set of bash scripts that helps manage multiple version
+of PostgreSQL with multiple instances, all on the same server.
 
 QUICK SETUP
 -----------
@@ -27,19 +17,13 @@ QUICK SETUP
 
 3. Run `make` and `make install`
 
-4. Copy `pitr.conf` to a new file to configure a particular backup
-
-5. Edit this file to fit your system
-
-6. Configure archiving (`archive_command = 'archive_xlog -C pitr %p'`)
-
-7. Run `pitrery` to perform your backups and restores
+4. Run `pgm_*`, test, and tell me
 
 
 DEVELOPMENT
 -----------
 
-The source code is available on github: https://github.com/dalibo/pitrery
+The source code is available on github: https://github.com/sttachoires
 
-pitrery is developped by Nicolas Thauvin under a classic 2 clauses BSD
+pitrery is developped by Stephane Tachoires under a classic 2 clauses BSD
 license. See license block in the scripts or the COPYRIGHT file.
