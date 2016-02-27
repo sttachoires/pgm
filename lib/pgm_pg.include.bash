@@ -196,7 +196,7 @@ function setInstance()
     fi
     return 0
   else
-    printf "Wrong instance name \"${pgm_sid}\"\n"
+    printInfo "Wrong instance name \"${pgm_sid}\"\n"
     return 3
   fi
 
@@ -231,7 +231,7 @@ function setDatabase()
 
     return 0
   else
-    printf "Wrong database name {pgm_database}\n"
+    printInfo "Wrong database name {pgm_database}\n"
     return 1
   fi
 }

@@ -13,7 +13,8 @@ if [ $? -ne 0 ]; then
 fi
 
 # INCLUDE
-. @CONFDIR@/pgm_util.include
+. @CONFDIR@/pgm.conf
+. @LIBDIR@/pgm_util.include
 . @LIBDIR@/pgm_server.include
 . @LIBDIR@/pgm_pg.include
 
@@ -37,7 +38,7 @@ function checkParameters ()
   fi
 
   export PGM_LOG="${PGM_LOG_DIR}/create_instance.log"
-  printf "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_sid}'\n  VERSION : '${pgm_version}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n" | tee -a ${PGM_LOG}
+  printInfo "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_sid}'\n  VERSION : '${pgm_version}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n"
 }
 
 function checkFS ()
@@ -50,7 +51,7 @@ function checkFS ()
     fi
   done
 
-  printf "Filesystems ${PGM_PGFSLIST} are present\n" | tee -a ${PGM_LOG}
+  printInfo "Filesystems ${PGM_PGFSLIST} are present\n"
   return 0
 }
   
@@ -70,7 +71,7 @@ function buildDirectories()
     exitError "Cannot create ${PGM_PGXLOG_DIR}"
   fi
 
-  printf "Directories ${PGM_PGDATA_DIR} and ${PGM_PGXLOG_DIR} are ok\n" | tee -a ${PGM_LOG} 
+  printInfo "Directories ${PGM_PGDATA_DIR} and ${PGM_PGXLOG_DIR} are ok\n" 
 }
 
 function initDB ()
@@ -84,7 +85,7 @@ function initDB ()
   setInstance ${PGM_PGFULL_VERSION} ${PGM_PGSID}
   export PGM_PGHOST=${pgm_listener}
   export PGM_PGPORT=${pgm_port}
-  printf "Instance ${PGM_PGSID} created\n" | tee -a ${PGM_LOG}
+  printInfo "Instance ${PGM_PGSID} created\n"
 }
 
 function createRecovery ()
@@ -95,7 +96,7 @@ function createRecovery ()
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGRECOVER} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGRECOVER} created\n" | tee -a ${PGM_LOG}
+  printInfo "${PGM_PGRECOVER} created\n"
 }
 
 
@@ -107,7 +108,7 @@ function createConf ()
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGCONF} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGCONF} created\n" | tee -a ${PGM_LOG}
+  printInfo "${PGM_PGCONF} created\n"
 }
 
 
@@ -119,7 +120,7 @@ function createHBA ()
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGHBA} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGHBA} created\n" | tee -a ${PGM_LOG}
+  printInfo "${PGM_PGHBA} created\n"
 }
 
 function createIdent ()
@@ -130,7 +131,7 @@ function createIdent ()
   if [ $? -ne 0 ]; then
     exitError "Cannot create ${PGM_PGIDENT} from ${pgm_tpl}\n"
   fi
-  printf "${PGM_PGHBA} created\n" | tee -a ${PGM_LOG}
+  printInfo "${PGM_PGHBA} created\n"
 }
 
 function createTabEntry()
@@ -141,9 +142,9 @@ function createTabEntry()
   egrep -q "^[[:space:]]*\*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:[yYnN]" ${PGM_PGTAB}
   if [ $? -ne 0 ]; then
     echo "*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y" >> ${PGM_PGTAB}
-    printf "Line '*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' added to ${PGM_PGTAB}\n" | tee -a ${PGM_LOG}
+    printInfo "Line '*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' added to ${PGM_PGTAB}\n"
   else
-    printf "Line '*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' already present in ${PGM_PGTAB}\n" | tee -a ${PGM_LOG}
+    printInfo "Line '*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' already present in ${PGM_PGTAB}\n"
   fi
 }
 
@@ -178,6 +179,7 @@ setServer ${pgm_version}
 if [ $? -ne 0 ]; then
   exitError "Cannot set ${pgm_version} server\n"
 fi
+ensureDirs
 checkFS
 buildDirectories
 initDB
@@ -193,4 +195,4 @@ if [ $? -ne 0 ]; then
 fi
 createExtentions
 
-printf "Instance ${PGM_PGSID} has been created. You have to create a database in it\n" | tee -a ${PGM_LOG}
+printInfo "Instance ${PGM_PGSID} has been created. You have to create a database in it\n"

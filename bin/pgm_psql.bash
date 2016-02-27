@@ -34,22 +34,20 @@ case $# in
   *) exitError "${USAGE}\n"
 esac
 
-pgm_version=$1
-grep -q "\*:\*:${pgm_version}:n" ${PGM_PGTAB}
-if [ $? -ne 0 ]; then
-  exitError "Unmanaged version pf PostgreSQM ${pgm_version}\n"
+egrep -qo "\*:\*:${pgm_version}" ${PGM_PGTAB}
+if [ $? -eq 0 ]; then
+  exitError "Unmanaged version pf PostgreSQL ${pgm_version}\n"
 fi
 
 
-pgm_instance=$2
-grep -q ".*:${pgm_instance}:.*\..*\..*:." ${PGM_PGTAB}
+egrep -qo "\*:${pgm_instance}:${pgm_version}" ${PGM_PGTAB}
 if [ $? -ne 0 ]; then
-  exitError "Unmanaged SID ${pgm_instance}\n"
+  exitError "Unmanaged SID ${pgm_instance} with version ${pgm_version}\n"
 fi
 
 setDatabase ${pgm_version} ${pgm_instance} ${pgm_database}
 if [ $? -ne 0 ]; then
-  exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} of ${pgm_version} server\n"
+  exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} with ${pgm_version} server\n"
 fi
 
 

@@ -1,21 +1,22 @@
-NAME = pgm
-VERSION = 0.01-dev
+NAME:=pgm
+VERSION:=0.01-dev
 
 # Customize below to fit your system
 
 # Bash is mandatory
-BASH = /bin/bash
+BASH:=/bin/bash
 
 # paths
-USER = postgres
-USERNUM = 533
-GROUP = dba
-GROUPNUM = 533
-PREFIX = /home/pgm
-BINDIR = ${PREFIX}/bin
-LIBDIR = ${PREFIX}/lib/${NAME}
-CONFDIR = ${PREFIX}/etc/${NAME}
-DOCDIR = ${PREFIX}/share/${NAME}
-MANDIR = ${PREFIX}/share/man
-TPLDIR = ${PREFIX}/templates/${NAME}
-LOGDIR = ${PREFIX}/log
+USER:=postgres
+USERNUM:=533
+GROUP:=dba
+GROUPNUM:=533
+PREFIX:=/home/pgm
+BINDIR:=$(PREFIX)/bin
+LIBDIR:=$(PREFIX)/lib/$(NAME)
+CONFDIR:=$(PREFIX)/etc/$(NAME)
+DOCDIR:=$(PREFIX)/share/$(NAME)
+MANDIR:=$(PREFIX)/share/$(NAME)/man/man1
+TPLDIR:=$(PREFIX)/templates/$(NAME)
+LOGDIR:=$(PREFIX)/log/$(NAME)
+INVENTORYDIR:=$(PREFIX)/inventory/$(NAME)
