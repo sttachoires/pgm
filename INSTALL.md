@@ -29,25 +29,28 @@ First unpack the zip:
     unzip master.zip
 
 
-Then, go to the `pitrery-x.y` directory and edit `config.mk` to fit your
+Then, go to the `pgm-master` directory and edit `config.mk` to fit your
 system. Once done run `make` (or `gmake`) to replace the interpreter and
 paths in the scripts:
 
-    make
+    make all
 
 
 Finally, install it, as root: 
 
     make install
 
+Then
 
-By default, the files are installed in `/usr/local`:
+    make checkinstall
 
-* scripts are installed in `/usr/local/bin`
+By default, the files are installed in `/home/pgm`:
 
-* actions used by pitrery are installed in `/usr/local/lib/pgm`
+* scripts are installed in `/home/pgm/bin`
 
-* configuration samples are installed in `/usr/local/etc/pgm`
+* actions used by pgm are installed in `/home/pgm/lib/pgm`
 
-* manual pages are installed in `/usr/local/share/man`
+* configuration samples are installed in `/home/pgm/etc/pgm`
+
+* manual pages are installed in `/home/pgm/share/pgm/man`
 

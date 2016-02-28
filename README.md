@@ -25,5 +25,5 @@ DEVELOPMENT
 
 The source code is available on github: https://github.com/sttachoires
 
-pitrery is developped by Stephane Tachoires under a classic 2 clauses BSD
+pgm is developped by Stephane Tachoires under a classic 2 clauses BSD
 license. See license block in the scripts or the COPYRIGHT file.

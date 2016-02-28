@@ -2,11 +2,14 @@ TODO / Roadmap
 
 
 
-ON logrotate pgmlog
-	     pgmpglog
+Done logrotate pgmlog
+               pgmpglog
 
-* pgm wrapper with tab completion to help choose version, instance, databaseappro, logrotate, make check
+ON
+  pgm wrapper with tab completion to help choose version, instance, database
+
 * Database creation/management, perhaps standardized user creation/management
+* Approvision solution for filesystem, PostgreSQL sources
 * Supervision
 * Backup
 * Appro

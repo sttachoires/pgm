@@ -1,5 +1,5 @@
 NAME:=pgm
-VERSION:=0.01-dev
+VERSION:=0.02-dev
 
 # Customize below to fit your system
 

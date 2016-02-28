@@ -1,5 +1,5 @@
 PGM 0.01
-============
+========
 
   * First packaged version
 
@@ -10,4 +10,11 @@ PGM 0.01
   * Wrapper to control managed instances (start, stop, reload, promote..)
 
   * Wrapper to psql managed instances
+
+PGM 0.02
+========
+
+  * Installation with initd script (unset in init rc because of methods depending on system), logrotate on pgm and PostgreSQL logs
+
+  * A lot of minor corrections, some majors.
 
