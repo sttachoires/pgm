@@ -31,7 +31,7 @@ function setServer()
     for pgm_pattern in ${!PGMSRV_PTRN_*}
     do
       eval pgm_value=\$${pgm_pattern}
-      eval export ${pgm_pattern/#PGMSRV_PTRN_/PGM_}=${pgm_value%/}
+      eval export ${pgm_pattern/#PGMSRV_PTRN_/PGM_}=\"${pgm_value%/}\"
     done
     
     export PATH="${PGM_PGHOME_DIR}/bin:${PATH}"

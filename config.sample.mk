@@ -12,6 +12,9 @@ USERNUM:=533
 GROUP:=dba
 GROUPNUM:=533
 PREFIX:=/home/pgm
+LOGROTATE:=/usr/sbin/logrotate
+DBPREFIX:=/home/pgm/pgdb
+
 BINDIR:=$(PREFIX)/bin
 SCRIPTDIR:=$(PREFIX)/script
 LIBDIR:=$(PREFIX)/lib/$(NAME)

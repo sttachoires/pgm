@@ -86,8 +86,8 @@ function ensureDirs()
   do
     pgm_dir_var=$(echo ${pgm_var} | egrep -o "PGM_.*_DIR")
     if [ ! -z "${pgm_dir_var}" ]; then
-      eval pgm_value=\$${pgm_dir_var}
-      if [ ! -d ${pgm_value} ]; then
+      eval pgm_value=\"\$${pgm_dir_var}\"
+      if [ ! -d "${pgm_value}" ]; then
         pgm_result="${pgm_result} ${pgm_value}"
       fi
     fi

@@ -170,6 +170,19 @@ function createExtentions()
   done
 }
 
+function configureLogrotate()
+{
+  if [ -e ${PGM_LOGROTATE_CONF} ]; then
+    egrep --only-pattern "${PGM_PGLOGROTATE_ENTRY}" ${PGM_PGLOGROTATE_CONF}
+    if [ $? -ne 0 ]; then
+      printf "${PGM_LOGROTATE_CONF}" >> ${PGM_PGLOGROTATE_CONF}
+    fi
+  else
+    touch ${PGM_PGLOGROTATE_CONF}
+    printf "${PGM_PGLOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
+  fi
+}
+
 #
 # M A I N
 #
@@ -194,5 +207,6 @@ if [ $? -ne 0 ]; then
   exitError "Cannot start instance ${PGM_PGSID} (${PGM_PGFULL_VERSION}) read ${PGM_LOG}\n"
 fi
 createExtentions
+configureLogrotate
 
 printInfo "Instance ${PGM_PGSID} has been created. You have to create a database in it\n"

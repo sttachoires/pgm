@@ -58,7 +58,7 @@ cronjobs: crontab.tmp $(USERCREATE)
 
 crontab.tmp : $(CONFDIR)/logrotate.conf $(USERCREATE)
 	@crontab -u ${USER} -l | egrep -v "$(CONFDIR)/logrotate.conf"; fi > $@
-	@printf "$(CRONREPORT)*/10 * * * * logrotate --state=$(CONFDIR)/logrotate.state $(CONFDIR)/logrotate.conf >/dev/null 2>&1\n" >> $@
+	@printf "$(CRONREPORT)*/10 * * * * $(LOGROTATE) --state=$(CONFDIR)/logrotate.state $(CONFDIR)/logrotate.conf > $(LOGDIR)/logrotate.log 2>&1\n" >> $@
 
 options :
 	@echo
@@ -71,6 +71,8 @@ options :
 	@echo "GROUP            =${GROUP}"
 	@echo "GROUPNUM         =${GROUPNUM}"
 	@echo "PREFIX           =${PREFIX}"
+	@echo "LOGROTATE        =${LOGROTATE}"
+	@echo "DBPREFIX         =${DBPREFIX}"
 	@echo "BINDIR           =${BINDIR}"
 	@echo "SCRIPTDIR        =${SCRIPTDIR}"
 	@echo "LIBDIR           =${LIBDIR}"
@@ -119,9 +121,6 @@ options :
 all : bins scripts libs configs manpages templates docs
 	@echo
 
-check : 
-	@echo $(shell $(BASH) bin/pgm_check)
-
 install : all usergroup installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans initd cronjobs
 
 
@@ -168,7 +167,7 @@ installtpl : $(DEST_TPLS)
 usergroup : $(GROUPCREATE) $(USERCREATE)
 	@echo
 
-installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR)
+installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR) $(DBPREFIX)
 	@echo
 
 installbins : $(DEST_BINS)
@@ -218,6 +217,8 @@ clean :
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
+		-e "s%@LOGROTATE@%${LOGROTATE}%" \
+		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 %.tpl : %.tpl.ptrn
@@ -238,6 +239,8 @@ clean :
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
+		-e "s%@LOGROTATE@%${LOGROTATE}%" \
+		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 %.conf : %.conf.sample
@@ -258,6 +261,8 @@ clean :
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
+		-e "s%@LOGROTATE@%${LOGROTATE}%" \
+		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 %.1 : %.1.man
@@ -278,6 +283,8 @@ clean :
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
+		-e "s%@LOGROTATE@%${LOGROTATE}%" \
+		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) : $(USERCREATE) $(GROUPCREATE)

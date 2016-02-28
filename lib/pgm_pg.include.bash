@@ -149,7 +149,7 @@ function setInstance()
     for pgm_pattern in ${!PGMPG_PTRN_*}
     do
       eval pgm_value=\$${pgm_pattern}
-      eval export ${pgm_pattern/PGMPG_PTRN_/PGM_}=${pgm_value%/}
+      eval export ${pgm_pattern/PGMPG_PTRN_/PGM_}=\"${pgm_value%/}\"
     done
 
     # Try to determine host, port, autolaunch configuration, and running configuration
@@ -226,7 +226,7 @@ function setDatabase()
     for pgm_pattern in ${!PGMDBPATTERN_*}
     do
       eval pgm_value=\$${pgm_pattern}
-      eval ${pgm_pattern/PGMDBPATTERN_/PGM_}=${pgm_value%/}
+      eval export ${pgm_pattern/PGMDBPATTERN_/PGM_}=\"${pgm_value%/}\"
     done
 
     return 0

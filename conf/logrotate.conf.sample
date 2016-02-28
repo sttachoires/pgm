@@ -1,8 +1,11 @@
-compress
-
 @LOGDIR@/*.log {
-  copytruncate
+  weekly
   rotate 3
+  copytruncate
+  delaycompress
+  compress
+  notifempty
+  missingok
   size 50M
 }
 
