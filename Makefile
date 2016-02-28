@@ -8,7 +8,7 @@ SRC_BINS:=$(wildcard bin/*.bash)
 SRC_SCRIPTS:=$(wildcard script/*.bash)
 SRC_LIBS:=$(wildcard lib/*.include.bash)
 SRC_TPLS:=$(wildcard tplptrn/*/*.tpl.ptrn)
-SRC_CONFS:=$(wildcard *.conf.sample)
+SRC_CONFS:=$(wildcard conf/*.conf.sample)
 SRC_DOCS:=COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
 SRC_MANPAGES:=$(wildcard man/*.man)
 
@@ -24,7 +24,7 @@ BASH_PROFILE:="$(PREFIX)/.bash_profile"
 DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
 DEST_SCRIPTS:=$(SCRIPTS:script/%=${SCRIPTDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
-DEST_CONFS:=$(CONFS:%=${CONFDIR}/%)
+DEST_CONFS:=$(CONFS:conf/%=${CONFDIR}/%)
 DEST_MANPAGES:=$(MANPAGES:man/%=${MANDIR}/%)
 DEST_TPLS:=$(TPLS:tplptrn/%=${TPLDIR}/%)
 DEST_DOCS:=$(DOCS:%=${DOCDIR}/%)
@@ -50,6 +50,15 @@ BACKUP_OLD_CONFS:=$(if $(CONFS_TO_SAVE),$(SAVE_CONFS),$(NO_SAVE_CONFS))
 
 SRC_INITD=$(SCRIPTDIR)/initd
 DEST_INITD=/etc/init.d/pgm
+
+cronjobs: crontab.tmp $(USERCREATE)
+	@echo adding crontab logrotate job
+	@crontab -u ${USER} $<
+	@echo
+
+crontab.tmp : $(CONFDIR)/logrotate.conf $(USERCREATE)
+	@crontab -u ${USER} -l | egrep -v "$(CONFDIR)/logrotate.conf"; fi > $@
+	@printf "$(CRONREPORT)*/10 * * * * logrotate --state=$(CONFDIR)/logrotate.state $(CONFDIR)/logrotate.conf >/dev/null 2>&1\n" >> $@
 
 options :
 	@echo
@@ -103,6 +112,7 @@ options :
 	@echo "BACKUP_OLD_TPLS  =${BACKUP_OLD_TPLS}"
 	@echo "CONFS_TO_SAVE    =${CONFS_TO_SAVE}"
 	@echo "BACKUP_OLD_CONFS =${BACKUP_OLD_CONFS}"
+
 	@echo "######"
 	@echo
 
@@ -112,7 +122,8 @@ all : bins scripts libs configs manpages templates docs
 check : 
 	@echo $(shell $(BASH) bin/pgm_check)
 
-install : all usergroup installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans initd
+install : all usergroup installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans initd cronjobs
+
 
 initd : $(DEST_INITD)
 	@echo
@@ -277,8 +288,8 @@ $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MAND
 
 $(DEST_INITD) : $(SRC_INITD) $(DEST_SCRIPTS)
 	@echo "Copying new init.d script"
-	cp $< $@
-	chmod u+x $@
+	@cp $< $@
+	@chmod u+x $@
 
 $(BASH_PROFILE) : $(PREFIX) $(USERCREATE) $(GROUPCREATE)
 	@echo creation of ${BASH_PROFILE}
@@ -354,7 +365,7 @@ $(SAVE_CONFS) : $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
 
 $(DEST_CONFS) : $(BACKUP_OLD_CONF) $(CONFS) $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
 	@echo installing configuration files $@ to ${CONFDIR}
-	@cp --force $(patsubst $(CONFDIR)/%,%,$@) ${CONFDIR}
+	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
 	@chmod u=rw,go= $@
 	@chown ${USER}:${GROUP} $@
 

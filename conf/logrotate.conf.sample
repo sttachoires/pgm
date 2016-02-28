@@ -1,0 +1,9 @@
+compress
+
+@LOGDIR@/*.log {
+  copytruncate
+  rotate 3
+  size 50M
+}
+
+
