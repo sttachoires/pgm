@@ -18,6 +18,7 @@ export PGM_USER="@USER@"
 export PGM_GROUP="@GROUP@"
 export PGM_HOME_DIR="@PREFIX@"
 export PGM_BIN_DIR="@BINDIR@"
+export PGM_SCRIPT_DIR="@SCRIPTDIR@"
 export PGM_LIB_DIR="@LIBDIR@"
 export PGM_CONF_DIF="@CONFDIR@"
 export PGM_DOC_DIR="@DOCDIR@"
@@ -34,6 +35,7 @@ export PGM_PGBASE_DIR="@PREFIX@/server"
 # SERVER CONSTANT
 # The starting point of every instance directory
 export PGM_PGDBBASE_DIR="@PREFIX@/pgdb"
+export PGM_VERSION_AUTHORIZED_REGEXP="[0-9]+\.[0-9]+\.[0-9]+"
 # List of allowed charater (form of a regular expression) alowed to form instances name
 export PGM_PGSID_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 # List of allowed charater (form of a regular expression) alowed to form databases name

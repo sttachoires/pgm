@@ -21,7 +21,7 @@ function setServer()
   fi
 
   PGM_PGFULL_VERSION=$1
-  if [[ "${PGM_PGFULL_VERSION}" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
+  if [[ "${PGM_PGFULL_VERSION}" =~ ${PGM_VERSION_AUTHORIZED_REGEXP} ]]; then
     # First set versions constants
     export PGM_PGFULL_VERSION_NUM=${PGM_PGFULL_VERSION//./}
     export PGM_PGMAJOR_VERSION=${PGM_PGFULL_VERSION%.*}

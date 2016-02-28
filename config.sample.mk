@@ -13,6 +13,7 @@ GROUP:=dba
 GROUPNUM:=533
 PREFIX:=/home/pgm
 BINDIR:=$(PREFIX)/bin
+SCRIPTDIR:=$(PREFIX)/script
 LIBDIR:=$(PREFIX)/lib/$(NAME)
 CONFDIR:=$(PREFIX)/etc/$(NAME)
 DOCDIR:=$(PREFIX)/share/$(NAME)

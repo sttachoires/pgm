@@ -5,6 +5,7 @@ include config.mk
 DATE:=$(shell date +'%Y.%m.%d_%H.%M.%S')
 
 SRC_BINS:=$(wildcard bin/*.bash)
+SRC_SCRIPTS:=$(wildcard script/*.bash)
 SRC_LIBS:=$(wildcard lib/*.include.bash)
 SRC_TPLS:=$(wildcard tplptrn/*/*.tpl.ptrn)
 SRC_CONFS:=$(wildcard *.conf.sample)
@@ -12,6 +13,7 @@ SRC_DOCS:=COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
 SRC_MANPAGES:=$(wildcard man/*.man)
 
 BINS:=$(basename $(SRC_BINS))
+SCRIPTS:=$(basename $(SRC_SCRIPTS))
 LIBS:=$(basename $(SRC_LIBS))
 CONFS:=$(basename $(SRC_CONFS))
 MANPAGES:=$(basename $(SRC_MANPAGES))
@@ -20,6 +22,7 @@ DOCS:=$(SRC_DOCS)
 BASH_PROFILE:="$(PREFIX)/.bash_profile"
 
 DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
+DEST_SCRIPTS:=$(SCRIPTS:script/%=${SCRIPTDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
 DEST_CONFS:=$(CONFS:%=${CONFDIR}/%)
 DEST_MANPAGES:=$(MANPAGES:man/%=${MANDIR}/%)
@@ -39,15 +42,88 @@ SAVE_TPLS=save_tpls
 NO_SAVE_TPLS=no_save_tpls
 TPLS_TO_SAVE:=$(wildcard $(TPLDIR)/*/*.tpl)
 BACKUP_OLD_TPLS:=$(filter-out %/save.%, $(if $(TPLS_TO_SAVE),$(SAVE_TPLS),$(NO_SAVE_TPLS)))
+
 SAVE_CONFS=save_confs
 NO_SAVE_CONFS=no_save_confs
 CONFS_TO_SAVE:=$(filter-out $(CONFDIR)/save.%, $(wildcard $(CONFDIR)/*))
 BACKUP_OLD_CONFS:=$(if $(CONFS_TO_SAVE),$(SAVE_CONFS),$(NO_SAVE_CONFS))
 
-all : options bins libs configs manpages templates docs
+SRC_INITD=$(SCRIPTDIR)/initd
+DEST_INITD=/etc/init.d/pgm
+
+options :
+	@echo
+	@echo "######"
+	@echo "${NAME} ${VERSION} install options:"
+	@echo "######"
+	@echo "BASH             =${BASH}"
+	@echo "USER             =${USER}"
+	@echo "USERNUM          =${USERNUM}"
+	@echo "GROUP            =${GROUP}"
+	@echo "GROUPNUM         =${GROUPNUM}"
+	@echo "PREFIX           =${PREFIX}"
+	@echo "BINDIR           =${BINDIR}"
+	@echo "SCRIPTDIR        =${SCRIPTDIR}"
+	@echo "LIBDIR           =${LIBDIR}"
+	@echo "TPLDIR           =${TPLDIR}"
+	@echo "CONFDIR          =${CONFDIR}"
+	@echo "DOCDIR           =${DOCDIR}"
+	@echo "MANDIR           =${MANDIR}"
+	@echo "LOGDIR           =${LOGDIR}"
+	@echo "INVENTORYDIR     =${INVENTORYDIR}"
+	@echo "BASH_PROFILE     =${BASH_PROFILE}"
+	@echo
+	@echo "SRC_BINS         =${SRC_BINS}"
+	@echo "SRC_SCRIPTS      =${SRC_SCRIPTS}"
+	@echo "SRC_LIBS         =${SRC_LIBS}"
+	@echo "SRC_TPLS         =${SRC_TPLS}"
+	@echo "SRC_CONFS        =${SRC_CONFS}"
+	@echo "SRC_DOCS         =${SRC_DOCS}"
+	@echo "SRC_MANPAGES     =${SRC_MANPAGES}"
+	@echo
+	@echo "BINS             =${BINS}"
+	@echo "SCRIPTS          =${SCRIPTS}"
+	@echo "LIBS             =${LIBS}"
+	@echo "TPLS             =${TPLS}"
+	@echo "CONFS            =${CONFS}"
+	@echo "DOCS             =${DOCS}"
+	@echo "MANPAGES         =${MANPAGES}"
+	@echo
+	@echo "DEST_BINS        =${DEST_BINS}"
+	@echo "DEST_SCRIPTS     =${DEST_SCRIPTS}"
+	@echo "DEST_LIBS        =${DEST_LIBS}"
+	@echo "DEST_TPLS        =${DEST_TPLS}"
+	@echo "DEST_CONFS       =${DEST_CONFS}"
+	@echo "DEST_DOCS        =${DEST_DOCS}"
+	@echo "DEST_MANPAGES    =${DEST_MANPAGES}"
+	@echo
+	@echo "USERCREATE       =${USERCREATE}"
+	@echo "GROUPCREATE      =${GROUPCREATE}"
+	@echo "TPLS_TO_SAVE     =${TPLS_TO_SAVE}"
+	@echo "BACKUP_OLD_TPLS  =${BACKUP_OLD_TPLS}"
+	@echo "CONFS_TO_SAVE    =${CONFS_TO_SAVE}"
+	@echo "BACKUP_OLD_CONFS =${BACKUP_OLD_CONFS}"
+	@echo "######"
 	@echo
 
+all : bins scripts libs configs manpages templates docs
+	@echo
+
+check : 
+	@echo $(shell $(BASH) bin/pgm_check)
+
+install : all usergroup installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans initd
+
+initd : $(DEST_INITD)
+	@echo
+
+checkinstall : 
+	@echo $(shell $(BASH) $(BINDIR)/pgm_check)
+
 bins : $(BINS)
+	@echo
+
+scripts : $(SCRIPTS)
 	@echo
 
 libs : $(LIBS)
@@ -65,7 +141,6 @@ templates : $(TPLS)
 docs : $(DOC)
 	@echo
 
-install : all usergroup installdirs $(BASH_PROFILE) installbins installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans
 
 installmans : $(DEST_MANPAGES)
 	@echo
@@ -82,10 +157,13 @@ installtpl : $(DEST_TPLS)
 usergroup : $(GROUPCREATE) $(USERCREATE)
 	@echo
 
-installdirs : $(PREFIX) $(BINDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR)
+installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR)
 	@echo
 
 installbins : $(DEST_BINS)
+	@echo
+
+installscripts : $(DEST_SCRIPTS)
 	@echo
 
 installlibs : $(DEST_LIBS)
@@ -94,6 +172,7 @@ installlibs : $(DEST_LIBS)
 uninstall :
 	@echo removing all files from ${PREFIX}
 	@rm -f $(DEST_BINS)
+	@rm -f $(DEST_SCRIPTS)
 	@rm -f $(DEST_LIBS)
 	@rm -f $(DEST_TPLS)
 	@rm -f $(DEST_CONFS)
@@ -103,61 +182,12 @@ uninstall :
 clean :
 	@echo cleaning
 	@rm -f $(BINS)
+	@rm -f $(SCRIPTS)
 	@rm -f $(LIBS)
 	@rm -f $(TPLS)
 	@rm -f $(CONFS)
 	@rm -f $(MANPAGES)
 
-options :
-	@echo
-	@echo "######"
-	@echo "${NAME} ${VERSION} install options:"
-	@echo "######"
-	@echo "BASH             =${BASH}"
-	@echo "USER             =${USER}"
-	@echo "USERNUM          =${USERNUM}"
-	@echo "GROUP            =${GROUP}"
-	@echo "GROUPNUM         =${GROUPNUM}"
-	@echo "PREFIX           =${PREFIX}"
-	@echo "BINDIR           =${BINDIR}"
-	@echo "LIBDIR           =${LIBDIR}"
-	@echo "TPLDIR           =${TPLDIR}"
-	@echo "CONFDIR          =${CONFDIR}"
-	@echo "DOCDIR           =${DOCDIR}"
-	@echo "MANDIR           =${MANDIR}"
-	@echo "LOGDIR           =${LOGDIR}"
-	@echo "INVENTORYDIR     =${INVENTORYDIR}"
-	@echo "BASH_PROFILE     =${BASH_PROFILE}"
-	@echo
-	@echo "SRC_BINS         =${SRC_BINS}"
-	@echo "SRC_LIBS         =${SRC_LIBS}"
-	@echo "SRC_TPLS         =${SRC_TPLS}"
-	@echo "SRC_CONFS        =${SRC_CONFS}"
-	@echo "SRC_DOCS         =${SRC_DOCS}"
-	@echo "SRC_MANPAGES     =${SRC_MANPAGES}"
-	@echo
-	@echo "BINS             =${BINS}"
-	@echo "LIBS             =${LIBS}"
-	@echo "TPLS             =${TPLS}"
-	@echo "CONFS            =${CONFS}"
-	@echo "DOCS             =${DOCS}"
-	@echo "MANPAGES         =${MANPAGES}"
-	@echo
-	@echo "DEST_BINS        =${DEST_BINS}"
-	@echo "DEST_LIBS        =${DEST_LIBS}"
-	@echo "DEST_TPLS        =${DEST_TPLS}"
-	@echo "DEST_CONFS       =${DEST_CONFS}"
-	@echo "DEST_DOCS        =${DEST_DOCS}"
-	@echo "DEST_MANPAGES    =${DEST_MANPAGES}"
-	@echo
-	@echo "USERCREATE       =${USERCREATE}"
-	@echo "GROUPCREATE      =${GROUPCREATE}"
-	@echo "TPLS_TO_SAVE     =${TPLS_TO_SAVE}"
-	@echo "BACKUP_OLD_TPLS  =${BACKUP_OLD_TPLS}"
-	@echo "CONFS_TO_SAVE    =${CONFS_TO_SAVE}"
-	@echo "BACKUP_OLD_CONFS =${BACKUP_OLD_CONFS}"
-	@echo "######"
-	@echo
 
 % : %.bash
 	@echo translating paths in bash script $@
@@ -166,6 +196,7 @@ options :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
@@ -185,6 +216,7 @@ options :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
@@ -204,6 +236,7 @@ options :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
@@ -223,6 +256,7 @@ options :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
@@ -235,11 +269,16 @@ options :
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
-$(PREFIX) $(BINDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) : $(USERCREATE) $(GROUPCREATE)
+$(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) : $(USERCREATE) $(GROUPCREATE)
 	@echo creation of $@
 	@mkdir --parents $@
 	@chmod u=rwx,g=rx,o= $@
 	@chown ${USER}:${GROUP} $@
+
+$(DEST_INITD) : $(SRC_INITD) $(DEST_SCRIPTS)
+	@echo "Copying new init.d script"
+	cp $< $@
+	chmod u+x $@
 
 $(BASH_PROFILE) : $(PREFIX) $(USERCREATE) $(GROUPCREATE)
 	@echo creation of ${BASH_PROFILE}
@@ -269,6 +308,12 @@ $(NOGROUP) :
 $(DEST_BINS) : $(BINS) $(BINDIR) $(USERCREATE) $(GROUPCREATE)
 	@echo installing excecutable $@ to ${BINDIR}
 	@cp --force $(patsubst $(BINDIR)/%,bin/%,$@) ${BINDIR}
+	@chmod u=rx,go= $@
+	@chown ${USER}:${GROUP} $@
+
+$(DEST_SCRIPTS) : $(SCRIPTS) $(SCRIPTDIR) $(USERCREATE) $(GROUPCREATE)
+	@echo installing scripts $@ to ${SCRIPTDIR}
+	@cp --force $(patsubst $(SCRIPTDIR)/%,script/%,$@) ${SCRIPTDIR}
 	@chmod u=rx,go= $@
 	@chown ${USER}:${GROUP} $@
 
@@ -302,7 +347,7 @@ $(NO_SAVE_CONFS) : $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
 
 $(SAVE_CONFS) : $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
 	@echo saving old configuration ${CONFS_TO_SAVE}
-	@tar --preserve-permissions --exclude ${CONFDIR}/save.* --create --gzip --file ${CONFDIR}/save.${DATE} "${CONFDIR}" > /dev/null 2>&1
+	@tar --preserve-permissions --exclude ${CONFDIR}/save.* --create --gzip --file ${CONFDIR}/save.${DATE} ${CONFS_TO_SAVE} > /dev/null 2>&1
 	@chmod u=r,go= ${CONFDIR}/save.${DATE}
 	@chown ${USER}:${GROUP} ${CONFDIR}/save.${DATE}
 	@echo

@@ -1,8 +1,15 @@
 TODO / Roadmap
 
+
+
+ON logrotate pgmlog
+	     pgmpglog
+
+* pgm wrapper with tab completion to help choose version, instance, databaseappro, logrotate, make check
 * Database creation/management, perhaps standardized user creation/management
 * Supervision
 * Backup
+* Appro
 * Performance monitoring
 * Replication
 * System optimization advisor 
