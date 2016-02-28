@@ -173,13 +173,13 @@ function createExtentions()
 function configureLogrotate()
 {
   if [ -e ${PGM_LOGROTATE_CONF} ]; then
-    egrep --only-pattern "${PGM_PGLOGROTATE_ENTRY}" ${PGM_PGLOGROTATE_CONF}
+    egrep --quiet --only-matching "${PGM_PGLOG_DIR}/\*.log" ${PGM_LOGROTATE_CONF}
     if [ $? -ne 0 ]; then
-      printf "${PGM_LOGROTATE_CONF}" >> ${PGM_PGLOGROTATE_CONF}
+      printf "${PGM_LOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
     fi
   else
-    touch ${PGM_PGLOGROTATE_CONF}
-    printf "${PGM_PGLOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
+    touch ${PGM_LOGROTATE_CONF}
+    printf "${PGM_PGLOGROTATE_ENTRY}" > ${PGM_LOGROTATE_CONF}
   fi
 }
 
