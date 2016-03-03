@@ -48,12 +48,12 @@ function startInstance()
   setInstance ${pgm_version} ${pgm_sid}
 
   pgm_options=""
-  ping -c 1 ${PGM_PGLISTENER} 2>&1 > /dev/null
+  ping -c 1 "${PGM_PGLISTENER}" 2>&1 > /dev/null
   if [ $? -ne 0 ]; then
     pgm_options="${pgm_options} --host=${PGM_PGHOST}"
   fi
 
-  pg_ctl -w -o "${pgm_options}" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PGLOG} start
+  pg_ctl -w -o "${pgm_options}" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
 }
 
 function stopInstance()
@@ -153,15 +153,15 @@ function setInstance()
     done
 
     # Try to determine host, port, autolaunch configuration, and running configuration
-    pgm_line=$(egrep "^[[:space:]]*listen_addresses[[:space:]]*=" ${PGM_PGCONF} 2>&1)
+    pgm_line=$(egrep "^[[:space:]]*listen_addresses[[:space:]]*=" ${PGM_PG_CONF} 2>&1)
     if [ $? -eq 0 ]; then
-      export PGM_PGLISTENER=$(echo ${pgm_line} | cut --delimiter='=' --fields=2)
+      export PGM_PGLISTENER="$(echo ${pgm_line} | cut --delimiter='=' --fields=2)"
     fi
-    PGM_PGHOST=${PGM_PGHOST// /}
-    PGM_PGLISTENER=${PGM_PGLISTENER// /}
-    PGM_PGLISTENER=${PGM_PGLISTENER:=${PGM_PGHOST}}
+    PGM_PGHOST="${PGM_PGHOST// /}"
+    PGM_PGLISTENER="${PGM_PGLISTENER// /}"
+    PGM_PGLISTENER="${PGM_PGLISTENER:=${PGM_PGHOST}}"
 
-    pgm_line=$(egrep "^[[:space:]]*port[[:space:]]*=" ${PGM_PGCONF} 2>&1)
+    pgm_line=$(egrep "^[[:space:]]*port[[:space:]]*=" ${PGM_PG_CONF} 2>&1)
     if [ $? -eq 0 ]; then
       export PGM_PGPORT="$(echo ${pgm_line} | cut --delimiter='=' --fields=2)"
     else
@@ -169,7 +169,7 @@ function setInstance()
     fi
     PGM_PGPORT=${PGM_PGPORT// /}
 
-    PGM_PGLOG=${PGM_PGLOG_DIR}/${PGM_PGLOG_FILE}
+    PGM_PG_LOG=${PGM_PG_LOG_DIR}/${PGM_PG_LOG_NAME}
 
     pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA_DIR}[[:space:]]" 2>&1)
     if [ $? -eq 0 ]; then
@@ -188,7 +188,7 @@ function setInstance()
       export PGM_PGSTATUS="stopped"
     fi
 
-    pgm_line=$(egrep "^\*:${PGM_PGSID}:${PGM_PGVERSION}:[ynYN]" ${PGM_PGTAB} | head -1)
+    pgm_line=$(egrep --only-matching "^_:${PGM_PGSID}:${PGM_PGVERSION}:[yn]" ${PGM_PG_TAB} | head -1)
     if [ $? -eq 0 ]; then
       pgm_autolaunch=$(echo "${pgm_line}" | cut --delimiter=':' --fields=3)
       pgm_autolaunch=${pgm_line:0:1}

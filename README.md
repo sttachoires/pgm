@@ -20,8 +20,8 @@ QUICK SETUP
 
 2. Copy config.sample.mk to config.mk
 
-3. Edit the `config.mk`, specified prefix (PREFIX and DBPREFIX) should
-   exits and must be read, write, execute for current user.
+3. Edit the `config.mk`, specified prefix should exits and must be read,
+   write, execute for current user.
 
 3. Run `make` and `make install`
 

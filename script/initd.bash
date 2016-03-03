@@ -29,7 +29,7 @@ fi
 
 pgm_var_lock=/var/lock/${PRGNAME}
 
-pgm_instance_line_list=$(egrep --only-matching "\*:[^: ]*:[^: ]*:y" @INVENTORYDIR@/pgtab)
+pgm_instance_line_list=$(egrep --only-matching "_:[^: ]*:[^: ]*:y" @INVENTORYDIR@/pgtab)
 for pgm_instance_line in "${pgm_instance_line_list}"
 do
   pgm_instance=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 2)

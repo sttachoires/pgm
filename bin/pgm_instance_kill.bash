@@ -30,14 +30,14 @@ if [ $# -ne 2 ]; then
 fi
 
 pgm_version=$1
-egrep -qo "\*:\*:${pgm_version}" ${PGM_PGTAB}
+egrep -qo "_:_:${pgm_version}" ${PGM_PG_TAB}
 if [ $? -ne 0 ]; then
   exitError "Unmanaged version pf PostgreSQM ${pgm_version}\n"
 fi
 
 
 pgm_instance=$2
-egrep -qo "\*:${pgm_instance}:${version}" ${PGM_PGTAB}
+egrep -qo "_:${pgm_instance}:${version}" ${PGM_PG_TAB}
 if [ $? -ne 0 ]; then
   exitError "Unmanaged SID ${pgm_instance}\n"
 fi

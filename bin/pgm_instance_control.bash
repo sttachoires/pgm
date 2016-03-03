@@ -30,14 +30,14 @@ if [ $# -ne 3 ]; then
 fi
 
 pgm_version=$1
-egrep -qo "\*:\*:${pgm_version}" ${PGM_PGTAB}
+egrep -qo "_:_:${pgm_version}" ${PGM_PG_TAB}
 if [ $? -ne 0 ]; then
   exitError "Unmanaged version pf PostgreSQM ${pgm_version}\n"
 fi
 
 
 pgm_instance=$2
-egrep -qo "\*:${pgm_instance}:${version}" ${PGM_PGTAB}
+egrep -qo "_:${pgm_instance}:${version}" ${PGM_PG_TAB}
 if [ $? -ne 0 ]; then
   exitError "Unmanaged SID ${pgm_instance}\n"
 fi
@@ -61,7 +61,7 @@ case ${pgm_action} in
 
   "reload" )
             reloadInstance ${pgm_version} ${pgm_sid}
-            pgm_messages=$(tail ${PGM_PGLOG} | grep "PG-55P02" 2>&1)
+            pgm_messages=$(tail ${PGM_PG_LOG} | grep "PG-55P02" 2>&1)
             if [ $? -eq 0 ]; then
               printInfo "Instance ${pgm_sid} need restart to set new parameters.\n${pgm_message} Please issue:\n\t${PRGMNAME} ${pgm_version} ${pgm_sid} restart\n"
             fi

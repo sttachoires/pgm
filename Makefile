@@ -39,7 +39,6 @@ options :
 	@echo "BASH             =${BASH}"
 	@echo "PREFIX           =${PREFIX}"
 	@echo "LOGROTATE        =${LOGROTATE}"
-	@echo "DBPREFIX         =${DBPREFIX}"
 	@echo "BINDIR           =${BINDIR}"
 	@echo "SCRIPTDIR        =${SCRIPTDIR}"
 	@echo "LIBDIR           =${LIBDIR}"
@@ -143,7 +142,7 @@ installscripts : $(DEST_SCRIPTS)
 installlibs : $(DEST_LIBS)
 	@echo
 
-installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR) $(DBPREFIX)
+installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR)
 	@echo
 
 uninstall :
@@ -182,7 +181,6 @@ clean :
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
 		-e "s%@LOGROTATE@%${LOGROTATE}%" \
-		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 %.tpl : %.tpl.ptrn
@@ -201,7 +199,6 @@ clean :
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
 		-e "s%@LOGROTATE@%${LOGROTATE}%" \
-		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 %.conf : %.conf.sample
@@ -220,7 +217,6 @@ clean :
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
 		-e "s%@LOGROTATE@%${LOGROTATE}%" \
-		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
 %.1 : %.1.man
@@ -239,10 +235,9 @@ clean :
 		-e "s%@NAME@%${NAME}%" \
 		-e "s%@INVENTORYDIR@%${INVENTORYDIR}%" \
 		-e "s%@LOGROTATE@%${LOGROTATE}%" \
-		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
-$(PREFIX) $(DBPREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) :
+$(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) :
 	@echo creation of $@
 	@mkdir --parents $@
 	@chmod u=rwx,g=rx,o= $@

@@ -34,13 +34,13 @@ case $# in
   *) exitError "${USAGE}\n"
 esac
 
-egrep --quiet --only-matching "\*:\*:${pgm_version}" ${PGM_PGTAB}
+egrep --quiet --only-matching "_:_:${pgm_version}" ${PGM_PG_TAB}
 if [ $? -ne 0 ]; then
   exitError "Unmanaged version pf PostgreSQL ${pgm_version}\n"
 fi
 
 
-egrep --quiet --only-matching "\*:${pgm_instance}:${pgm_version}" ${PGM_PGTAB}
+egrep --quiet --only-matching "_:${pgm_instance}:${pgm_version}" ${PGM_PG_TAB}
 if [ $? -ne 0 ]; then
   exitError "Unmanaged SID ${pgm_instance} with version ${pgm_version}\n"
 fi

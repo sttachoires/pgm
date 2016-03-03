@@ -14,44 +14,94 @@ fi
 # PGM CONSTANTS
 export PGM_NAME="@NAME@"
 export PGM_VERSION="@VERSION@"
+export PGM_BASH="@BASH@"
 export PGM_USER="@USER@"
-export PGM_GROUP="@GROUP@"
+export PGM_LOGROTATE_EXE="@LOGROTATE@"
 export PGM_HOME_DIR="@PREFIX@"
 export PGM_BIN_DIR="@BINDIR@"
-export PGM_PGDBBASE_DIR="@DBPREFIX@"
 export PGM_SCRIPT_DIR="@SCRIPTDIR@"
 export PGM_LIB_DIR="@LIBDIR@"
-export PGM_CONF_DIF="@CONFDIR@"
+export PGM_CONF_DIR="@CONFDIR@"
 export PGM_DOC_DIR="@DOCDIR@"
 export PGM_MAN_DIR="@MANDIR@"
 export PGM_TPL_DIR="@TPLDIR@"
 export PGM_LOG_DIR="@LOGDIR@"
 export PGM_INVENTORY_DIR="@INVENTORYDIR@"
-export PGM_LOGROTATE="@LOGROTATE@"
-
-export PGM_EXPORT_DIR="@DBPREFIX@/export"
-export PGM_TMP_DIR="/var/tmp"
-export PGM_PGTAB="@INVENTORYDIR@/pgtab"
-export PGM_PGBASE_DIR="@PREFIX@/server"
+export PGM_PG_TAB="@INVENTORYDIR@/pgtab"
+#The logrotate configuration file
 export PGM_LOGROTATE_CONF="@CONFDIR@/logrotate.conf"
 
-# SERVER CONSTANT
+
+# PGM VARIABLES
+#
+# Be sure to run a pgm_check after altering these variables
+
+# Where to put all temporary pgm stuff
+export PGM_TMP_DIR="/var/tmp"
+
 # The starting point of every instance directory
+export PGM_PGDBBASE_DIR="${PGM_HOME_DIR}/../db"
+
+# Where all exported database will end, whatever the version,
+# the instance, or the database, one to own them all
+export PGM_EXPORT_DIR="${PGM_PGDBBASE_DIR}/export"
+
+# Where the servers will stand (usualy with full version appended)
+export PGM_PGBASE_DIR="${PGM_HOME_DIR}/server"
+
+# SERVER VARIABLES
+#
+# Be sure to run a pgm_check after altering these pattern
+#
+# CONSTANTS availables at this point:
+#
+# PGM_LOGROTATE_EXE
+# PGM_CONF_DIR
+# PGM_TMP_DIR
+# PGM_HOME_DIR
+# PGM_EXPORT_DIR
+# PGM_SCRIPT_DIR
+# PGM_MAN_DIR
+# PGM_NAME
+# PGM_PG_TAB
+# PGM_BIN_DIR
+# PGM_LOGROTATE_CONF
+# PGM_LIB_DIR
+# PGM_PGEXTENTIONS
+# PGM_TPL_DIR
+# PGM_VERSION
+# PGM_PGSID_AUTHORIZED_REGEXP
+# PGM_DOC_DIR
+# PGM_VERSION_AUTHORIZED_REGEXP
+# PGM_BASH
+# PGM_USER
+# PGM_PGEXTENTIONS_TO_CREATE
+# PGM_LOG_DIR
+# PGM_CONF
+# PGM_PGDBBASE_DIR
+# PGM_INVENTORY_DIR
+# PGM_PGDATABASE_AUTHORIZED_REGEXP
+# PGM_PGBASE_DIR
+
+# Allowed PostgreSQL PGM version (not necesseraly the PostgreSQL version)
 export PGM_VERSION_AUTHORIZED_REGEXP="[0-9]+\.[0-9]+\.[0-9]+"
-# List of allowed charater (form of a regular expression) alowed to form instances name
+# List of allowed character (form of a regular expression) alowed to form instances name
 export PGM_PGSID_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
-# List of allowed charater (form of a regular expression) alowed to form databases name
+# List of allowed character (form of a regular expression) alowed to form databases name
 export PGM_PGDATABASE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 export PGM_PGEXTENTIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
 export PGM_PGEXTENTIONS_TO_CREATE="adminpack pg_stat_statements"
 
-# After setServer
-export PGM_PGFULL_VERSION=""
-export PGM_PGFULL_VERSION_NUM=0
-export PGM_PGMAJOR_VERSION=""
-export PGM_PGMAJOR_VERSION_NUM=0
+# SERVER CONSTANTS SET AFTER setServer call
+# PGM_PGFULL_VERSION=""
+# PGM_PGFULL_VERSION_NUM=0
+# PGM_PGMAJOR_VERSION=""
+# PGM_PGMAJOR_VERSION_NUM=0
 
-# SERVER PATTERN CONSTANT 
+# SERVER PATTERN VARIABLE
+#
+# Be sure to run a pgm_check after altering these pattern
+#
 # Pattern SRV_name_PATTERN will be expanded into PGM_name
 # In those pattern you can use the previous PGM_ constants
 PGMSRV_PTRN_PGHOME_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}'
@@ -65,38 +115,42 @@ PGMSRV_PTRN_PGMAN_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/man'
 PGMSRV_PTRN_TEMPLATE_DIR='@TPLDIR@/${PGM_PGMAJOR_VERSION}'
 
 
-# After setInstance
-export PGM_PGSID=""
-export PGM_PGHOST=$(uname --nodename)
-export PGM_PGLISTENER=""
-export PGM_PGPORT=0
-export PGM_PGAUTOLAUNCH=""
-export PGM_PGSTATUS=""
+# INSTANCES CONSTANTS set after setInstance call
+# PGM_PGSID=""
+# PGM_PGHOST=$(uname --nodename)
+# PGM_PGLISTENER=""
+# PGM_PGPORT=0
+# PGM_PGAUTOLAUNCH=""
+# PGM_PGSTATUS=""
 
+# INSTANCES PATTERN VARIABLES
+#
+# Be sure to run a pgm_check after altering these pattern
+#
 # Pattern PGMPGPATTERN_NAME will be expanded into PGM_NAME
 #  ${PGM_PGFULL_VERSION} that contains full text version of a PostgreSQL server (9.5.0)
 #  ${PGM_PGFULL_VERSION_NUM} that contains full numeric version (950)
 #  ${PGM_PGMAJOR_VERSION} the major text version (9.5)
 #  ${PGM_PGMAJOR_VERSION_NUM} the major numeric version (95)
 #  ${PGM_PGSID} the instance name
-PGMPG_PTRN_PGDATA_DIR='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data'
-PGMPG_PTRN_PGLOG_DIR='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/log'
-PGMPG_PTRN_PGXLOG_DIR='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/xlog/wal'
-PGMPG_PTRN_PGARCHIVELOG_DIR='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/archivelog'
-PGMPG_PTRN_PGDBHOME_DIR='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}'
-#PGMPG_PTRN_PGFSLIST='"@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID} ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/xlog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/archivelog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/log"'
+PGMPG_PTRN_PGDATA_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data'
+PGMPG_PTRN_PG_LOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/log'
+PGMPG_PTRN_PGXLOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/xlog/wal'
+PGMPG_PTRN_PGARCHIVELOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/archivelog'
+PGMPG_PTRN_PGDBHOME_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}'
+#PGMPG_PTRN_PGFSLIST='"${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID} ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/xlog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/archivelog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/log"'
 PGMPG_PTRN_PGFSLIST=''
-PGMPG_PTRN_PGRECOVER='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/recovery.conf.bak'
-PGMPG_PTRN_PGCONF='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/postgresql.conf'
-PGMPG_PTRN_PGHBA='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/pg_hba.conf'
-PGMPG_PTRN_PGIDENT='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/pg_ident.conf'
-PGMPG_PTRN_PGLOG_FILE='${PGM_PGSID}.${PGM_PGFULL_VERSION}.log'
-#PGMPG_PTRN_PGLOG_FILE='postgresql.log'
-PGMPG_PTRN_PGLOGROTATE_ENTRY='@DBPREFIX@/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/log/*.log { weekly rotate 7 copytruncate delaycompress compress notifempty missingok size 50M }'
+PGMPG_PTRN_PGRECOVER_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/recovery.conf.bak'
+PGMPG_PTRN_PG_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/postgresql.conf'
+PGMPG_PTRN_PGHBA_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/pg_hba.conf'
+PGMPG_PTRN_PGIDENT_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/data/pg_ident.conf'
+PGMPG_PTRN_PG_LOG_NAME='${PGM_PGSID}.${PGM_PGFULL_VERSION}.log'
+#PGMPG_PTRN_PG_LOG_NAME='postgresql.log'
+PGMPG_PTRN_PGLOGROTATE_ENTRY='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGSID}/log/*.log { weekly rotate 7 copytruncate delaycompress compress notifempty missingok size 50M }'
 
-#After setDatabase
-export PGM_PGDATABASE=""
-export PGM_PGLOG=""
+# DATABASES CONSTANTS set after setDatabase call
+# PGM_PGDATABASE=""
+# PGM_PG_LOG_NAME=""
 
 # Nothing should happens after next line
 export PGM_CONF="LOADED"

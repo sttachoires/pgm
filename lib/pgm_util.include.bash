@@ -79,16 +79,19 @@ function instantiateTemplate()
   fi
 }
 
-function ensureDirs()
+function ensureVars()
 {
+  if [ $# -ne 2 ]; then
+    return 1
+  fi
   pgm_result=""
-  for pgm_var in ${!PGM_*}
+  for pgm_all_var in ${!PGM_*}
   do
-    pgm_dir_var=$(echo ${pgm_var} | egrep -o "PGM_.*_DIR")
-    if [ ! -z "${pgm_dir_var}" ]; then
-      eval pgm_value=\"\$${pgm_dir_var}\"
-      if [ ! -d "${pgm_value}" ]; then
-        pgm_result="${pgm_result} ${pgm_value}"
+    pgm_var=$(echo ${pgm_all_var} | egrep -o "PGM_.*$1")
+    if [ ! -z "${pgm_var}" ]; then
+      eval pgm_value=\"\$${pgm_var}\"
+      if [ ! $2 "${pgm_value}" ]; then
+        pgm_result="${pgm_result} ${pgm_var}:'${pgm_value}'"
       fi
     fi
   done
@@ -100,43 +103,48 @@ function ensureDirs()
   fi
 }
 
-function checkEnvironmentDirs()
+function checkEnvironment()
 {
   pgm_report=""
   pgm_status=0
 
-  pgm_report="${pgm_report} $(ensureDirs)"
-  if [ $? -ne 0 ]; then
+  pgm_part_report=$(ensureVars _DIR -d) $(ensureVars _CONF -w) $(ensureVars _LOG -w) $(ensureVars _EXE -x) $(ensureVars _TAB -w)
+  if [ ! -z "${pgm_part_report}" ]; then
     pgm_status=1
+    pgm_report="${pgm_report} PGM: ${pgm_part_report}"
   fi
 
-  pgm_version_list="$(egrep --only-matching "\*:\*:[0-9.]+:[ynYN]" ${PGM_PGTAB} | cut --delimiter ':' --fields 3)"
+  if [ -e "${PGM_PG_TAB}" ]; then
+  pgm_version_list="$(egrep --only-matching "_:_:[0-9.]+:[yn]" ${PGM_PG_TAB} | cut --delimiter ':' --fields 3)"
   if [ $? -eq 0 ]; then
     for pgm_version in ${pgm_version_list}
     do
       setServer ${pgm_version}
-      pgm_report="${pgm_report} $(ensureDirs)"
-      if [ $? -ne 0 ]; then
+      pgm_part_report=$(ensureVars _DIR -d) $(ensureVars _CONF -w) $(ensureVars _LOG -w) $(ensureVars _EXE -x) $(ensureVars _TAB -w)
+      if [ ! -z "${pgm_part_report}" ]; then
         pgm_status=2
+        pgm_report="${pgm_report} Server: ${pgm_part_report}"
       fi
 
-      pgm_instance_list="$(egrep --only-matching "\*:${PGM_PGSID_AUTHORIZED_REGEXP}:${pgm_version}:[ynYN]" ${PGM_PGTAB} | cut --delimiter ':' --fields 2)"
+      pgm_instance_list="$(egrep --only-matching "_:${PGM_PGSID_AUTHORIZED_REGEXP}:${pgm_version}:[yn]" ${PGM_PG_TAB} | cut --delimiter ':' --fields 2)"
       if [ $? -eq 0 ]; then
         for pgm_instance in ${pgm_instance_list}
         do
           setInstance ${pgm_version} ${pgm_instance}
-          pgm_report="${pgm_report} $(ensureDirs)"
-          if [ $? -ne 0 ]; then
+          pgm_part_report=$(ensureVars _DIR -d) $(ensureVars _CONF -w) $(ensureVars _LOG -w) $(ensureVars _EXE -x) $(ensureVars _TAB -w)
+          if [ ! -z "${pgm_part_report}" ]; then
             pgm_status=3
+            pgm_report="${pgm_report} Instance: ${pgm_part_report}"
           fi
-          pgm_database_list="$(egrep --only-matching "${PGM_PGDATABASE_AUTHORIZED_REGEXP}:${pgm_instance}:${pgm_version}:[ynYN]" ${PGM_PGTAB} | cut --delimiter ':' --fields 1)"
+          pgm_database_list="$(egrep --only-matching "${PGM_PGDATABASE_AUTHORIZED_REGEXP}:${pgm_instance}:${pgm_version}:[ynYN]" ${PGM_PG_TAB} | cut --delimiter ':' --fields 1)"
           if [ $? -ne 0 ]; then
             for pgm_database in ${pgm_database_list}
             do
               setDatabase ${pgm_version} ${pgm_instance} ${pgm_database}
-              pgm_report="${pgm_report} $(ensureDirs)"
-              if [ $? -ne 0 ]; then
-                pgm_status=3
+              pgm_part_report=$(ensureVars _DIR -d) $(ensureVars _CONF -w) $(ensureVars _LOG -w) $(ensureVars _EXE -x) $(ensureVars _TAB -w)
+              if [ ! -z "${pgm_part_report}" ]; then
+                pgm_status=4
+                pgm_report="${pgm_report} Database: ${pgm_part_report}"
               fi
             done
           fi
@@ -144,8 +152,9 @@ function checkEnvironmentDirs()
       fi
     done
   fi
-
-  printf "${pgm_report}"
+  fi
+  pgm_report=$(echo "${pgm_report}" | sed 's/[ ]+/ /g')
+  echo ${pgm_report}
   return ${pgm_status}
 }
 

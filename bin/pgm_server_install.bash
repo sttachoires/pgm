@@ -34,36 +34,42 @@ function checkParameter()
     exitError "Something wrong with ${pgm_srcdir}. configure script cannot be found executable\n"
   fi
 
+  pgm_result=$(ensureVars _DIR -d)
+  if [ $? -ne 0 ]; then
+    exitError "Problem with configuration, correct them before install"
+  fi
+
   setServer ${pgm_version}
   if [ $? -ne 0 ]; then
     exitError "Cannot set server ${pgm_version}\n"
   fi
   export PGM_LOG="${PGM_LOG_DIR}/install_server.log"
   printInfo "\nSERVER INSTALLATION ON $(date)\n  VERSION : '${pgm_version}'\n  SOURCE : '${pgm_srcdir}'\n\n"
+
 }
 
 function createTabEntry()
 {
-  if [ ! -e ${PGM_PGTAB} ]; then
-    printInfo "Creation of ${PGM_PGTAB} ..."
-    touch ${PGM_PGTAB}
+  if [ ! -e ${PGM_PG_TAB} ]; then
+    printInfo "Creation of ${PGM_PG_TAB} ..."
+    touch ${PGM_PG_TAB}
     if [ $? -ne 0 ]; then
-      exitError "Unable to create ${PGM_PGTAB}\n"
+      exitError "Unable to create ${PGM_PG_TAB}\n"
     fi
-    echo "#database:instance:version:autostart" > ${PGM_PGTAB}
+    echo "#database:instance:version:autostart" > ${PGM_PG_TAB}
     if [ $? -ne 0 ]; then
-      exitError "Unable to write into ${PGM_PGTAB}\n"
+      exitError "Unable to write into ${PGM_PG_TAB}\n"
     else
       printInfo "done\n"
     fi
   fi
-  pgmline="*:*:${PGM_PGFULL_VERSION}:n"
-  egrep -q "^[[:space:]]*\*:\*:${PGM_PGFULL_VERSION}:.?" ${PGM_PGTAB}
+  pgmline="_:_:${PGM_PGFULL_VERSION}:[yn]"
+  egrep -q "^_:_:${PGM_PGFULL_VERSION}:[yn]" ${PGM_PG_TAB}
   if [ $? -ne 0 ]; then
-    echo "${pgmline}" >> ${PGM_PGTAB}
-    printInfo "Line '${pgmline}' added to ${PGM_PGTAB}\n"
+    echo "${pgmline}" >> ${PGM_PG_TAB}
+    printInfo "Line '${pgmline}' added to ${PGM_PG_TAB}\n"
   else
-    printInfo "Line '${pgmline}' already present in ${PGM_PGTAB}\n"
+    printInfo "Line '${pgmline}' already present in ${PGM_PG_TAB}\n"
   fi
 }
 
@@ -73,10 +79,11 @@ function createTabEntry()
 
 checkParameter $*
 
+
 cd ${pgm_srcdir}
 printInfo "Configuration..."
 
-./configure --prefix=${PGM_PGHOME_DIR} --exec-prefix=$(dirname ${PGM_PGBIN_DIR}) --bindir=${PGM_PGBIN_DIR} --libdir=${PGM_PGLIB_DIR} --includedir=${PGM_PGINCLUDE_DIR} --datarootdir=$(dirname ${PGM_PGSHARE_DIR}) --mandir=${PGM_PGMAN_DIR} --docdir=${PGM_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap >> ${PGM_LOG} 2>&1
+./configure --prefix=${PGM_PGHOME_DIR} --exec-prefix=$(dirname ${PGM_PGBIN_DIR}) --bindir=${PGM_PGBIN_DIR} --libdir=${PGM_PGLIB_DIR} --includedir=${PGM_PGINCLUDE_DIR} --datarootdir=${PGM_PGSHARE_DIR} --mandir=${PGM_PGMAN_DIR} --docdir=${PGM_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap >> ${PGM_LOG} 2>&1
 if [ $? -ne 0 ]; then
   exitError "Problem configuring compilation:\nplease read ${PGM_LOG} and correct problem(s)\n\n"
 else
@@ -116,5 +123,11 @@ else
 fi
 
 createTabEntry
+
+pgm_missig_dirs=$(checkEnvironment | sed 's/ /\n/g' | egrep --only-matching "PGM_[[:alnum:]]+_DIR:'.+'" | cut --delimiter "'" --fields 2)
+for pgm_dir in ${pgm_missing_dirs}
+do
+  mkdir -p ${pgm_dir}
+done
 
 printInfo "PostgreSQL ${PGM_PGFULL_VERSION} is installed in ${PGM_PGHOME_DIR}\n"

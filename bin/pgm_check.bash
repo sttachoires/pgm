@@ -39,10 +39,10 @@ fi
 
 USAGE="${PRGNAME}\n"
 
-pgm_missing_dirs=$(checkEnvironmentDirs)
+pgm_missing_envs=$(checkEnvironment)
 if [ $? -ne 0 ]; then
-  printf "Missing directories: ${pgm_missing_dirs}\n"
+  printf "Configuration Error:\n\n${pgm_missing_envs// /$'\n'}\n"
 else
-  printf "Directories OK\n"
+  printf "Environment OK\n"
 fi
 

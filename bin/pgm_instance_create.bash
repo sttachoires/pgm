@@ -18,19 +18,40 @@ fi
 . @LIBDIR@/pgm_server.include
 . @LIBDIR@/pgm_pg.include
 
-USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION is the major version of PostgreSQL to use (ie: 9.3)\n\tPGSID stands for the cluster name (Oracle SID equivalent)\n\tPGPORT is the port the server is listening from\n\tPGLISTENER  is the hostname/ip listening on the PGPORT (default wil be '*')\n"
+USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION is the major version of PostgreSQL to use (ie: 9.3)\n\tPGSID stands for the cluster name (Oracle SID equivalent)\n\tPGPORT is the port the server is listening from\n\tPGLISTENER  is the hostname/ip listening on the PGPORT (default wil be 'uname --node')\n"
 
 
 function checkParameters ()
 {
-  if [ $# -lt 4 ]; then
-    exitError "${USAGE}\n"
-  fi
+  case $# in
+    4 )
+       pgm_version=$1
+       pgm_sid=$2
+       pgm_port=$3
+       pgm_listener=$4
+       ;;
 
-  export pgm_version=$1
-  export pgm_sid=$2
-  export pgm_port=$3
-  export pgm_listener=$4
+    3 )
+       pgm_version=$1
+       pgm_sid=$2
+       pgm_port=$3
+       pgm_listener=$(uname --node)
+       ;;
+
+    2 )
+       pgm_version=$1
+       pgm_sid=$2
+       pgm_port=5432
+       pgm_listener=$(uname --node)
+       ;;
+
+    * ) exitError "${USAGE}\n"
+  esac
+
+  setServer ${pgm_version}
+  if [ $? -ne 0 ]; then
+    exitError "Unmanaged version ${pgm_version}\n"
+  fi
 
   setInstance ${pgm_version} ${pgm_sid}
   if [ $? -ne 0 ]; then
@@ -71,9 +92,9 @@ function buildDirectories()
     exitError "Cannot create ${PGM_PGXLOG_DIR}"
   fi
 
-  mkdir -p ${PGM_PGLOG_DIR}
+  mkdir -p ${PGM_PG_LOG_DIR}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGLOG_DIR}"
+    exitError "Cannot create ${PGM_PG_LOG_DIR}"
   fi
 
   mkdir -p ${PGM_PGARCHIVELOG_DIR}
@@ -89,7 +110,7 @@ function initDB ()
   # Create cluster
   ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale 2>&1 >> ${PGM_LOG} 2>&1
   if [ $? -ne 0 ]; then
-    exitError "Cannot create instance ${PGM_PGSID} with PostgreSQL ${PGM_PGFULL_VERSION}\n"
+    exitError "Cannot create instance ${PGM_PGSID} with PostgreSQL ${PGM_PGFULL_VERSION}\nCheck ${PGM_LOG}\n"
   fi
 
   setInstance ${PGM_PGFULL_VERSION} ${PGM_PGSID}
@@ -100,61 +121,61 @@ function initDB ()
 
 function createRecovery ()
 {
-  pgm_name=$(basename ${PGM_PGRECOVER})
+  pgm_name=$(basename ${PGM_PGRECOVER_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  instantiateTemplate ${pgm_tpl} ${PGM_PGRECOVER}
+  instantiateTemplate ${pgm_tpl} ${PGM_PGRECOVER_CONF}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGRECOVER} from ${pgm_tpl}\n"
+    exitError "Cannot create ${PGM_PGRECOVER_CONF} from ${pgm_tpl}\n"
   fi
-  printInfo "${PGM_PGRECOVER} created\n"
+  printInfo "${PGM_PGRECOVER_CONF} created\n"
 }
 
 
 function createConf ()
 {
-  pgm_name=$(basename ${PGM_PGCONF})
+  pgm_name=$(basename ${PGM_PG_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  instantiateTemplate ${pgm_tpl} ${PGM_PGCONF}
+  instantiateTemplate ${pgm_tpl} ${PGM_PG_CONF}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGCONF} from ${pgm_tpl}\n"
+    exitError "Cannot create ${PGM_PG_CONF} from ${pgm_tpl}\n"
   fi
-  printInfo "${PGM_PGCONF} created\n"
+  printInfo "${PGM_PG_CONF} created\n"
 }
 
 
 function createHBA ()
 {
-  pgm_name=$(basename ${PGM_PGHBA})
+  pgm_name=$(basename ${PGM_PGHBA_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  instantiateTemplate ${pgm_tpl} ${PGM_PGHBA}
+  instantiateTemplate ${pgm_tpl} ${PGM_PGHBA_CONF}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGHBA} from ${pgm_tpl}\n"
+    exitError "Cannot create ${PGM_PGHBA_CONF} from ${pgm_tpl}\n"
   fi
-  printInfo "${PGM_PGHBA} created\n"
+  printInfo "${PGM_PGHBA_CONF} created\n"
 }
 
 function createIdent ()
 {
-  pgm_name=$(basename ${PGM_PGIDENT})
+  pgm_name=$(basename ${PGM_PGIDENT_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  instantiateTemplate ${pgm_tpl} ${PGM_PGIDENT}
+  instantiateTemplate ${pgm_tpl} ${PGM_PGIDENT_CONF}
   if [ $? -ne 0 ]; then
-    exitError "Cannot create ${PGM_PGIDENT} from ${pgm_tpl}\n"
+    exitError "Cannot create ${PGM_PGIDENT_CONF} from ${pgm_tpl}\n"
   fi
-  printInfo "${PGM_PGHBA} created\n"
+  printInfo "${PGM_PGHBA_CONF} created\n"
 }
 
 function createTabEntry()
 {
-  if [ ! -w "${PGM_PGTAB}" ]; then
-    exitError "Unable to write into ${PGM_PGTAB}\n"
+  if [ ! -w "${PGM_PG_TAB}" ]; then
+    exitError "Unable to write into ${PGM_PG_TAB}\n"
   fi
-  egrep -q "^[[:space:]]*\*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:[yYnN]" ${PGM_PGTAB}
+  egrep -q "^_:${PGM_PGSID}:${PGM_PGFULL_VERSION}:[yn]" ${PGM_PG_TAB}
   if [ $? -ne 0 ]; then
-    echo "*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y" >> ${PGM_PGTAB}
-    printInfo "Line '*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' added to ${PGM_PGTAB}\n"
+    echo "_:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y" >> ${PGM_PG_TAB}
+    printInfo "Line '_:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' added to ${PGM_PG_TAB}\n"
   else
-    printInfo "Line '*:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' already present in ${PGM_PGTAB}\n"
+    printInfo "Line '_:${PGM_PGSID}:${PGM_PGFULL_VERSION}:y' already present in ${PGM_PG_TAB}\n"
   fi
 }
 
@@ -183,13 +204,13 @@ function createExtentions()
 function configureLogrotate()
 {
   if [ -e ${PGM_LOGROTATE_CONF} ]; then
-    egrep --quiet --only-matching "${PGM_PGLOG_DIR}/\*.log" ${PGM_LOGROTATE_CONF}
+    egrep --quiet --only-matching "${PGM_PG_LOG_DIR}/\*.log" ${PGM_LOGROTATE_CONF}
     if [ $? -ne 0 ]; then
       printf "${PGM_LOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
     fi
   else
     touch ${PGM_LOGROTATE_CONF}
-    printf "${PGM_PGLOGROTATE_ENTRY}" > ${PGM_LOGROTATE_CONF}
+    printf "${PGM_PG_LOGROTATE_ENTRY}" > ${PGM_LOGROTATE_CONF}
   fi
 }
 
@@ -202,7 +223,10 @@ setServer ${pgm_version}
 if [ $? -ne 0 ]; then
   exitError "Cannot set ${pgm_version} server\n"
 fi
-ensureDirs
+pgm_result=$(ensureVars _DIR -d)
+if [ $? -ne 0 ]; then
+  exitError "Problem with directories:\n ${pgm_result// /$'\n'}\nplease provide them\n"
+fi
 checkFS
 buildDirectories
 initDB
