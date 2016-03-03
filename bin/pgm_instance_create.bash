@@ -71,7 +71,17 @@ function buildDirectories()
     exitError "Cannot create ${PGM_PGXLOG_DIR}"
   fi
 
-  printInfo "Directories ${PGM_PGDATA_DIR} and ${PGM_PGXLOG_DIR} are ok\n" 
+  mkdir -p ${PGM_PGLOG_DIR}
+  if [ $? -ne 0 ]; then
+    exitError "Cannot create ${PGM_PGLOG_DIR}"
+  fi
+
+  mkdir -p ${PGM_PGARCHIVELOG_DIR}
+  if [ $? -ne 0 ]; then
+    exitError "Cannot create ${PGM_PGARCHIVELOG_DIR}"
+  fi
+
+  printInfo "Directories are ok\n" 
 }
 
 function initDB ()

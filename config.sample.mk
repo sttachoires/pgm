@@ -7,10 +7,6 @@ VERSION:=0.02-dev
 BASH:=/bin/bash
 
 # paths
-USER:=postgres
-USERNUM:=533
-GROUP:=dba
-GROUPNUM:=533
 PREFIX:=/home/pgm
 LOGROTATE:=/usr/sbin/logrotate
 DBPREFIX:=/home/pgm/pgdb

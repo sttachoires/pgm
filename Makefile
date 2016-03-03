@@ -3,12 +3,12 @@
 include config.mk
 
 DATE:=$(shell date +'%Y.%m.%d_%H.%M.%S')
-
 SRC_BINS:=$(wildcard bin/*.bash)
 SRC_SCRIPTS:=$(wildcard script/*.bash)
 SRC_LIBS:=$(wildcard lib/*.include.bash)
 SRC_TPLS:=$(wildcard tplptrn/*/*.tpl.ptrn)
 SRC_CONFS:=$(wildcard conf/*.conf.sample)
+SRC_CONFSCRIPTS:=$(wildcard conf/*.bash)
 SRC_DOCS:=COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
 SRC_MANPAGES:=$(wildcard man/*.man)
 
@@ -16,49 +16,20 @@ BINS:=$(basename $(SRC_BINS))
 SCRIPTS:=$(basename $(SRC_SCRIPTS))
 LIBS:=$(basename $(SRC_LIBS))
 CONFS:=$(basename $(SRC_CONFS))
+CONFSCRIPTS:=$(basename $(SRC_CONFSCRIPTS))
 MANPAGES:=$(basename $(SRC_MANPAGES))
 TPLS:=$(basename $(SRC_TPLS))
 DOCS:=$(SRC_DOCS)
-BASH_PROFILE:="$(PREFIX)/.bash_profile"
+BASH_PROFILE:="$(PREFIX)/.pgm_profile"
 
 DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
 DEST_SCRIPTS:=$(SCRIPTS:script/%=${SCRIPTDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
 DEST_CONFS:=$(CONFS:conf/%=${CONFDIR}/%)
+DEST_CONFSCRIPTS:=$(CONFSCRIPTS:conf/%=${CONFDIR}/%)
 DEST_MANPAGES:=$(MANPAGES:man/%=${MANDIR}/%)
 DEST_TPLS:=$(TPLS:tplptrn/%=${TPLDIR}/%)
 DEST_DOCS:=$(DOCS:%=${DOCDIR}/%)
-
-NOGROUP=nogroup
-NOUSER=nouser
-GREPGROUP:=$(shell grep --only-matching "^${GROUP}:x" /etc/group)
-GROUPEXISTS:=$(patsubst %:x,%,$(GREPGROUP))
-GROUPCREATE:=$(if $(GROUPEXISTS),$(NOGROUP),$(GROUP))
-GREPUSER:=$(shell grep --only-matching "^$(USER):x" /etc/passwd)
-USEREXISTS:=$(patsubst %:x,%,$(GREPUSER))
-USERCREATE:=$(if $(USEREXISTS),$(NOUSER),$(USER))
-
-SAVE_TPLS=save_tpls
-NO_SAVE_TPLS=no_save_tpls
-TPLS_TO_SAVE:=$(wildcard $(TPLDIR)/*/*.tpl)
-BACKUP_OLD_TPLS:=$(filter-out %/save.%, $(if $(TPLS_TO_SAVE),$(SAVE_TPLS),$(NO_SAVE_TPLS)))
-
-SAVE_CONFS=save_confs
-NO_SAVE_CONFS=no_save_confs
-CONFS_TO_SAVE:=$(filter-out $(CONFDIR)/save.%, $(wildcard $(CONFDIR)/*))
-BACKUP_OLD_CONFS:=$(if $(CONFS_TO_SAVE),$(SAVE_CONFS),$(NO_SAVE_CONFS))
-
-SRC_INITD=$(SCRIPTDIR)/initd
-DEST_INITD=/etc/init.d/pgm
-
-cronjobs: crontab.tmp $(USERCREATE)
-	@echo adding crontab logrotate job
-	@crontab -u ${USER} $<
-	@echo
-
-crontab.tmp : $(CONFDIR)/logrotate.conf $(USERCREATE)
-	@crontab -u ${USER} -l | egrep -v "$(CONFDIR)/logrotate.conf"; fi > $@
-	@printf "$(CRONREPORT)*/10 * * * * $(LOGROTATE) --state=$(CONFDIR)/logrotate.state $(CONFDIR)/logrotate.conf > $(LOGDIR)/logrotate.log 2>&1\n" >> $@
 
 options :
 	@echo
@@ -66,10 +37,6 @@ options :
 	@echo "${NAME} ${VERSION} install options:"
 	@echo "######"
 	@echo "BASH             =${BASH}"
-	@echo "USER             =${USER}"
-	@echo "USERNUM          =${USERNUM}"
-	@echo "GROUP            =${GROUP}"
-	@echo "GROUPNUM         =${GROUPNUM}"
 	@echo "PREFIX           =${PREFIX}"
 	@echo "LOGROTATE        =${LOGROTATE}"
 	@echo "DBPREFIX         =${DBPREFIX}"
@@ -89,6 +56,7 @@ options :
 	@echo "SRC_LIBS         =${SRC_LIBS}"
 	@echo "SRC_TPLS         =${SRC_TPLS}"
 	@echo "SRC_CONFS        =${SRC_CONFS}"
+	@echo "SRC_CONFSCRIPTS  =${SRC_CONFSCRIPTS}"
 	@echo "SRC_DOCS         =${SRC_DOCS}"
 	@echo "SRC_MANPAGES     =${SRC_MANPAGES}"
 	@echo
@@ -97,6 +65,7 @@ options :
 	@echo "LIBS             =${LIBS}"
 	@echo "TPLS             =${TPLS}"
 	@echo "CONFS            =${CONFS}"
+	@echo "CONFSCRIPTS      =${CONFSCRIPTS}"
 	@echo "DOCS             =${DOCS}"
 	@echo "MANPAGES         =${MANPAGES}"
 	@echo
@@ -105,27 +74,18 @@ options :
 	@echo "DEST_LIBS        =${DEST_LIBS}"
 	@echo "DEST_TPLS        =${DEST_TPLS}"
 	@echo "DEST_CONFS       =${DEST_CONFS}"
+	@echo "DEST_CONFSCRIPTS =${DEST_CONFSCRIPTS}"
 	@echo "DEST_DOCS        =${DEST_DOCS}"
 	@echo "DEST_MANPAGES    =${DEST_MANPAGES}"
 	@echo
-	@echo "USERCREATE       =${USERCREATE}"
-	@echo "GROUPCREATE      =${GROUPCREATE}"
-	@echo "TPLS_TO_SAVE     =${TPLS_TO_SAVE}"
-	@echo "BACKUP_OLD_TPLS  =${BACKUP_OLD_TPLS}"
-	@echo "CONFS_TO_SAVE    =${CONFS_TO_SAVE}"
-	@echo "BACKUP_OLD_CONFS =${BACKUP_OLD_CONFS}"
-
 	@echo "######"
 	@echo
 
 all : bins scripts libs configs manpages templates docs
 	@echo
 
-install : all usergroup installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans initd cronjobs
+install : all installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans cronjobs
 
-
-initd : $(DEST_INITD)
-	@echo
 
 checkinstall : 
 	@echo $(shell $(BASH) $(BINDIR)/pgm_check)
@@ -133,13 +93,23 @@ checkinstall :
 bins : $(BINS)
 	@echo
 
+cronjobs : crontabcreate
+	@echo adding crontab logrotate job
+	@crontab $<
+	@echo
+
+crontabcreate : $(CONFDIR)/logrotate.conf
+	@crontab -l | egrep -v "$(CONFDIR)/logrotate.conf" > $@
+	@echo '*/10 * * * * $(LOGROTATE) --state=$(CONFDIR)/logrotate.state $(CONFDIR)/logrotate.conf > $(LOGDIR)/logrotate.log 2>&1' >> $@
+	@echo OK
+
 scripts : $(SCRIPTS)
 	@echo
 
 libs : $(LIBS)
 	@echo
 
-configs : $(CONFS)
+configs : $(CONFS) $(CONFSCRIPTS)
 	@echo
 
 manpages : $(MANPAGES)
@@ -158,16 +128,10 @@ installmans : $(DEST_MANPAGES)
 installdocs : $(DEST_DOCS)
 	@echo
 
-installconfs : $(DEST_CONFS)
+installconfs : $(DEST_CONFS) $(DEST_CONFSCRIPTS)
 	@echo
 
 installtpl : $(DEST_TPLS)
-	@echo
-
-usergroup : $(GROUPCREATE) $(USERCREATE)
-	@echo
-
-installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR) $(DBPREFIX)
 	@echo
 
 installbins : $(DEST_BINS)
@@ -179,13 +143,16 @@ installscripts : $(DEST_SCRIPTS)
 installlibs : $(DEST_LIBS)
 	@echo
 
+installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR) $(DBPREFIX)
+	@echo
+
 uninstall :
 	@echo removing all files from ${PREFIX}
 	@rm -f $(DEST_BINS)
 	@rm -f $(DEST_SCRIPTS)
 	@rm -f $(DEST_LIBS)
 	@rm -f $(DEST_TPLS)
-	@rm -f $(DEST_CONFS)
+	@rm -f $(DEST_CONFS) $(DEST_CONFSCRIPTS)
 	@rm -f $(DEST_DOCS)
 	@rm -f $(DEST_MANPAGES)
 
@@ -195,7 +162,7 @@ clean :
 	@rm -f $(SCRIPTS)
 	@rm -f $(LIBS)
 	@rm -f $(TPLS)
-	@rm -f $(CONFS)
+	@rm -f $(CONFS) $(CONFSCRIPTS)
 	@rm -f $(MANPAGES)
 
 
@@ -210,9 +177,6 @@ clean :
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
-		-e "s%@USERNUM@%${USERNUM}%" \
-		-e "s%@GROUP@%${GROUP}%" \
-		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
@@ -232,9 +196,6 @@ clean :
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
-		-e "s%@USERNUM@%${USERNUM}%" \
-		-e "s%@GROUP@%${GROUP}%" \
-		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
@@ -254,9 +215,6 @@ clean :
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
-		-e "s%@USERNUM@%${USERNUM}%" \
-		-e "s%@GROUP@%${GROUP}%" \
-		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
@@ -276,9 +234,6 @@ clean :
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
-		-e "s%@USERNUM@%${USERNUM}%" \
-		-e "s%@GROUP@%${GROUP}%" \
-		-e "s%@GROUPNUM@%${GROUPNUM}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
 		-e "s%@NAME@%${NAME}%" \
@@ -287,105 +242,60 @@ clean :
 		-e "s%@DBPREFIX@%${DBPREFIX}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
-$(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) : $(USERCREATE) $(GROUPCREATE)
+$(PREFIX) $(DBPREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) :
 	@echo creation of $@
 	@mkdir --parents $@
 	@chmod u=rwx,g=rx,o= $@
-	@chown ${USER}:${GROUP} $@
 
-$(DEST_INITD) : $(SRC_INITD) $(DEST_SCRIPTS)
-	@echo "Copying new init.d script"
-	@cp $< $@
-	@chmod u+x $@
-
-$(BASH_PROFILE) : $(PREFIX) $(USERCREATE) $(GROUPCREATE)
+$(BASH_PROFILE) : $(PREFIX)
 	@echo creation of ${BASH_PROFILE}
-	@touch ${BASH_PROFILE}
-	@echo "export PATH=\"${BINDIR}:${PATH}\"" >> ${BASH_PROFILE}
-	@echo "export MANPATH=\"${MANDIR}:${MANPATH}\"" >> ${BASH_PROFILE}
-	@echo "alias ll='ls -laF $*'" >> ${BASH_PROFILE}
-	@echo "alias pgmsql='pgm_psql $*'" >> ${BASH_PROFILE}
-	@chmod u=rw,g=r,o= ${BASH_PROFILE}
-	@chown ${USER}:${GROUP} ${BASH_PROFILE}
+	touch ${BASH_PROFILE}
+	echo "export PATH=\"${BINDIR}:${PATH}\"" >> ${BASH_PROFILE}
+	echo "export MANPATH=\"${MANDIR}:${MANPATH}\"" >> ${BASH_PROFILE}
+	echo "alias ll='ls -laF $*'" >> ${BASH_PROFILE}
+	echo "alias pgmsql='pgm_psql $*'" >> ${BASH_PROFILE}
+	chmod u=rw,g=r,o= ${BASH_PROFILE}
 	@echo
 
-$(USER) : $(GROUPCREATE)
-	@echo adding ${USER} user
-	@adduser --gid=${GROUPNUM} --system --shell=${BASH} --uid=${USERNUM} --home=${PREFIX} ${USER} > /dev/null
-
-$(NOUSER) : $(GROUPCREATE)
-	@echo ${USER} already exists, you should include ${BASH_PROFILE} to his .bash_profile
-
-$(GROUP) :
-	@echo adding ${GROUP} group
-	@addgroup --gid=${GROUPNUM} --system ${GROUP} > /dev/null
-
-$(NOGROUP) :
-	@echo ${GROUP} already exists
-
-$(DEST_BINS) : $(BINS) $(BINDIR) $(USERCREATE) $(GROUPCREATE)
+$(DEST_BINS) : $(BINS) $(BINDIR)
 	@echo installing excecutable $@ to ${BINDIR}
 	@cp --force $(patsubst $(BINDIR)/%,bin/%,$@) ${BINDIR}
-	@chmod u=rx,go= $@
-	@chown ${USER}:${GROUP} $@
+	@chmod ug=rx,o= $@
 
-$(DEST_SCRIPTS) : $(SCRIPTS) $(SCRIPTDIR) $(USERCREATE) $(GROUPCREATE)
+$(DEST_SCRIPTS) : $(SCRIPTS) $(SCRIPTDIR)
 	@echo installing scripts $@ to ${SCRIPTDIR}
 	@cp --force $(patsubst $(SCRIPTDIR)/%,script/%,$@) ${SCRIPTDIR}
-	@chmod u=rx,go= $@
-	@chown ${USER}:${GROUP} $@
+	@chmod ug=rx,o= $@
 
-$(DEST_LIBS) : $(LIBS) $(LIBDIR) $(USERCREATE) $(GROUPCREATE)
+$(DEST_LIBS) : $(LIBS) $(LIBDIR)
 	@echo installing library $@ into ${LIBDIR}
 	@cp --force $(patsubst $(LIBDIR)/%,lib/%,$@) ${LIBDIR}
-	@chmod u=r,go= $@
-	@chown ${USER}:${GROUP} $@
+	@chmod ug=r,g= $@
 
-$(NO_SAVE_TPLS) : $(TPLDIR) $(USERCREATE) $(GROUPCREATE)
-	@echo no tplptrns to save
-	@echo
-
-$(SAVE_TPLS) : $(TPLDIR) $(USERCREATE) $(GROUPCREATE)
-	@echo saving old templates ${TPLS_TO_SAVE}
-	@tar --preserve-permissions --exclude ${TPLDIR}/save.* --create --gzip --file ${TPLDIR}/save.${DATE} ${TPLS_TO_SAVE} > /dev/null 2>&1
-	@chmod u=r,go= ${TPLDIR}/save.${DATE}
-	@chown ${USER}:${GROUP} ${TPLDIR}/save.${DATE}
-	@echo
-
-$(DEST_TPLS) : $(TPLS) $(TPLDIR) $(USERCREATE) $(GROUPCREATE)
+$(DEST_TPLS) : $(TPLS) $(TPLDIR)
 	@echo installing template files $@ to ${TPLDIR}
 	@mkdir --parents $(dir $@)
-	@cp $(patsubst $(TPLDIR)/%,tplptrn/%,$@) $@
-	@chmod u=r,go= $@
-	@chown ${USER}:${GROUP} $@
+	@cp --force $(patsubst $(TPLDIR)/%,tplptrn/%,$@) $@
+	@chmod ug=r,o= $@
 
-$(NO_SAVE_CONFS) : $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
-	@echo no conf to save
-	@echo
-
-$(SAVE_CONFS) : $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
-	@echo saving old configuration ${CONFS_TO_SAVE}
-	@tar --preserve-permissions --exclude ${CONFDIR}/save.* --create --gzip --file ${CONFDIR}/save.${DATE} ${CONFS_TO_SAVE} > /dev/null 2>&1
-	@chmod u=r,go= ${CONFDIR}/save.${DATE}
-	@chown ${USER}:${GROUP} ${CONFDIR}/save.${DATE}
-	@echo
-
-$(DEST_CONFS) : $(BACKUP_OLD_CONF) $(CONFS) $(CONFDIR) $(USERCREATE) $(GROUPCREATE)
-	@echo installing configuration files $@ to ${CONFDIR}
+$(DEST_CONFS) : $(CONFS) $(CONFDIR)
+	@echo installing configuration file $@ to ${CONFDIR}
 	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
-	@chmod u=rw,go= $@
-	@chown ${USER}:${GROUP} $@
+	@chmod ug=rw,o= $@
 
-$(DEST_DOCS) : $(DOCS) $(DOCDIR) $(USERCREATE) $(GROUPCREATE)
+$(DEST_CONFSCRIPTS) : $(CONFSCRIPTS) $(CONFDIR)
+	@echo installing configuration script $@ to ${CONFDIR}
+	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
+	@chmod ug=rwx,o= $@
+
+$(DEST_DOCS) : $(DOCS) $(DOCDIR)
 	@echo installing documentation $@ to ${DOCDIR}
 	@cp --force $(patsubst $(DOCDIR)/%,%,$@) ${DOCDIR}
-	@chmod a=rX $@
-	@chown ${USER}:${GROUP} $@
+	@chmod a=r $@
 
-$(DEST_MANPAGES) : $(MANPAGES) $(MANDIR) $(USERCREATE) $(GROUPCREATE)
+$(DEST_MANPAGES) : $(MANPAGES) $(MANDIR)
 	@echo installing manual files $@ to ${MANDIR}
 	@cp --force $(patsubst $(MANDIR)/%,man/%,$@) ${MANDIR}
 	@chmod a=r $@
-	@chown ${USER}:${GROUP} $@
 
-.PHONY: all options clean install uninstall nogroup nouser nosavetpls nosaveconfs
+.PHONY: all options clean install uninstall
