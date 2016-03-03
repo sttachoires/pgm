@@ -25,11 +25,11 @@ QUICK SETUP
 
 3. Run `make` and `make install`
 
-4. source .pgm_profile
+4. `source .pgm_profile`
 
 5. Run `pgm_server_install /path/to/package/dir versionlabel`
 
-6. Try `pgm_instance_create versionlabel instancename
+6. Try `pgm_instance_create versionlabel instancename`
 
 7. Try `pgm_<TAB>`, test, and tell me.
 
