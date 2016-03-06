@@ -8,7 +8,7 @@
 
 # CONSTANTS
 PRGNAME=$(basename $0 2> /dev/null)
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
@@ -35,18 +35,18 @@ case $# in
 esac
 
 egrep --quiet --only-matching "_:_:${pgm_version}" ${PGM_PG_TAB}
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
   exitError "Unmanaged version pf PostgreSQL ${pgm_version}\n"
 fi
 
 
 egrep --quiet --only-matching "_:${pgm_instance}:${pgm_version}" ${PGM_PG_TAB}
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
   exitError "Unmanaged SID ${pgm_instance} with version ${pgm_version}\n"
 fi
 
 setDatabase ${pgm_version} ${pgm_instance} ${pgm_database}
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
   exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} with ${pgm_version} server\n"
 fi
 

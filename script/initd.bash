@@ -10,19 +10,19 @@
 
 # CONSTANTS
 PRGNAME=$(basename $0 2> /dev/null)
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
 USAGE="${PRGNAME}\n"
 
 pgm_current_user=$(/usr/bin/whoami)
-if [ "${pgm_current_user}" != "root" ]; then
+if [[ "${pgm_current_user}" != "root" ]]; then
   printf "${PRGNAME} should be launch as 'root' not '${pgm_current_user}'\n"
   exit 1
 fi
 
-if [ $# -ne 1 ]; then
+if [[ $# -ne 1 ]]; then
   printf "${USAGE}\n"
   exit 1
 fi

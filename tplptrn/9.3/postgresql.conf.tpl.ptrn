@@ -172,7 +172,7 @@ log_autovacuum_min_duration = 0         # -1 disables, 0 logs all actions and
 #------------------------------------------------------------------------------
 # Preload shared libraries that extents PostgreSQL capabilities
 #------------------------------------------------------------------------------
-shared_preload_libraries = '${PGM_PGEXTENTIONS}'
+shared_preload_libraries = '${PGM_PGEXTENSIONS}'
 
 # Libraries parameters
 auto_explain.log_min_duration = '1s'   # Request min duration to be explained

@@ -92,15 +92,16 @@ checkinstall :
 bins : $(BINS)
 	@echo
 
-cronjobs : crontabcreate
+CRONTABTMP:=crontab.tmp
+$(CRONTABTMP) : $(DEST_CONFS)
+	@$(shell crontab -l | egrep -v "${CONFDIR}/logrotate.conf" > $@)
+	@$(shell echo "*/10 * * * * ${LOGROTATE} --state=${CONFDIR}/logrotate.state ${CONFDIR}/logrotate.conf > ${LOGDIR}/logrotate.log 2>&1" >> $@)
+	@echo ${CRONTABTMP} created
+
+cronjobs : $(CRONTABTMP)
 	@echo adding crontab logrotate job
 	@crontab $<
 	@echo
-
-crontabcreate : $(CONFDIR)/logrotate.conf
-	@crontab -l | egrep -v "$(CONFDIR)/logrotate.conf" > $@
-	@echo '*/10 * * * * $(LOGROTATE) --state=$(CONFDIR)/logrotate.state $(CONFDIR)/logrotate.conf > $(LOGDIR)/logrotate.log 2>&1' >> $@
-	@echo OK
 
 scripts : $(SCRIPTS)
 	@echo
@@ -163,6 +164,7 @@ clean :
 	@rm -f $(TPLS)
 	@rm -f $(CONFS) $(CONFSCRIPTS)
 	@rm -f $(MANPAGES)
+	@rm -f crontab.tmp
 
 
 % : %.bash
