@@ -10,9 +10,7 @@ if [[ "${PGM_SERVER_INCLUDE}" == "LOADED" ]]; then
 fi
 
 . @CONFDIR@/pgm.conf
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+. ${PGM_LIB_DIR}/pgm_pginventory.include
 
 function setServer()
 {
@@ -32,21 +30,10 @@ function setServer()
       eval export ${pgm_pattern/#PGMSRV_PTRN_/PGM_}=\"${pgm_value%/}\"
     done
     
-#    export PATH="${PGM_PGHOME_DIR}/bin:${PATH}"
-#    export LD_LIBRARY_PATH="${PGM_PGHOME_DIR}/lib:${LD_LIBRARY_PATH}"
-
     return 0
   else
     return 2
   fi
-}
-
-function serverList()
-{
-  if [[ "${PGM_PG_TAB}x" == "x" ]] || [[ ! -r "${PGM_PG_TAB}" ]]; then
-    return 1
-  fi
-  printf "$(egrep --only-matching "_:_:.*:" ${PGM_PG_TAB} | cut --delimiter ':' --fields 3)"
 }
 
 function serverInfo()
@@ -72,7 +59,9 @@ function checkAllServers()
 {
   pgm_report=""
   pgm_status=0
-  for pgm_version in $(serverList)
+
+  pgm_servers="$(getServers)"
+  for pgm_version in ${pgm_servers}
   do
     pgm_report="${pgm_report} $(checkServer ${pgm_version})"
     if [[ $? -ne 0 ]]; then
@@ -107,6 +96,53 @@ function checkServer()
   return ${pgm_status}
 }
 
+function installServer()
+{
+  pgm_report=""
+  pgm_status=0
+
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_srcdir=${1%/}
+  pgm_version=$2
+
+  if [[ ! -v PGM_PGHOME_DIR ]] || [[ ! -v PGM_PGBIN_DIR ]] || [[ ! -v PGM_PGLIB_DIR ]] || [[ ! -v PGM_PGINCLUDE_DIR ]] || [[ ! -v PGM_PGSHARE_DIR ]] || [[ ! -v PGM_PGMAN_DIR ]] || [[ ! -v PGM_PGDOC_DIR ]]; then
+    setServer ${pgm_version}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+
+  cd ${pgm_srcdir}
+  ./configure --prefix=${PGM_PGHOME_DIR} --exec-prefix=$(dirname ${PGM_PGBIN_DIR}) --bindir=${PGM_PGBIN_DIR} --libdir=${PGM_PGLIB_DIR} --includedir=${PGM_PGINCLUDE_DIR} --datarootdir=${PGM_PGSHARE_DIR} --mandir=${PGM_PGMAN_DIR} --docdir=${PGM_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap
+  if [[ $? -ne 0 ]]; then
+    return 3
+  fi
+
+  make world
+  if [[ $? -ne 0 ]]; then
+    return 4
+  fi
+
+  make check
+  if [[ $? -ne 0 ]]; then
+    return 5
+  fi
+
+  make install-world
+  if [[ $? -ne 0 ]]; then
+    return 6
+  fi
+
+  make distclean
+  if [[ $? -ne 0 ]]; then
+    return 7
+  fi
+
+  addServer ${pgm_version}
+}
 
 # Nothing should happens after next line
 export PGM_SERVER_INCLUDE="LOADED"

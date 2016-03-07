@@ -135,7 +135,7 @@ function checkEnvironment()
     pgm_status=$(( ${pgm_status} + 1 ))
   fi
 
-  pgm_part_report="$(ensureVars _TAB -w)"
+  pgm_part_report="$(ensureVars _INVENTORY -w)"
   if [[ $? -ne 0 ]]; then
     pgm_report="${pgm_report} ${pgm_part_report}"
     pgm_status=$(( ${pgm_status} + 1 ))

@@ -11,32 +11,9 @@ if [[ "${PGM_PG_INCLUDE}" == "LOADED" ]]; then
   return 0
 fi
 . @CONFDIR@/pgm.conf
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
 . ${PGM_LIB_DIR}/pgm_server.include
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
 . ${PGM_LIB_DIR}/pgm_util.include
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
-
-function pgExec()
-{
-  if [[ $# -gt 1 ]]; then
-    dbname=$1
-    request=$2
-  else
-    request=$1
-  fi
-  if [[ ! -x ${PGM_PGHOME_DIR}/bin/psql ]]; then
-    printError "Problem with '${PGM_PGHOME_DIR}/bin/psql'"
-  fi
-
-  ${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${request}"
-}
+. ${PGM_LIB_DIR}/pgm_pginventory.include
 
 function startInstance()
 {
@@ -160,7 +137,7 @@ function setInstance()
   fi
 
   if [[ ${pgm_sid} =~ ${PGM_PGINSTANCE_AUTHORIZED_REGEXP} ]]; then
-    # First set versions constants
+    # First set instance constants
     export PGM_PGINSTANCE=${pgm_sid}
 
     # Remove trailing slashes.
@@ -188,7 +165,7 @@ function setInstance()
     fi
     PGM_PGPORT=${PGM_PGPORT// /}
 
-    PGM_PG_LOG=${PGM_PG_LOG_DIR}/${PGM_PG_LOG_NAME}
+    export PGM_PG_LOG=${PGM_PG_LOG_DIR}/${PGM_PG_LOG_NAME}
 
     pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA_DIR}[[:space:]]" 2>&1)
     if [[ $? -eq 0 ]]; then
@@ -207,68 +184,12 @@ function setInstance()
       export PGM_PGSTATUS="stopped"
     fi
 
-    pgm_line=$(egrep --only-matching "^_:${PGM_PGINSTANCE}:${PGM_PGVERSION}:[yn]" ${PGM_PG_TAB} | head -1)
-    if [[ $? -eq 0 ]]; then
-      pgm_autolaunch=$(echo "${pgm_line}" | cut --delimiter=':' --fields=3)
-      pgm_autolaunch=${pgm_line:0:1}
-      export PGM_PGAUTOLAUNCH=${pgm_autolaunch,,}
-    fi
+    export PGM_PGAUTOLAUNCH=$(getAutolaunchFromInstance ${PGM_PGVERSION} ${PGM_PGINSTANCE})
     return 0
   else
     printInfo "Wrong instance name \"${pgm_sid}\"\n"
     return 3
   fi
-}
-
-function instanceList()
-{
-  if [[ $# -ne 1 ]] && [[ "${PGM_PGFULL_VERSION}x" == "x" ]] ; then
-    return 1
-  fi
-  setServer ${1:-${PGM_PGFULL_VERSION}}
-  if [[ $? -ne 0 ]]; then
-    return 2
-  fi
-  checkEnvironment
-  if [[ $? -ne 0 ]]; then
-    return 3
-  fi
-  printf "$(egrep --only-matching "_:[^_]+:${PGM_PGFULL_VERSION}:" ${PGM_PG_TAB} | cut --delimiter ':' --fields 2)"
-}
-
-function allInstancesList()
-{
-  pgm_report=""
-  pgm_status=0
-
-  checkEnvironment
-  if [[ $? -ne 0 ]]; then
-    return 1
-  fi
-  pgm_pglines="$(egrep --only-matching "_:[^_]+:.*:[yn]" ${PGM_PG_TAB} | sort --field-separator ':' --key 2,3)"
-  pgm_previous_instance=""
-  for pgm_line in ${pgm_pglines}
-  do
-    pgm_version=$(echo "${pgm_line}" | cut --delimiter ':' --fields 3)
-    pgm_instance=$(echo "${pgm_line}" | cut --delimiter ':' --fields 2)
-    case "${pgm_previous_instance}x" in
-      "x" )
-           pgm_report="${pgm_instance}[${pgm_version}]"
-           pgm_previous_instance="${pgm_instance}"
-           ;;
-
-      "${pgm_instance}x" )
-           pgm_report="[${pgm_version}]"
-           ;;
-
-      * )
-           pgm_report="${pgm_report} ${pgm_instance}[${pgm_version}]"
-           pgm_previous_instance="${pgm_instance}"
-           ;;
-    esac
-  done
-
-  printf "${pgm_report}"
 }
 
 function checkAllInstances()
@@ -281,11 +202,11 @@ function checkAllInstances()
   pgm_status=0
   pgm_version=$1
 
-  for pgm_instance in $(instanceList ${pgm_version})
+  for pgm_instance in $(getInstances ${pgm_version})
   do
     pgm_report="${pgm_report} $(checkInstance ${pgm_version} ${pgm_instance})"
     if [[ $? -ne 0 ]]; then
-      pgm_status+=1
+      pgm_status=$(( ${pgm_status} + 1 ))
     fi
   done
 
@@ -305,6 +226,271 @@ function checkInstance()
   pgm_instance=$2
 
   setInstance ${pgm_version} ${pgm_instance} && checkEnvironment
+}
+
+function initInstance ()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+
+  if [[ "${PGM_PGDATA_DIR}x" == "x" ]] || [[ "${PGM_PGXLOG_DIR}x" == "x" ]] || [[ "${PGM_PGDATA_DIR}x" == "x" ]]; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 1
+    fi
+  fi
+
+  # Create cluster
+  ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale
+}
+
+function logrotateInstance()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+
+  if [[ "${PGM_LOGROTATE_CONF}x" == "x" ]] || [[ "${PGM_PG_LOG_DIR}x" == "x" ]] || [[ "${PGM_LOGROTATE_ENTRY}" ]]; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+
+  touch ${PGM_LOGROTATE_CONF}
+  egrep --quiet --only-matching "${PGM_PG_LOG_DIR}/\*.log" ${PGM_LOGROTATE_CONF}
+  if [[ $? -ne 0 ]]; then
+    printf "${PGM_LOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
+  fi
+}
+
+function checkInstanceFS ()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+  pgm_result=$3
+
+  if [[ ! -v PGM_PGFSLIST ]]; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+
+  pgm_mountlst="$(mount -l)"
+  for pgm_fs in ${PGM_PGFSLIST}
+  do
+    echo "${pgm_mountlst}" | grep --quiet "${pgm_fs}"
+    if [[ $? -ne 0 ]]; then
+      pgm_result=$(( pgm_result++ ))
+    fi
+  done
+
+  return ${pgm_result}
+}
+
+
+function createRecovery ()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+
+  if [[ "${PGM_PGRECOVER_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+  pgm_name=$(basename ${PGM_PGRECOVER_CONF})
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+    return 3
+  fi
+  instantiateTemplate ${pgm_tpl} ${PGM_PGRECOVER_CONF}
+}
+
+
+function createConf ()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+
+  if [[ "${PGM_PG_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+  pgm_name=$(basename ${PGM_PG_CONF})
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+    return 3
+  fi
+  instantiateTemplate ${pgm_tpl} ${PGM_PG_CONF}
+}
+
+
+function createHBA ()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+
+  if [[ "${PGM_PGHBA_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+
+  pgm_name=$(basename ${PGM_PGHBA_CONF})
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+    return 3
+  fi
+
+  instantiateTemplate ${pgm_tpl} ${PGM_PGHBA_CONF}
+}
+
+function createIdent ()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1 
+  pgm_instance=$2
+
+  if [[ "${PGM_PGIDENT_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+
+  pgm_name=$(basename ${PGM_PGIDENT_CONF})
+  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+    return 3
+  fi
+
+  instantiateTemplate ${pgm_tpl} ${PGM_PGIDENT_CONF}
+}
+
+function createExtentions()
+{
+  pgm_result=0
+  for pgm_extention in ${PGM_PGEXTENSIONS_TO_CREATE//,/}
+  do
+    databaseExec ${PGM_PGFULL_VERSION} ${PGM_PGINSTANCE} template1 "CREATE EXTENSION ${pgm_extention};"
+    if [[ $? -ne 0 ]]; then
+      pgm_result=$(( ${pgm_result}++ ))
+    fi
+  done
+}
+
+function provideInstanceDirectories()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+
+  if ! [[ -v PGM_PGDATA_DIR ]] || ! [[ -v PGM_PGXLOG_DIR ]] || ! [[ -v PGM_PG_LOG_DIR ]] || ! [[ -v PGM_PGARCHIVELOG_DIR ]]; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 1
+    fi
+  fi
+
+  mkdir -p ${PGM_PGDATA_DIR}
+  chmod u=rwx,go= ${PGM_PGDATA_DIR}
+  mkdir -p ${PGM_PGXLOG_DIR}
+  mkdir -p ${PGM_PG_LOG_DIR}
+  mkdir -p ${PGM_PGARCHIVELOG_DIR}
+}
+
+function createInstance()
+{
+  if [[ $# -ne 4 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+  pgm_port=$3
+  pgm_listener=$4
+  pgm_result=0
+  pgm_report=""
+
+  checkInstanceFS
+  if [[ $? -ne 0 ]]; then
+    return 2
+  fi
+  buildDirectories
+  if [[ $? -ne 0 ]]; then
+    return 3
+  fi
+  initInstance ${pgm_version} ${pgm_instance}
+  if [[ $? -ne 0 ]]; then
+    return 4
+  fi
+  createPgConf
+  if [[ $? -ne 0 ]]; then
+    return 5
+  fi
+  createRecovery
+  if [[ $? -ne 0 ]]; then
+    return 6
+  fi
+  createHBA
+  if [[ $? -ne 0 ]]; then
+    return 7
+  fi
+  createIdent
+  if [[ $? -ne 0 ]]; then
+    return 8
+  fi
+  addInstance ${pgm_version} ${pgm_instance}
+  if [[ $? -ne 0 ]]; then
+    return 9
+  fi
+  startInstance "${PGM_PGFULL_VERSION}" "${PGM_PGINSTANCE}"
+  if [[ $? -ne 0 ]]; then
+    return 10
+  fi
+  createExtentions
+  if [[ $? -ne 0 ]]; then
+    return 11
+  fi
+  logrotateInstance
+  if [[ $? -ne 0 ]]; then
+    return 12
+  fi
 }
 
 # Nothing should happens after next line

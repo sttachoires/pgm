@@ -20,23 +20,16 @@ if [[ $? -ne 0 ]]; then
   printf "Error loading configuration file\n"
   exit 1
 fi
-. @LIBDIR@/pgm_util.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading utility library\n"
-  exit 2
-fi
-. @LIBDIR@/pgm_server.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading server library\n"
-  exit 2
-fi
+. ${PGM_LIB_DIR}/pgm_util.include
+. ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_server.include
 
 USAGE="${PRGNAME} [VERSION]\nCheck server configuration. All if no VERSION\nwhere:\n\tVERSION the server version to check"
 
 if [[ $# -gt 0 ]]; then
   pgm_server_list=$*
 else
-  pgm_server_list=$(serverList)
+  pgm_server_list=$(getServers)
 fi
 
 for pgm_version in ${pgm_server_list}

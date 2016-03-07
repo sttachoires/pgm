@@ -17,9 +17,9 @@ options=""
 
 # INCLUDE
 . @CONFDIR@/pgm.conf
-. @LIBDIR@/pgm_util.include
-. @LIBDIR@/pgm_server.include
-. @LIBDIR@/pgm_pg.include
+. ${PGM_LIB_DIR}/pgm_util.include
+. ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_pg.include
 
 
 USAGE="${PRGNAME} VERSION SID : Start instance\nwhere:\n\tVERSION : Server full version\n\tSID : database identifier\n"
@@ -30,14 +30,14 @@ if [[ $# -ne 2 ]]; then
 fi
 
 pgm_version=$1
-egrep -qo "_:_:${pgm_version}" ${PGM_PG_TAB}
+isServerUnknown ${pgm_version}
 if [[ $? -ne 0 ]]; then
   exitError "Unmanaged version pf PostgreSQM ${pgm_version}\n"
 fi
 
 
 pgm_instance=$2
-egrep -qo "_:${pgm_instance}:${version}" ${PGM_PG_TAB}
+isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
 if [[ $? -ne 0 ]]; then
   exitError "Unmanaged SID ${pgm_instance}\n"
 fi

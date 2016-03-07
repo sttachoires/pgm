@@ -61,7 +61,9 @@ export PGM_LOG_DIR="@LOGDIR@"
 export PGM_INVENTORY_DIR="@INVENTORYDIR@"
 
 # The databases per instances per versions inventory
-export PGM_PG_TAB="@INVENTORYDIR@/pgtab"
+# Has to exists
+export PGM_PG_INVENTORY="@INVENTORYDIR@/pginventory"
+touch @INVENTORYDIR@/pginventory
 
 #The logrotate configuration file
 export PGM_LOGROTATE_CONF="@CONFDIR@/logrotate.conf"
@@ -99,7 +101,7 @@ export PGM_PGBASE_DIR="${PGM_HOME_DIR}/server"
 # PGM_SCRIPT_DIR
 # PGM_MAN_DIR
 # PGM_NAME
-# PGM_PG_TAB
+# PGM_PG_INVENTORY
 # PGM_BIN_DIR
 # PGM_LOGROTATE_CONF
 # PGM_LIB_DIR

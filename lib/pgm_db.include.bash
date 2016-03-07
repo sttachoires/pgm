@@ -61,21 +61,26 @@ function setDatabase()
   fi
 }
 
-function databaseList()
+function databaseExec()
 {
-  if [[ $# -ne 2 ]]; then
+  if [[ $# -ne 3 ]]; then
     return 1
   fi
-  pgm_report=$(setInstance $1 $2)
-  if [[ $? -ne 0 ]]; then
-    return 2
+
+  pgm_version=$1
+  pgm_instance=$2
+  pgm_database=$3
+
+  if [[ "${PGM_PGBIN_DIR}x" == "x" ]] || [[ "${PGM_PGDATA_DIR}x" == "x" ]] || [[ "${PGM_PORT}x" == "x" ]]; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
   fi
-  checkEnvironment
-  if [[ $? -ne 0 ]]; then
-    return 3
-  fi
-  printf "$(egrep --only-matching ".*:${PGM_PGINSTANCE}:${PGM_PGFULL_VERSION}:" ${PGM_PG_TAB} | cut --delimiter ':' --fields 3)"
+
+  ${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${request}"
 }
+
 
 # Nothing should happens after next line
 export PGM_DB_INCLUDE="LOADED"

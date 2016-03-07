@@ -16,35 +16,14 @@ options=""
 
 # INCLUDE
 . @CONFDIR@/pgm.conf
-if [[ $? -ne 0 ]]; then
-  printf "Error loading configuration file\n"
-  exit 1
-fi
-. @LIBDIR@/pgm_util.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading utility library\n"
-  exit 2
-fi
-. @LIBDIR@/pgm_server.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading server library\n"
-  exit 3
-fi
-. @LIBDIR@/pgm_pg.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading instance library\n"
-  exit 4
-fi
-. @LIBDIR@/pgm_db.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading instance library\n"
-  exit 4
-fi
+. ${PGM_LIB_DIR}/pgm_util.include
+. ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_db.include
 
 
 USAGE="${PRGNAME}\n"
 
-for pgm_srv in $(serverList)
+for pgm_srv in $(getServers)
 do
   printf "\n -----------------\n"
   printf " PostgreSQL server \"${pgm_srv}\":"
@@ -53,7 +32,7 @@ do
   if [[ $? -ne 0 ]]; then
     printError "Problem setting PostgreSQL server \"${pgm_srv}\"\n -----------------\n"
   else
-    for pgm_instance in $(instanceList ${pgm_srv})
+    for pgm_instance in $(getInstancesFromServer ${pgm_srv})
     do
       setInstance ${pgm_srv} ${pgm_instance}
       pgm_report=$(checkEnvironment)
@@ -61,7 +40,7 @@ do
         printError " (Error)"
       else
         printf "${pgm_instance} ("
-        for pgm_database in $(databaseList ${pgm_srv} ${pgm_instance})
+        for pgm_database in $(getDatabasesFromInstance ${pgm_srv} ${pgm_instance})
         do
           printf "'${pgm_instance}'"
         done
