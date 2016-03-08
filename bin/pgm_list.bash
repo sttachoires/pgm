@@ -39,7 +39,7 @@ do
     if [[ $? -ne 0 ]]; then
       printf " environment problem:\n${pgm_reports// /$'\n'}"
     else
-      for pgm_instance in $(instanceList ${pgm_srv})
+      for pgm_instance in $(getInstancesFromServer ${pgm_srv})
       do
         setInstance ${pgm_srv} ${pgm_instance}
         if [[ $? -ne 0 ]]; then

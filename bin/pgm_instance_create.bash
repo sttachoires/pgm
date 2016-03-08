@@ -22,7 +22,7 @@ USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION 
 
 
 export pgm_version=""
-export pgm_sid=""
+export pgm_instance=""
 export pgm_port=5432
 export pgm_listener=$(uname --node)
 
@@ -31,42 +31,43 @@ function checkParameters ()
   case $# in
     4 )
        pgm_version=$1
-       pgm_sid=$2
+       pgm_instance=$2
        pgm_port=$3
        pgm_listener=$4
        ;;
 
     3 )
        pgm_version=$1
-       pgm_sid=$2
+       pgm_instance=$2
        pgm_port=$3
        ;;
 
     2 )
        pgm_version=$1
-       pgm_sid=$2
+       pgm_instance=$2
        ;;
 
     * ) exitError "${USAGE}\n"
   esac
 
   isServerUnknown ${pgm_version}
-  if [[ $? -ne 0 ]]; then
+  if [[ $? -eq 0 ]]; then
     exitError "Unmanaged version ${pgm_version}\n"
   fi
 
-  setInstance ${pgm_version} ${pgm_sid}
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    exitError "Cannot set ${pgm_sid} version ${pgm_version} \n"
+    exitError "Cannot set ${pgm_instance} version ${pgm_version} \n"
   fi
 
   export PGM_LOG="${PGM_LOG_DIR}/create_instance.log"
-  printInfo "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_sid}'\n  VERSION : '${pgm_version}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n"
+  printInfo "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_instance}'\n  VERSION : '${pgm_version}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n"
 }
 
 #
 # M A I N
 #
+
 checkParameters $*
 
 createInstance ${pgm_version} ${pgm_instance} ${pgm_port} ${pgm_listener}

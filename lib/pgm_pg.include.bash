@@ -11,9 +11,9 @@ if [[ "${PGM_PG_INCLUDE}" == "LOADED" ]]; then
   return 0
 fi
 . @CONFDIR@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_pg.include
 
 function startInstance()
 {
@@ -279,9 +279,9 @@ function checkInstanceFS ()
 
   pgm_version=$1
   pgm_instance=$2
-  pgm_result=$3
+  pgm_result=0
 
-  if [[ ! -v PGM_PGFSLIST ]]; then
+  if [ ! -v PGM_PGFSLIST ]; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -325,7 +325,7 @@ function createRecovery ()
 }
 
 
-function createConf ()
+function createPgConf ()
 {
   if [[ $# -ne 2 ]]; then
     return 1
@@ -399,18 +399,6 @@ function createIdent ()
   instantiateTemplate ${pgm_tpl} ${PGM_PGIDENT_CONF}
 }
 
-function createExtentions()
-{
-  pgm_result=0
-  for pgm_extention in ${PGM_PGEXTENSIONS_TO_CREATE//,/}
-  do
-    databaseExec ${PGM_PGFULL_VERSION} ${PGM_PGINSTANCE} template1 "CREATE EXTENSION ${pgm_extention};"
-    if [[ $? -ne 0 ]]; then
-      pgm_result=$(( ${pgm_result}++ ))
-    fi
-  done
-}
-
 function provideInstanceDirectories()
 {
   if [[ $# -ne 2 ]]; then
@@ -420,7 +408,7 @@ function provideInstanceDirectories()
   pgm_version=$1
   pgm_instance=$2
 
-  if ! [[ -v PGM_PGDATA_DIR ]] || ! [[ -v PGM_PGXLOG_DIR ]] || ! [[ -v PGM_PG_LOG_DIR ]] || ! [[ -v PGM_PGARCHIVELOG_DIR ]]; then
+  if [ ! -v PGM_PGDATA_DIR ] || [ ! -v PGM_PGXLOG_DIR ] || [ ! -v PGM_PG_LOG_DIR ] || [ ! -v PGM_PGARCHIVELOG_DIR ]; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 1
@@ -447,11 +435,11 @@ function createInstance()
   pgm_result=0
   pgm_report=""
 
-  checkInstanceFS
+  checkInstanceFS ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
-  buildDirectories
+  provideInstanceDirectories ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 3
   fi
@@ -459,19 +447,19 @@ function createInstance()
   if [[ $? -ne 0 ]]; then
     return 4
   fi
-  createPgConf
+  createPgConf ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 5
   fi
-  createRecovery
+  createRecovery ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 6
   fi
-  createHBA
+  createHBA ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 7
   fi
-  createIdent
+  createIdent ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 8
   fi
@@ -479,15 +467,15 @@ function createInstance()
   if [[ $? -ne 0 ]]; then
     return 9
   fi
-  startInstance "${PGM_PGFULL_VERSION}" "${PGM_PGINSTANCE}"
+  startInstance  ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 10
   fi
-  createExtentions
+  createExtentions ${pgm_version} ${pgm_instance} template1
   if [[ $? -ne 0 ]]; then
     return 11
   fi
-  logrotateInstance
+  logrotateInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 12
   fi

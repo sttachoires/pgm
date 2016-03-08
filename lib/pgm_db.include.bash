@@ -81,6 +81,34 @@ function databaseExec()
   ${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${request}"
 }
 
+function createExtentions()
+{
+  if [[ $# -ne 3 ]]; then
+    return 1
+  fi
+
+  pgm_version=$1
+  pgm_instance=$2
+  pgm_database=$3
+
+  if [[ ! -v ${PGM_PGEXTENSIONS_TO_CREATE} ]]; then
+    setInstance ${pgm_version} ${pgm_instance}
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  fi
+
+  pgm_result=0
+  for pgm_extention in ${PGM_PGEXTENSIONS_TO_CREATE//,/}
+  do
+    databaseExec ${pgm_version} ${pgm_instance} ${pgm_database} "CREATE EXTENSION ${pgm_extention};"
+    if [[ $? -ne 0 ]]; then
+      pgm_result=$(( ${pgm_result}++ ))
+    fi
+  done
+
+  return ${result}
+}
 
 # Nothing should happens after next line
 export PGM_DB_INCLUDE="LOADED"

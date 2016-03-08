@@ -27,7 +27,7 @@ function getAutolaunchFromInstance()
     return 2
   fi
 
-  awk --field-separator=":" "/^_:${pgm_instance}:${pgm_version}:[yn]/ { print \$4 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_version}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY}
 }
 
 function getDatabaseFromInstance()
@@ -42,7 +42,7 @@ function getDatabaseFromInstance()
     return 2
   fi
 
-  awk --field-separator=':' "/^[^_]:${pgm_instance}:${pgm_version}:[yn]/ { print $1 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^..+:'${pgm_instance}':'${pgm_version}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY}
 }
 
 function getServersFromInstance()
@@ -56,7 +56,7 @@ function getServersFromInstance()
     return 2
   fi
 
-  awk --field-separator=':' "/^_:${pgm_instance}:[^_]+:[yn]/ { print $3 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^.*:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
 }
 
 function getInstances()
@@ -65,7 +65,7 @@ function getInstances()
     return 1
   fi
 
-  awk --field-separator=':' "/^_:[^_]+:[^_]+:[yn]/ { print $2 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^.*:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
 }
 
 function isInstanceUnknownFromServer()
@@ -79,7 +79,7 @@ function isInstanceUnknownFromServer()
     return 2
   fi
 
-  egrep --quiet --only-matching "^_:${pgm_instance}:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "^.*:${pgm_instance}:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 function getInstancesFromServer()
@@ -93,7 +93,7 @@ function getInstancesFromServer()
     return 2
   fi
 
-  awk --field-separator=':' "/^_:[^_]+:${pgm_version}:[yn]/ { print $2 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^.*:..+:'${pgm_version}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
 }
 
 function getDatabasesFromServer()
@@ -107,7 +107,7 @@ function getDatabasesFromServer()
     return 2
   fi
 
-  awk --field-separator=':' "/^[^_]+:[^_]+:${pgm_version}:[yn]/ { print $1 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^..+:.*:'${pgm_version}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY}
 }
 
 function getServers()
@@ -116,7 +116,7 @@ function getServers()
     return 1
   fi
 
-  awk --field-separator=':' "/^_:_:[^_]+:[yn]/ { print $\3 }" ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^.*:.*:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
 }
 
 function isServerUnknown()
@@ -130,7 +130,7 @@ function isServerUnknown()
     return 2
   fi
 
-  egrep --quiet --only-matching "^_:_:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "^.*:.*:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 function addServer()
@@ -147,8 +147,38 @@ function addServer()
   isServerUnknown ${pgm_version}
   if [[ $? -ne 0 ]]; then
     echo "_:_:${pgm_version}:y" >> ${PGM_PG_INVENTORY}
+    return $?
+  else
+    return 0
+  fi
+}
+
+function isServerAlone()
+{
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  pgm_version=$1
+
+  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+    return 2
   fi
 
+  egrep --quiet --only-matching "^(.*:..+|..+:.*):${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+}
+
+function isInstanceAlone()
+{
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  pgm_version=$1
+
+  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+    return 2
+  fi
+
+  egrep --quiet --only-matching "^..+:${pgm_instance}:.*:[yn]" ${PGM_PG_INVENTORY}
 }
 
 function removeServer()
@@ -162,22 +192,19 @@ function removeServer()
     return 2
   fi
 
-  isServerUnknown ${pgm_version}
+  isServerAlone ${pgm_version}
   if [[ $? -ne 0 ]]; then
-    return 0
-  fi
-  pgm_db="$(getInstancesFromServer ${pgm_version})"
-  if [[ $? -eq 0 ]]; then
-    return 2
+    sed '/^.*:.*:'${pgm_version}':[yn].*$/ s/^/#/' ${PGM_PG_INVENTORY}
+    return $?
   else
-    sed "/^_:_:${pgm_version}:[yn].*$/ s/^/#/" ${PGM_PG_INVENTORY}
+    return 3
   fi
 }
 
 function addInstance()
 {
   if [[ $# -ne 2 ]]; then
-    return 2
+    return 1
   fi
   pgm_version=$1
   pgm_instance=$2
@@ -188,9 +215,8 @@ function addInstance()
 
   isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    echo "_:_:${pgm_version}:y" >> ${PGM_PG_INVENTORY}
+    echo "_:${pgm_instance}:${pgm_version}:y" >> ${PGM_PG_INVENTORY}
   fi
-
 }
 
 function removeInstance()
@@ -205,15 +231,12 @@ function removeInstance()
     return 2
   fi
 
-  isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
+  isInstanceAlone ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    return 0
-  fi
-  pgm_db="$(getDatabasesFromInstance ${pgm_version} ${pgm_instance})"
-  if [[ $? -eq 0 ]]; then
-    return 2
+    sed '/^.*:'${pgm_instance}':'${pgm_version}':[yn].*$/ s/^/#/' ${PGM_PG_INVENTORY}
+    return $?
   else
-    sed "'/^_:${pgm_instance}:${pgm_version}:[yn].*$/ s/^/#/'" ${PGM_PG_INVENTORY}
+    return 3
   fi
 }
 
@@ -229,7 +252,7 @@ function isDatabaseUnknownFromInstance()
     return 2
   fi
 
-  egrep --quiet --only-matching \"${pgm_database}:${pgm_instance}:${pgm_version}:[yn]\" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "${pgm_database}:${pgm_instance}:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 
