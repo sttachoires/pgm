@@ -7,13 +7,21 @@
 #set -xv
 
 # INCLUDE
-if [[ "${PGM_PG_INCLUDE}" == "LOADED" ]]; then
+if [ "${PGM_PG_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
+export PGM_PG_INCLUDE="LOADED"
+
 . @CONFDIR@/pgm.conf
+if [[ $? -ne 0 ]]; then
+  exit 1
+fi
+
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_pg.include
+. ${PGM_LIB_DIR}/pgm_db.include
 
 function startInstance()
 {
@@ -34,6 +42,21 @@ function startInstance()
   fi
 
   ${PGM_PGBIN_DIR}/pg_ctl -w ${pgm_options} --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
+}
+
+function startLocalInstance()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+  pgm_version=$1
+  pgm_sid=$2
+  setInstance ${pgm_version} ${pgm_sid}
+  if [[ $? -ne 0 ]]; then
+    return 2
+  fi
+
+  ${PGM_PGBIN_DIR}/pg_ctl -w -o "-c listen_addresses=''" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
 }
 
 function stopInstance()
@@ -109,10 +132,10 @@ function killInstance()
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA} --mode=immediate stop
+  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=immediate stop
   if [[ $? -ne 0 ]]; then
-    if [[ -e ${PGM_PGDATA}/postmaster.pid ]]; then
-      pgm_pgpid=$(head -1 ${PGM_PGDATA}/postmaster.pid)
+    if [ -e ${PGM_PGDATA}/postmaster.pid ]; then
+      pgm_pgpid=$(head -1 ${PGM_PGDATA_DIR}/postmaster.pid)
       if [[ $? -ne 0 ]]; then
         return 3
       else
@@ -184,7 +207,7 @@ function setInstance()
       export PGM_PGSTATUS="stopped"
     fi
 
-    export PGM_PGAUTOLAUNCH=$(getAutolaunchFromInstance ${PGM_PGVERSION} ${PGM_PGINSTANCE})
+    export PGM_PGAUTOLAUNCH=$(getAutolaunchFromInstance ${PGM_PGFULL_VERSION} ${PGM_PGINSTANCE})
     return 0
   else
     printInfo "Wrong instance name \"${pgm_sid}\"\n"
@@ -237,7 +260,7 @@ function initInstance ()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PGDATA_DIR}x" == "x" ]] || [[ "${PGM_PGXLOG_DIR}x" == "x" ]] || [[ "${PGM_PGDATA_DIR}x" == "x" ]]; then
+  if [ "${PGM_PGDATA_DIR}x" == "x" ] || [ "${PGM_PGXLOG_DIR}x" == "x" ] || [ "${PGM_PGDATA_DIR}x" == "x" ]; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 1
@@ -257,7 +280,7 @@ function logrotateInstance()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_LOGROTATE_CONF}x" == "x" ]] || [[ "${PGM_PG_LOG_DIR}x" == "x" ]] || [[ "${PGM_LOGROTATE_ENTRY}" ]]; then
+  if [ "${PGM_LOGROTATE_CONF}x" == "x" ] || [ "${PGM_PG_LOG_DIR}x" == "x" ] || [ "${PGM_PGLOGROTATE_ENTRY}x" == "x" ]; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -267,7 +290,7 @@ function logrotateInstance()
   touch ${PGM_LOGROTATE_CONF}
   egrep --quiet --only-matching "${PGM_PG_LOG_DIR}/\*.log" ${PGM_LOGROTATE_CONF}
   if [[ $? -ne 0 ]]; then
-    printf "${PGM_LOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
+    printf "${PGM_PGLOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
   fi
 }
 
@@ -310,7 +333,7 @@ function createRecovery ()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PGRECOVER_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+  if [ "${PGM_PGRECOVER_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -318,7 +341,7 @@ function createRecovery ()
   fi
   pgm_name=$(basename ${PGM_PGRECOVER_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+  if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
   instantiateTemplate ${pgm_tpl} ${PGM_PGRECOVER_CONF}
@@ -334,7 +357,7 @@ function createPgConf ()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PG_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+  if [ "${PGM_PG_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -342,7 +365,7 @@ function createPgConf ()
   fi
   pgm_name=$(basename ${PGM_PG_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+  if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
   instantiateTemplate ${pgm_tpl} ${PGM_PG_CONF}
@@ -358,7 +381,7 @@ function createHBA ()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PGHBA_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+  if [ "${PGM_PGHBA_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -367,7 +390,7 @@ function createHBA ()
 
   pgm_name=$(basename ${PGM_PGHBA_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+  if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
 
@@ -383,7 +406,7 @@ function createIdent ()
   pgm_version=$1 
   pgm_instance=$2
 
-  if [[ "${PGM_PGIDENT_CONF}x" == "x" ]] || [[ "${PGM_TEMPLATE_DIR}x" == "x" ]] ; then
+  if [ "${PGM_PGIDENT_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -392,7 +415,7 @@ function createIdent ()
 
   pgm_name=$(basename ${PGM_PGIDENT_CONF})
   pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
-  if [[ "${pgm_tpl}x" == "x" ]] || [[ ! -r ${pgm_tpl} ]]; then
+  if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
 
@@ -467,7 +490,7 @@ function createInstance()
   if [[ $? -ne 0 ]]; then
     return 9
   fi
-  startInstance  ${pgm_version} ${pgm_instance}
+  startLocalInstance  ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 10
   fi
@@ -481,5 +504,3 @@ function createInstance()
   fi
 }
 
-# Nothing should happens after next line
-export PGM_PG_INCLUDE="LOADED"

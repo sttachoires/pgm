@@ -29,11 +29,10 @@ USAGE="${PRGNAME}\n"
 
 for pgm_srv in $(getServers)
 do
-  printf "\n -----------------\n"
   printf " PostgreSQL server \"${pgm_srv}\""
   setServer ${pgm_srv}
   if [[ $? -ne 0 ]]; then
-    printf " problem to set up\n -----------------\n"
+    printf " problem to set up\n"
   else
     pgm_report=$(checkEnvironment)
     if [[ $? -ne 0 ]]; then
@@ -49,15 +48,16 @@ do
           if [[ $? -ne 0 ]]; then
             printf " (Env error)"
           else
-            printf "${pgm_instance} ("
-            for pgm_database in $(databaseList ${pgm_srv} ${pgm_instance})
+            printf " ${pgm_instance} ("
+            for pgm_database in $(getDatabasesFromInstance ${pgm_srv} ${pgm_instance})
             do
               printf "'${pgm_database}'"
             done
+            printf ")"
           fi
         fi
       done
     fi
-    printf "\n -----------------\n"
   fi
+  printf "\n"
 done

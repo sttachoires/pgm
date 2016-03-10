@@ -36,17 +36,27 @@ esac
 
 isServerUnknown ${pgm_version}
 if [[ $? -ne 0 ]]; then
-  exitError "Unmanaged version pf PostgreSQL ${pgm_version}\n"
+  exitError "Unmanaged version pg PostgreSQL ${pgm_version}\n"
+fi
+
+setServer ${pgm_version}
+if [[ $? -ne 0 ]]; then
+  exitError "Cannot set PostgreSQL ${pgm_version}\n"
 fi
 
 
 isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
 if [[ $? -ne 0 ]]; then
-  exitError "Unmanaged SID ${pgm_instance} with version ${pgm_version}\n"
+  exitError "Unmanaged instance ${pgm_instance} with version ${pgm_version}\n"
+fi
+setInstance ${pgm_version} ${pgm_instance}
+if [[ $? -ne 0 ]]; then
+  exitError "Cannot set instance ${pgm_instance} with version ${pgm_version}\n"
 fi
 
-isDatabaseUnknownFromInstance ${pgm_version} ${pgm_instance} ${pgm_databace}
-if [[ $? -ne 0 ]]; then
+
+isDatabaseUnknownFromInstance ${pgm_version} ${pgm_instance} ${pgm_database}
+if [[ $? -ne 0 ]] && [[ $pgm_instance =~ (${PGM_PGADMINISTRATIVE_DATABASES// /|}) ]]; then
   exitError "Unknown database ${pgm_database} of instance ${pgm_instance} with ${pgm_version} server\n"
 fi
 

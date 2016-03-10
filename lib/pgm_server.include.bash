@@ -5,11 +5,16 @@
 # 19.02.2016	S. Tachoires	Initiate
 #set -xv
 
-if [[ "${PGM_SERVER_INCLUDE}" == "LOADED" ]]; then
+if [ "${PGM_SERVER_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
+export PGM_SERVER_INCLUDE="LOADED"
 
 . @CONFDIR@/pgm.conf
+if [[ $? -ne 0 ]]; then
+  exit 1
+fi
+
 . ${PGM_LIB_DIR}/pgm_pginventory.include
 
 function setServer()
@@ -47,7 +52,7 @@ function serverInfo()
     return 2
   fi
   
-  if [[ -x ${PGM_PGBIN_DIR}/pg_config ]]; then
+  if [ -x ${PGM_PGBIN_DIR}/pg_config ]; then
     ${PGM_PGBIN_DIR}/pg_config
   else
     printf "no valid pg_config\n"
@@ -108,7 +113,7 @@ function installServer()
   pgm_srcdir=${1%/}
   pgm_version=$2
 
-  if [[ ! -v PGM_PGHOME_DIR ]] || [[ ! -v PGM_PGBIN_DIR ]] || [[ ! -v PGM_PGLIB_DIR ]] || [[ ! -v PGM_PGINCLUDE_DIR ]] || [[ ! -v PGM_PGSHARE_DIR ]] || [[ ! -v PGM_PGMAN_DIR ]] || [[ ! -v PGM_PGDOC_DIR ]]; then
+  if [ ! -v PGM_PGHOME_DIR ] || [ ! -v PGM_PGBIN_DIR ] || [ ! -v PGM_PGLIB_DIR ] || [ ! -v PGM_PGINCLUDE_DIR ] || [ ! -v PGM_PGSHARE_DIR ] || [ ! -v PGM_PGMAN_DIR ] || [ ! -v PGM_PGDOC_DIR ]; then
     setServer ${pgm_version}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -144,5 +149,3 @@ function installServer()
   addServer ${pgm_version}
 }
 
-# Nothing should happens after next line
-export PGM_SERVER_INCLUDE="LOADED"

@@ -7,25 +7,18 @@
 #set -xv
 
 # INCLUDE
-if [[ "${PGM_DB_INCLUDE}" == "LOADED" ]]; then
+if [ "${PGM_DB_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
+export PGM_DB_INCLUDE="LOADED"
 . @CONFDIR@/pgm.conf
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
 . ${PGM_LIB_DIR}/pgm_server.include
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
 . ${PGM_LIB_DIR}/pgm_util.include
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
 . ${PGM_LIB_DIR}/pgm_pg.include
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+. ${PGM_LIB_DIR}/pgm_pginventory.include
 
 function setDatabase()
 {
@@ -71,7 +64,7 @@ function databaseExec()
   pgm_instance=$2
   pgm_database=$3
 
-  if [[ "${PGM_PGBIN_DIR}x" == "x" ]] || [[ "${PGM_PGDATA_DIR}x" == "x" ]] || [[ "${PGM_PORT}x" == "x" ]]; then
+  if [ "${PGM_PGBIN_DIR}x" == "x" ] || [ "${PGM_PGDATA_DIR}x" == "x" ] || [ "${PGM_PORT}x" == "x" ]; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -91,7 +84,7 @@ function createExtentions()
   pgm_instance=$2
   pgm_database=$3
 
-  if [[ ! -v ${PGM_PGEXTENSIONS_TO_CREATE} ]]; then
+  if [ ! -v PGM_PGEXTENSIONS_TO_CREATE ]; then
     setInstance ${pgm_version} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
       return 2
@@ -103,12 +96,10 @@ function createExtentions()
   do
     databaseExec ${pgm_version} ${pgm_instance} ${pgm_database} "CREATE EXTENSION ${pgm_extention};"
     if [[ $? -ne 0 ]]; then
-      pgm_result=$(( ${pgm_result}++ ))
+      pgm_result=$(( pgm_result++ ))
     fi
   done
 
   return ${result}
 }
 
-# Nothing should happens after next line
-export PGM_DB_INCLUDE="LOADED"

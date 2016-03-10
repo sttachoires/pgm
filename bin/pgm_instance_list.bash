@@ -44,30 +44,18 @@ fi
 
 USAGE="${PRGNAME}\n"
 
-for pgm_instance in $(allInstancesList)
+for pgm_instance in $(getInstances)
 do
-  printf "\n -----------------\n"
   printf " PostgreSQL Instance \"${pgm_instance}\""
   setInstance ${pgm_srv}
   pgm_errors=$(checkEnvironment)
   if [[ $? -ne 0 ]]; then
-    printf "Problem setting PostgreSQL server \"${pgm_srv}\"\n -----------------\n"
+    printf "Problem setting PostgreSQL Instance \"${pgm_instance}\""
   else
-    for pgm_instance in $(instanceList ${pgm_srv})
+    for pgm_database in $(getDatabasesFromInstance ${pgm_srv} ${pgm_instance})
     do
-      setInstance ${pgm_srv} ${pgm_instance}
-      pgm_report=$(checkEnvironment)
-      if [[ $? -ne 0 ]]; then
-        printError " (Error)"
-      else
-        printf "${pgm_instance}("
-        for pgm_database in $(databaseList ${pgm_srv} ${pgm_instance})
-        do
-          printf "'${pgm_database}'"
-        done
-        printf ")"
-      fi
+      printf "'${pgm_database}'"
     done
-    printf "\n -----------------\n"
   fi
+  printf "\n"
 done

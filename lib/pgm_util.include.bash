@@ -5,16 +5,17 @@
 # S. Tachoires		19/02/2016	Initial version
 #
 #set -xv
-if [[ "${PGM_UTIL_INCLUDE}" == "LOADED" ]]; then
+if [ "${PGM_UTIL_INCLUDE}" == "LOADED" ]; then
   return
 fi
+export PGM_UTIL_INCLUDE="LOADED"
 
 # CONSTANTS
 
 # VARIABLES
 function printError()
 {
-  if [[ -w "${PGM_LOG}" ]]; then
+  if [ -w "${PGM_LOG}" ]; then
     printf "$*" >&2 | tee -a ${PGM_LOG}
   else
     printf "$*" >&2
@@ -23,7 +24,7 @@ function printError()
 
 function printInfo()
 {
-  if [[ -w "${PGM_LOG}" ]]; then
+  if [ -w "${PGM_LOG}" ]; then
     printf "$*" | tee -a ${PGM_LOG}
   else
     printf "$*" 
@@ -50,10 +51,10 @@ function instantiateTemplate()
 
   pgm_tpl=$1
   pgm_dest=$2
-  if [[ ! -r "${pgm_tpl}" ]]; then
+  if [ ! -r "${pgm_tpl}" ]; then
     return 2
   fi
-  if [[ ! -w "$(dirname ${pgm_dest})" ]]; then
+  if [ ! -w "$(dirname ${pgm_dest})" ]; then
     return 3
   fi
 
@@ -67,7 +68,7 @@ function instantiateTemplate()
     fi
   done
   
-  if [[ -e "${pgm_dest}" ]]; then
+  if [ -e "${pgm_dest}" ]; then
     cp ${pgm_dest} ${pgm_dest}.orig
     if [[ $? -ne 0 ]]; then
       return 4
@@ -84,7 +85,7 @@ function ensureVars()
   pgm_status=0
   pgm_report=""
 
-  if [[ $# -ne 2 ]]; then
+  if [ $# -ne 2 ]; then
     return 1
   fi
   pgm_all_vars="${!PGM_*}"
@@ -92,8 +93,7 @@ function ensureVars()
   echo "pgm_selected_vars=${pgm_selected_vars}"
   for pgm_var in ${pgm_selected_vars}
   do
-#    pgm_var=$(echo ${pgm_all_var} | egrep -o "PGM_.*$1")
-    if ! [[ -z "${pgm_var}" ]]; then
+    if ! [ -z "${pgm_var}" ]; then
       eval pgm_value=\"\$${pgm_var}\"
       if ! [ $2 "${pgm_value}" ]; then
         pgm_report="${pgm_report} ${pgm_var}:'${pgm_value}'"
@@ -145,5 +145,3 @@ function checkEnvironment()
   return ${pgm_status}
 }
 
-# Nothing should happens after next line
-export PGM_UTIL_INCLUDE="LOADED"

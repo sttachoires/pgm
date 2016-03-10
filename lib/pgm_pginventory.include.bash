@@ -7,9 +7,11 @@
 #set -xv
 
 # INCLUDE
-if [[ "${PGM_PGINVENTORY_INCLUDE}" == "LOADED" ]]; then
+if [ "${PGM_PGINVENTORY_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
+export PGM_PGINVENTORY_INCLUDE="LOADED"
+
 . @CONFDIR@/pgm.conf
 if [[ $? -ne 0 ]]; then
   exit 1
@@ -17,28 +19,28 @@ fi
 
 function getAutolaunchFromInstance()
 {
-  if [[ $? != 2 ]]; then
+  if [[ $# != 2 ]]; then
     return 1
   fi
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
   awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_version}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY}
 }
 
-function getDatabaseFromInstance()
+function getDatabasesFromInstance()
 {
-  if [[ $? != 2 ]]; then
+  if [[ $# != 2 ]]; then
     return 1
   fi
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
@@ -47,35 +49,35 @@ function getDatabaseFromInstance()
 
 function getServersFromInstance()
 {
-  if [[ $? != 1 ]]; then
+  if [[ $# != 1 ]]; then
     return 1
   fi
   pgm_instance=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
-  awk --field-separator=':' '/^.*:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^_:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
 }
 
 function getInstances()
 {
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 1
   fi
 
-  awk --field-separator=':' '/^.*:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^_:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
 }
 
 function isInstanceUnknownFromServer()
 {
-  if [[ $? != 2 ]]; then
+  if [[ $# != 2 ]]; then
     return 1
   fi
   pgm_version=$1
   pgm_instance=$2
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
@@ -84,26 +86,26 @@ function isInstanceUnknownFromServer()
 
 function getInstancesFromServer()
 {
-  if [[ $? != 1 ]]; then
+  if [[ $# != 1 ]]; then
     return 1
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
-  awk --field-separator=':' '/^.*:..+:'${pgm_version}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^_:..+:'${pgm_version}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
 }
 
 function getDatabasesFromServer()
 {
-  if [[ $? != 1 ]]; then
+  if [[ $# != 1 ]]; then
     return 1
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
@@ -112,21 +114,21 @@ function getDatabasesFromServer()
 
 function getServers()
 {
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 1
   fi
 
-  awk --field-separator=':' '/^.*:.*:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
+  awk --field-separator=':' '/^_:_:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
 }
 
 function isServerUnknown()
 {
-  if [[ $? != 1 ]]; then
+  if [[ $# != 1 ]]; then
     return 1
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
@@ -140,7 +142,7 @@ function addServer()
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     return 2
   fi
 
@@ -160,7 +162,7 @@ function isServerAlone()
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     return 2
   fi
 
@@ -174,7 +176,7 @@ function isInstanceAlone()
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     return 2
   fi
 
@@ -188,7 +190,7 @@ function removeServer()
   fi
   pgm_version=$1
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     return 2
   fi
 
@@ -209,7 +211,7 @@ function addInstance()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     return 2
   fi
 
@@ -227,7 +229,7 @@ function removeInstance()
   pgm_version=$1
   pgm_instance=$2
 
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -w "${PGM_PG_INVENTORY}" ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     return 2
   fi
 
@@ -242,13 +244,13 @@ function removeInstance()
 
 function isDatabaseUnknownFromInstance()
 {
-  if [[ $? != 3 ]]; then
+  if [[ $# != 3 ]]; then
     return 1
   fi
   pgm_version=$1
   pgm_instance=$2
   pgm_database=$3
-  if [[ "${PGM_PG_INVENTORY}x" == "x" ]] || [[ ! -r ${PGM_PG_INVENTORY} ]]; then
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     return 2
   fi
 
@@ -256,5 +258,3 @@ function isDatabaseUnknownFromInstance()
 }
 
 
-# Nothing should happens after next line
-export PGM_PGINVENTORY_INCLUDE="LOADED"

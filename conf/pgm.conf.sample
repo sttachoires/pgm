@@ -7,7 +7,7 @@
 #set -xv
 
 # INCLUDE
-if [[ "${PGM_CONF}" == "LOADED" ]]; then
+if [ "${PGM_CONF}" == "LOADED" ]; then
   return 0
 fi
 
@@ -140,7 +140,8 @@ export PGM_PGDATABASE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 export PGM_PGEXTENSIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
 # List of extensions to create for every databases (in template1)
 export PGM_PGEXTENSIONS_TO_CREATE="adminpack pg_stat_statements"
-
+# List of administrative databases alway listed in fact
+export PGM_PGADMINISTRATIVE_DATABASES="postgres template1 template0"
 
 # SERVER CONSTANTS SET AFTER setServer call
 # The choosen full version name

@@ -51,7 +51,7 @@ function checkParameters ()
   esac
 
   isServerUnknown ${pgm_version}
-  if [[ $? -eq 0 ]]; then
+  if [[ $? -ne 0 ]]; then
     exitError "Unmanaged version ${pgm_version}\n"
   fi
 

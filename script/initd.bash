@@ -17,7 +17,7 @@ fi
 USAGE="${PRGNAME}\n"
 
 pgm_current_user=$(/usr/bin/whoami)
-if [[ "${pgm_current_user}" != "root" ]]; then
+if [ "${pgm_current_user}" != "root" ]; then
   printf "${PRGNAME} should be launch as 'root' not '${pgm_current_user}'\n"
   exit 1
 fi

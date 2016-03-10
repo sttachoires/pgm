@@ -34,11 +34,16 @@ isServerUnknown ${pgm_version}
 if [[ $? -ne 0 ]]; then
   exitError "Unmanaged version of PostgreSQM ${pgm_version}\n"
 fi
+setServer ${pgm_version}
+if [[ $? -ne 0 ]]; then
+  exitError "Cannot set PostgreSQL ${pgm_version}\n"
+fi
+
 
 pgm_instance=$2
 isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
 if [[ $? -ne 0 ]]; then
-  exitError "Unmanaged SID ${pgm_instance}\n"
+  exitError "Unmanaged instance ${pgm_instance}\n"
 fi
 
 setInstance ${pgm_version} ${pgm_instance}
