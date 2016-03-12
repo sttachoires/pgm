@@ -17,7 +17,7 @@ fi
 . @CONFDIR@/pgm.conf
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_pg.include
+. ${PGM_LIB_DIR}/pgm_server.include
 
 
 USAGE="${PRGNAME} VERSION SID : promote instance\nwhere:\n\tVERSION : Server full version\n\tSID : database identifier\n"

@@ -16,7 +16,7 @@ fi
 . @CONFDIR@/pgm.conf
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_db.include
+. ${PGM_LIB_DIR}/pgm_database.include
 
 USAGE="Usage: ${PRGNAME} VERSION SID \nwhere:\n\tVERSION is the full version of PostgreSQL to use (ie: 9.3.4)\n\tPGSID stands for the cluster name\n"
 

@@ -8,6 +8,7 @@ SRC_SCRIPTS:=$(wildcard script/*.bash)
 SRC_LIBS:=$(wildcard lib/*.include.bash)
 SRC_TPLS:=$(wildcard tplptrn/*/*.tpl.ptrn)
 SRC_CONFS:=$(wildcard conf/*.conf.sample)
+SRC_CONSTS:=$(wildcard conf/.*.conf.sample)
 SRC_CONFSCRIPTS:=$(wildcard conf/*.bash)
 SRC_DOCS:=COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
 SRC_MANPAGES:=$(wildcard man/*.man)
@@ -16,6 +17,7 @@ BINS:=$(basename $(SRC_BINS))
 SCRIPTS:=$(basename $(SRC_SCRIPTS))
 LIBS:=$(basename $(SRC_LIBS))
 CONFS:=$(basename $(SRC_CONFS))
+CONSTS:=$(basename $(SRC_CONSTS))
 CONFSCRIPTS:=$(basename $(SRC_CONFSCRIPTS))
 MANPAGES:=$(basename $(SRC_MANPAGES))
 TPLS:=$(basename $(SRC_TPLS))
@@ -26,6 +28,7 @@ DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
 DEST_SCRIPTS:=$(SCRIPTS:script/%=${SCRIPTDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
 DEST_CONFS:=$(CONFS:conf/%=${CONFDIR}/%)
+DEST_CONSTS:=$(CONSTS:conf/%=${CONFDIR}/%)
 DEST_CONFSCRIPTS:=$(CONFSCRIPTS:conf/%=${CONFDIR}/%)
 DEST_MANPAGES:=$(MANPAGES:man/%=${MANDIR}/%)
 DEST_TPLS:=$(TPLS:tplptrn/%=${TPLDIR}/%)
@@ -55,6 +58,7 @@ options :
 	@echo "SRC_LIBS         =${SRC_LIBS}"
 	@echo "SRC_TPLS         =${SRC_TPLS}"
 	@echo "SRC_CONFS        =${SRC_CONFS}"
+	@echo "SRC_CONSTS       =${SRC_CONSTS}"
 	@echo "SRC_CONFSCRIPTS  =${SRC_CONFSCRIPTS}"
 	@echo "SRC_DOCS         =${SRC_DOCS}"
 	@echo "SRC_MANPAGES     =${SRC_MANPAGES}"
@@ -64,6 +68,7 @@ options :
 	@echo "LIBS             =${LIBS}"
 	@echo "TPLS             =${TPLS}"
 	@echo "CONFS            =${CONFS}"
+	@echo "CONSTS           =${CONSTS}"
 	@echo "CONFSCRIPTS      =${CONFSCRIPTS}"
 	@echo "DOCS             =${DOCS}"
 	@echo "MANPAGES         =${MANPAGES}"
@@ -73,6 +78,7 @@ options :
 	@echo "DEST_LIBS        =${DEST_LIBS}"
 	@echo "DEST_TPLS        =${DEST_TPLS}"
 	@echo "DEST_CONFS       =${DEST_CONFS}"
+	@echo "DEST_CONSTS       =${DEST_CONSTS}"
 	@echo "DEST_CONFSCRIPTS =${DEST_CONFSCRIPTS}"
 	@echo "DEST_DOCS        =${DEST_DOCS}"
 	@echo "DEST_MANPAGES    =${DEST_MANPAGES}"
@@ -83,7 +89,7 @@ options :
 all : bins scripts libs configs manpages templates docs
 	@echo
 
-install : all installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans cronjobs
+install : all installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installconfs installdocs installmans cronjobs
 
 
 checkinstall : 
@@ -109,7 +115,7 @@ scripts : $(SCRIPTS)
 libs : $(LIBS)
 	@echo
 
-configs : $(CONFS) $(CONFSCRIPTS)
+configs : $(CONFS) $(CONFSCRIPTS) $(CONSTS)
 	@echo
 
 manpages : $(MANPAGES)
@@ -128,7 +134,7 @@ installmans : $(DEST_MANPAGES)
 installdocs : $(DEST_DOCS)
 	@echo
 
-installconfs : $(DEST_CONFS) $(DEST_CONFSCRIPTS)
+installconfs : $(DEST_CONFS) $(DEST_CONFSCRIPTS) $(DEST_CONSTS)
 	@echo
 
 installtpl : $(DEST_TPLS)
@@ -152,7 +158,7 @@ uninstall :
 	@rm -f $(DEST_SCRIPTS)
 	@rm -f $(DEST_LIBS)
 	@rm -f $(DEST_TPLS)
-	@rm -f $(DEST_CONFS) $(DEST_CONFSCRIPTS)
+	@rm -f $(DEST_CONFS) $(DEST_CONFSCRIPTS) $(DEST_CONSTS)
 	@rm -f $(DEST_DOCS)
 	@rm -f $(DEST_MANPAGES)
 
@@ -276,6 +282,12 @@ $(DEST_TPLS) : $(TPLS) $(TPLDIR)
 	@chmod ug=r,o= $@
 
 $(DEST_CONFS) : $(CONFS) $(CONFDIR)
+	@echo installing configuration file $@ to ${CONFDIR}
+	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
+	@chmod ug=r,o= $@
+
+
+$(DEST_CONSTS) : $(CONSTS) $(CONFDIR)
 	@echo installing configuration file $@ to ${CONFDIR}
 	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
 	@chmod ug=rw,o= $@

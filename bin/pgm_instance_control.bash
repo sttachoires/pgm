@@ -18,7 +18,7 @@ options=""
 # INCLUDE
 . @CONFDIR@/pgm.conf
 . ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_pg.include
+. ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
 
 

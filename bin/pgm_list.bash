@@ -22,7 +22,9 @@ if [[ $? -ne 0 ]]; then
 fi
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_db.include
+. ${PGM_LIB_DIR}/pgm_server.include
+. ${PGM_LIB_DIR}/pgm_instance.include
+. ${PGM_LIB_DIR}/pgm_database.include
 
 
 USAGE="${PRGNAME}\n"

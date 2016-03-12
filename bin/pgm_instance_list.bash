@@ -30,12 +30,12 @@ if [[ $? -ne 0 ]]; then
   printf "Error loading server library\n"
   exit 3
 fi
-. @LIBDIR@/pgm_pg.include
+. @LIBDIR@/pgm_server.include
 if [[ $? -ne 0 ]]; then
   printf "Error loading instance library\n"
   exit 4
 fi
-. @LIBDIR@/pgm_db.include
+. @LIBDIR@/pgm_database.include
 if [[ $? -ne 0 ]]; then
   printf "Error loading instance library\n"
   exit 4
