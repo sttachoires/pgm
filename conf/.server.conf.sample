@@ -1,0 +1,18 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_DOT_SERVER_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_DOT_SERVER_CONF="LOADED"
+
+# PGM SERVER CONSTANTS
+# DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO
+# DO NEVER SET IN SCRIPTS UNLESS YOU WANT TO HACK
+export PGM_PGREAL_VERSION_REGEXP="[0-9]+\.[0-9]+\.[0-9]+"

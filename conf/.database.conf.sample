@@ -1,0 +1,16 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_DOT_DATABASE_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_DOT_DATABASE_CONF="LOADED"
+
+# DATABASES CONSTANTS
+

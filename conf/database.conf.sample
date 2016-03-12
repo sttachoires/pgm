@@ -1,0 +1,38 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_DATABASE_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_DATABASE_CONF="LOADED"
+
+. @CONFDIR@/pgm.conf
+. @CONFDIR@/server.conf
+. @CONFDIR@/instance.conf
+. @CONFDIR@/.database.conf
+
+
+# List of allowed character (form of a regular expression) alowed to form databases name, no space
+export PGM_PGDATABASE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
+
+# List of administrative databases alway listed in fact
+export PGM_PGADMINISTRATIVE_DATABASES="postgres template1 template0"
+
+# DATABASES CONSTANTS set after setDatabase call
+
+# The database name
+# PGM_PGDATABASE
+
+
+if [ -v PGM_PGNAME ] && [ -r @CONFDIR@/${PGM_PGNAME}/database.conf ]; then
+  . @CONFDIR@/${PGM_PGNAME}/database.conf
+fi
+
+# Nothing should happens after next line
+export PGM_CONF="LOADED"

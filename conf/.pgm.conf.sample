@@ -1,0 +1,69 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_DOT_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_DOT_CONF="LOADED"
+
+# PGM CONSTANTS
+# DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO
+# DO NEVER SET IN SCRIPTS UNLESS YOU WANT TO HACK
+
+# Name of this install. 'pgm' by default
+export PGM_NAME="@NAME@"
+
+# Version of this install
+export PGM_VERSION="@VERSION@"
+
+# Bash used
+export PGM_BASH="@BASH@"
+
+# User, will own PostgreSQL process and managed products files, all pgm's too
+export PGM_USER="@USER@"
+
+# Logrotare used to rotate all pgm and managed products logs
+export PGM_LOGROTATE_EXE="@LOGROTATE@"
+
+# The base directory where everything sit except databases datas
+export PGM_HOME_DIR="@PREFIX@"
+
+# Where all pgm commands are
+export PGM_BIN_DIR="@BINDIR@"
+
+# Systems script are here
+export PGM_SCRIPT_DIR="@SCRIPTDIR@"
+
+# pgm libraries directory, no executables here
+export PGM_LIB_DIR="@LIBDIR@"
+
+# pgm's configurations files
+export PGM_CONF_DIR="@CONFDIR@"
+
+# pgm's interesting documentation about...
+export PGM_DOC_DIR="@DOCDIR@"
+
+# pgm's manual pages
+export PGM_MAN_DIR="@MANDIR@"
+
+# pgm's templates, one directory by PostreSQL major version
+export PGM_TPL_DIR="@TPLDIR@"
+
+# All pgm's log, rotated, by command name
+export PGM_LOG_DIR="@LOGDIR@"
+
+# pgm's inventory files, with "which version of what for who" informations
+# if you change it, change it into postgresql_initd too
+export PGM_INVENTORY_DIR="@INVENTORYDIR@"
+
+# The databases per instances per versions inventory
+# if you change it, change it into postgresql_initd too
+export PGM_PG_INVENTORY="@INVENTORYDIR@/pginventory"
+# Must exists
+touch @INVENTORYDIR@/pginventory

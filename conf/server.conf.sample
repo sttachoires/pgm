@@ -1,0 +1,161 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_SERVER_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_SERVER_CONF="LOADED"
+. @CONFDIR@/pgm.conf
+. @CONFDIR@/.server.conf
+
+# PGM CONSTANTS ALREADY SET
+# DO NEVER SET IN SCRIPTS UNLESS YOU WANT TO HACK
+#
+# Those constants set at install time
+#
+# Name of this install. 'pgm' by default
+# PGM_NAME
+#
+# Version of this install
+# PGM_VERSION
+#
+# Bash used
+# PGM_BASH
+#
+# User, will own PostgreSQL process and managed products files, all pgm's too
+# PGM_USER
+#
+# Logrotare used to rotate all pgm and managed products logs
+# PGM_LOGROTATE_EXE
+#
+# The base directory where everything sit except databases datas
+# PGM_HOME_DIR
+#
+# Where all pgm commands are
+# PGM_BIN_DIR
+#
+# Systems script are here
+# PGM_SCRIPT_DIR
+#
+# pgm libraries directory, no executables here
+# PGM_LIB_DIR
+#
+# pgm's configurations files
+# PGM_CONF_DIR
+#
+# pgm's interesting documentation about...
+# PGM_DOC_DIR
+#
+# pgm's manual pages
+# PGM_MAN_DIR
+#
+# pgm's templates, one directory by PostreSQL major version
+# PGM_TPL_DIR
+#
+# All pgm's log, rotated, by command name
+# PGM_LOG_DIR
+#
+# pgm's inventory files, with "which version of what for who" informations
+# PGM_INVENTORY_DIR
+#
+# The databases per instances per versions inventory
+# Has to exists
+# PGM_PG_INVENTORY
+#
+# The logrotate configuration file
+# PGM_LOGROTATE_CONF
+#
+# PGM VARIABLES
+# You can edit them
+# don't forget to issue a pgm_check after changer, to be sure.
+#
+# Where to put all temporary pgm stuff
+# PGM_TMP_DIR
+
+# SERVER CONSTANTS
+# DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO
+# DO NEVER SET IN SCRIPTS UNLESS YOU WANT TO HACK
+#
+# None so far
+
+
+#
+# SERVER VARIABLES
+# The starting point of every instance directory
+# If you want one.
+
+export PGM_PGDBBASE_DIR="${PGM_HOME_DIR}/db"
+
+# Where the servers will stand (usualy with full version appended)
+export PGM_PGBASE_DIR="${PGM_HOME_DIR}/server"
+
+# Allowed PostgreSQL PGM version format. Real full version name (ex 9.5.1) will
+# be prepended.
+# No '.' as it throw out the last '.' part to determine major version.
+# Don't put a number un first position, so pgm can isolate real version number
+# Correct version could be '9.3.11', '9.6.0b', '9.5.1_perl', '9.5.3_4-ssl#4'
+# Incorrect will be 'ssl_9.3.4' or '9.5.1.python' or 'most recent with .ssl and stuff'
+export PGM_PGVERSION_AUTHORIZED_REGEXP="[a-zA-Z_][-a-zA-Z_#0-9]{3,11}"
+
+# SERVER CONSTANTS SET AFTER setServer call
+
+# The choosen full version name (9.5.3_ssl_perl_python for example)
+# PGM_PGFULL_VERSION
+
+# The real PostgreSQL corresponding version (would be 9.5.3)
+# PGM_PGREAL_VERSION (3 firsts '.' separated words of PGM_PGFULL_VERSION
+
+# The choosen Major version (9.5)
+# PGM_PGMAJOR_VERSION (2 firsts '.' separated words of PGM_PGFULL_VERSION)
+
+
+
+# SERVER PATTERN VARIABLE
+#
+# Be sure to run a check after altering these pattern
+#
+# Pattern 'PGMSRV_PTRN_name' will be expanded into 'PGM_name'
+# after setServer call
+#
+# In those patterns you can use the previous PGM_ constants and variables
+# but never refered to each other because you don't know in which order
+# they will be expanded
+# PGM_PGHOME_DIR, the base directory for the PostgreSQL server
+PGMSRV_PTRN_PGHOME_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}'
+
+# PGM_PGBIN_DIR, the binary PostgreSQL directory
+PGMSRV_PTRN_PGBIN_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/bin'
+
+# PGM_PGLIB_DIR, the library PostgreSQL directory
+PGMSRV_PTRN_PGLIB_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/lib'
+
+# PGM_PGSHARE_DIR, where PostgreSQL store his datas (DATAROOTDIR)
+PGMSRV_PTRN_PGSHARE_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/share/postgresql'
+
+# PGM_PGEXTENSION_DIR, extension...
+PGMSRV_PTRN_PGEXTENSION_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/share/postgresql/extension'
+
+# PGM_PGINCLUDE_DIR, need to say?
+PGMSRV_PTRN_PGINCLUDE_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/include'
+
+# PGM_PGDOC_DIR, ok
+PGMSRV_PTRN_PGDOC_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/doc'
+
+# PGM_PGMAN_DIR, no, surprisingly, it for PostgreSQL man pages...
+PGMSRV_PTRN_PGMAN_DIR='${PGM_PGBASE_DIR}/${PGM_PGFULL_VERSION}/man'
+
+# PGM_TEMPLATE_DIR, where pgm templates are. They are used to build other files
+# by diverse pgm scripts like pgm_instance_create
+PGMSRV_PTRN_TEMPLATE_DIR='${PGM_TPL_DIR}/${PGM_PGMAJOR_VERSION}'
+
+if [ -v PGM_PGNAME ] && [ -r @CONFDIR@/${PGM_PGNAME}/pgm_server.conf ]; then
+  . @CONFDIR@/${PGM_PGNAME}/pgm_server.conf
+fi
+
+

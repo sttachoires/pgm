@@ -1,0 +1,17 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_DOT_INSTANCE_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_DOT_INSTANCE_CONF="LOADED"
+
+# PGM_TEMPLATE_DIR, where pgm templates are. They are used to build other files
+# by diverse pgm scripts like pgm_instance_create
+PGMSRV_PTRN_TEMPLATE_DIR='${PGM_TPL_DIR}/${PGM_PGMAJOR_VERSION}'

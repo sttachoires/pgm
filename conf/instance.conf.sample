@@ -1,0 +1,268 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGM_INSTANCE_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGM_INSTANCE_CONF="LOADED"
+
+. @CONFDIR@/pgm.conf
+. @CONFDIR@/server.conf
+. @CONFDIR@/.instance.conf
+
+# PGM CONSTANTS
+# DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO
+# DO NEVER SET IN SCRIPTS UNLESS YOU WANT TO HACK
+
+# Name of this install. 'pgm' by default
+# PGM_NAME
+
+# Version of this install
+# PGM_VERSION
+
+# Bash used
+# PGM_BASH
+
+# User, will own PostgreSQL process and managed products files, all pgm's too
+# PGM_USER
+
+# Logrotare used to rotate all pgm and managed products logs
+# PGM_LOGROTATE_EXE
+
+# The base directory where everything sit except databases datas
+# PGM_HOME_DIR
+
+# Where all pgm commands are
+# PGM_BIN_DIR
+
+# Systems script are here
+# PGM_SCRIPT_DIR
+
+# pgm libraries directory, no executables here
+# PGM_LIB_DIR
+
+# pgm's configurations files
+# PGM_CONF_DIR
+
+# pgm's interesting documentation about...
+# PGM_DOC_DIR
+
+# pgm's manual pages
+# PGM_MAN_DIR
+
+# pgm's templates, one directory by PostreSQL major version
+# PGM_TPL_DIR
+
+# All pgm's log, rotated, by command name
+# PGM_LOG_DIR
+
+# pgm's inventory files, with "which version of what for who" informations
+# PGM_INVENTORY_DIR
+
+# The databases per instances per versions inventory
+# Has to exists
+# PGM_PG_INVENTORY
+
+#The logrotate configuration file
+# PGM_LOGROTATE_CONF
+
+# PGM VARIABLES
+# You can edit them
+# don't forget to issue a pgm_check after changer, to be sure.
+
+# Where to put all temporary pgm stuff
+# PGM_TMP_DIR
+
+
+# PGM SERVER CONSTANTS
+# DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO
+# DO NEVER SET IN SCRIPTS UNLESS YOU WANT TO HACK
+
+# The starting point of every instance directory
+# If you want one.
+# PGM_PGDBBASE_DIR
+
+# Where the servers will stand (usualy with full version appended)
+# PGM_PGBASE_DIR
+
+# SERVER VARIABLES
+#
+# Be sure to run a pgm_check after altering these pattern
+#
+# CONSTANTS availables at this point:
+#
+
+# Allowed PostgreSQL PGM version form. Have to begin by full version name (ex 9.5.1) with no space
+# and no '.' as it throw out the last '.' part to determine major version.
+# Correct version could be '9.3.11', '9.6.0b', '9.5.1_perl'
+# Incorrect will be 'ssl_9.3.4' or '9.5.1.python' or 'most recent with .ssl and stuff'
+# PGM_PGVERSION_AUTHORIZED_REGEXP
+
+# List of allowed character (form of a regular expression) alowed to form instances name, no space
+# PGM_PGINSTANCE_AUTHORIZED_REGEXP
+
+# List of allowed character (form of a regular expression) alowed to form databases name, no space
+# PGM_PGDATABASE_AUTHORIZED_REGEXP
+
+#
+# COMPILATION OPTIONS
+#
+# Those are be enriched and ported to template dir regarding version
+# List of extensions to load for every instances (shared_preload_libraries)
+# PGM_PGEXTENSIONS
+# List of extensions to create for every databases (in template1)
+# PGM_PGEXTENSIONS_TO_CREATE
+# List of administrative databases alway listed in fact
+# PGM_PGADMINISTRATIVE_DATABASES
+
+# SERVER CONSTANTS SET AFTER setServer call
+# The choosen full version name
+# PGM_PGFULL_VERSION
+# The choosen Major version
+# PGM_PGMAJOR_VERSION (2 firsts '.' separated words of PGM_PGFULL_VERSION)
+
+# SERVER PATTERN VARIABLE
+#
+# Be sure to run a pgm_check after altering these pattern
+#
+# Pattern 'PGMSRV_PTRN_name' will be expanded into 'PGM_name'
+# In those patterns you can use the previous PGM_ constants and variables
+# but never refered to each other because you don't know in which order
+# they will be expanded
+# PGM_PGHOME_DIR, the base directory for the PostgreSQL server
+# PGMSRV_PTRN_PGHOME_DIR
+
+# PGM_PGBIN_DIR, the binary PostgreSQL directory
+# PGMSRV_PTRN_PGBIN_DIR
+
+# PGM_PGLIB_DIR, the library PostgreSQL directory
+# PGMSRV_PTRN_PGLIB_DIR
+
+# PGM_PGSHARE_DIR, where PostgreSQL store his datas (DATAROOTDIR)
+# PGMSRV_PTRN_PGSHARE_DIR
+
+# PGM_PGEXTENSION_DIR, extension...
+# PGMSRV_PTRN_PGEXTENSION_DIR
+
+# PGM_PGINCLUDE_DIR, need to say?
+# PGMSRV_PTRN_PGINCLUDE_DIR
+
+# PGM_PGDOC_DIR, ok
+# PGMSRV_PTRN_PGDOC_DIR
+
+# PGM_PGMAN_DIR, no, surprisingly, it for PostgreSQL man pages...
+# PGMSRV_PTRN_PGMAN_DIR
+
+# PGM_TEMPLATE_DIR, where pgm templates are. They are used to build other files
+# by diverse pgm scripts like pgm_instance_create
+# PGMSRV_PTRN_TEMPLATE_DIR
+
+# Where exported database will end
+# PGMSRV_PGEXPORT_DIR
+
+#
+# INSTANCE VARIABLES
+#
+
+# List of allowed character (form of a regular expression) alowed to form instances name, no space
+export PGM_PGINSTANCE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
+
+#
+# BUILDING OPTIONS
+#
+# Those are be enriched and ported to template dir regarding version
+# List of extensions to load for every instances (shared_preload_libraries)
+export PGM_PGEXTENSIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
+# List of extensions to create for every databases (in template1)
+export PGM_PGEXTENSIONS_TO_CREATE="adminpack pg_stat_statements"
+
+#
+# INSTANCE CONSTANTS set after setInstance call
+#
+
+# Name of the instance
+# PGM_PGINSTANCE
+
+# The host, if ever not set
+# PGM_PGHOST
+
+# The real host the instance runs on
+# PGM_PGREALHOST
+
+# The listen_addresses
+# PGM_PGLISTENER
+
+# The real listen_addresses the instance listen from
+# PGM_PGREALLISTENER
+
+# The port
+# PGM_PGPORT
+
+# And the real one
+# PGM_PGREALPORT
+
+# Will initd script launch this instance? y or n
+# PGM_PGAUTOLAUNCH
+
+# Is instance running? 'stopped' or 'started'
+# PGM_PGSTATUS
+
+# INSTANCES PATTERN VARIABLES
+#
+# Be sure to run a pgm_check after altering these pattern
+#
+# Pattern 'PGMPG_PTRN_name' will be expanded into 'PGM_name'
+# In those patterns you can use the previous PGM_ constants and variables
+# but never refered to each other because you don't know in which order
+# they will be expanded
+
+# PGM_PGDATA_DIR the instance directory (PGDATA)
+PGMPG_PTRN_PGDATA_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data'
+
+# PGM_PG_LOG_DIR the log directory (PGM_PG_LOG_NAME will be append to form the logfile
+PGMPG_PTRN_PG_LOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/log'
+
+# PGM_PGXLOG_DIR where the instance put his wals
+PGMPG_PTRN_PGXLOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/xlog/wal'
+
+# PGM_PGARCHIVELOG used to backup wal for PITR needs
+PGMPG_PTRN_PGARCHIVELOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/archivelog'
+
+# PGM_PGHOME_DIR the base directory for the databases
+PGMPG_PTRN_PGDBHOME_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}'
+
+# Where exported database will end
+PGMSRV_PGEXPORT_DIR='${PGM_PGDBBASE_DIR}/export'
+
+# PGM_PGFSLIST the list of directory you need to be filesystem. Used for approvision needs
+#PGMPG_PTRN_PGFSLIST='"${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE} ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/xlog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/archivelog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/log"'
+PGMPG_PTRN_PGFSLIST=''
+
+# PGM_PGRECOVER_CONF The recovery.conf file, not recommanded to change
+PGMPG_PTRN_PGRECOVER_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/recovery.conf.bak'
+
+# PGM_PG_CONF Instance configuration file (postgresql.conf)
+PGMPG_PTRN_PG_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/postgresql.conf'
+
+# PGM_PGHBA_CONF Instance security file (pg_hba.conf), not recommanded to change
+PGMPG_PTRN_PGHBA_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/pg_hba.conf'
+
+# PGM_PGIDENT_CONF Instance identity file (pg_ident.conf), not recommanded to change
+PGMPG_PTRN_PGIDENT_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/pg_ident.conf'
+
+# PGM_PG_LOG_NAME The instance log file name, will be in directory PGM_PG_LOG_DIR 
+PGMPG_PTRN_PG_LOG_NAME='${PGM_PGINSTANCE}.${PGM_PGFULL_VERSION}.log'
+#PGMPG_PTRN_PG_LOG_NAME='postgresql.log'
+
+# PGM_PGLOGROTATE_ENTRY The logrotate configuration entry that will be added for each new instance
+PGMPG_PTRN_PGLOGROTATE_ENTRY='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/log/*.log { weekly rotate 7 copytruncate delaycompress compress notifempty missingok size 50M }'
+
+if [ -v PGM_PGNAME ] && [ -r @CONFDIR@/${PGM_PGNAME}/pgm_instance.conf ]; then
+  . @CONFDIR@/${PGM_PGNAME}/pgm_instance.conf
+fi
