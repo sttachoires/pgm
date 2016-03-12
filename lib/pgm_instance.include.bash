@@ -20,7 +20,6 @@ fi
 
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_database.include
 
 function startInstance()

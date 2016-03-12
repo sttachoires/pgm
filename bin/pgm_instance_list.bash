@@ -12,34 +12,15 @@ if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
-options=""
-
 # INCLUDE
 . @CONFDIR@/pgm.conf
 if [[ $? -ne 0 ]]; then
   printf "Error loading configuration file\n"
   exit 1
 fi
-. @LIBDIR@/pgm_util.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading utility library\n"
-  exit 2
-fi
-. @LIBDIR@/pgm_server.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading server library\n"
-  exit 3
-fi
-. @LIBDIR@/pgm_server.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading instance library\n"
-  exit 4
-fi
-. @LIBDIR@/pgm_database.include
-if [[ $? -ne 0 ]]; then
-  printf "Error loading instance library\n"
-  exit 4
-fi
+. ${PGM_LIB_DIR}/pgm_util.include
+. ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_database.include
 
 
 USAGE="${PRGNAME}\n"
@@ -47,15 +28,20 @@ USAGE="${PRGNAME}\n"
 for pgm_instance in $(getInstances)
 do
   printf " PostgreSQL Instance \"${pgm_instance}\""
-  setInstance ${pgm_srv}
-  pgm_errors=$(checkEnvironment)
-  if [[ $? -ne 0 ]]; then
-    printf "Problem setting PostgreSQL Instance \"${pgm_instance}\""
-  else
-    for pgm_database in $(getDatabasesFromInstance ${pgm_srv} ${pgm_instance})
-    do
-      printf "'${pgm_database}'"
-    done
-  fi
-  printf "\n"
+  for pgm_server in $(getServersFromInstance ${pgm_instance})
+  do
+    setInstance ${pgm_server} ${pgm_instance}
+    pgm_errors=$(checkEnvironment)
+    if [[ $? -ne 0 ]]; then
+      printf "Problem setting PostgreSQL ${pgm_server} Instance \"${pgm_instance}\" : ${pgm_errors}"
+    else
+      printf " ${pgm_server} ("
+      for pgm_database in $(getDatabasesFromInstance ${pgm_server} ${pgm_instance})
+      do
+        printf "'${pgm_database}'"
+      done
+      printf ")\n"
+    fi
+    printf "\n"
+  done
 done

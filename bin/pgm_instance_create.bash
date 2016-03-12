@@ -16,7 +16,7 @@ fi
 . @CONFDIR@/pgm.conf
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_server.include
+. ${PGM_LIB_DIR}/pgm_instance.include
 
 USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION is the major version of PostgreSQL to use (ie: 9.3)\n\tPGSID stands for the cluster name (Oracle SID equivalent)\n\tPGPORT is the port the server is listening from\n\tPGLISTENER  is the hostname/ip listening on the PGPORT (default wil be 'uname --node')\n"
 

@@ -19,7 +19,7 @@ options=""
 . @CONFDIR@/pgm.conf
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_server.include
+. ${PGM_LIB_DIR}/pgm_instance.include
 
 
 USAGE="${PRGNAME} VERSION SID : Start instance\nwhere:\n\tVERSION : Server full version\n\tSID : database identifier\n"
