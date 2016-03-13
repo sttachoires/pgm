@@ -18,7 +18,6 @@ fi
 . ${PGM_CONF_DIR}/database.conf
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_instance.include
 
 function setDatabase()

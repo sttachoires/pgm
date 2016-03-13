@@ -24,7 +24,7 @@ options=""
 
 USAGE="${PRGNAME} VERSION SID : Start instance\nwhere:\n\tVERSION : Server full version\n\tSID : database identifier\n"
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -lt 2 ]]; then
   printInfo "${USAGE}\n"
   exit 1
 fi
@@ -42,9 +42,27 @@ if [[ $? -ne 0 ]]; then
   exitError "Unmanaged SID ${pgm_instance}\n"
 fi
 
+pgm_local=0
+if [[ $# -gt 2 ]]; then
+  shift;
+  shift;
+
+  for option in $*
+  do
+    case ${option} in
+      "-l"|"--local"|"local"|"LOCAL" ) pgm_local=1;;
+
+      *) exitError "${USAGE}\n";;
+    esac
+  done
+fi
 setInstance ${pgm_version} ${pgm_instance}
 if [[ $? -ne 0 ]]; then
   exitError "Cannot set instance ${pgm_instance} of ${pgm_version} server\n"
 fi
 
-startInstance ${pgm_version} ${pgm_sid}
+if [[ ${pgm_local} -eq 0 ]]; then
+  startInstance ${pgm_version} ${pgm_instance}
+else
+  startLocalInstance ${pgm_version} ${pgm_instance}
+fi

@@ -46,8 +46,8 @@ if [[ $? -ne 0 ]]; then
   exitError "Cannot set instance ${pgm_instance} of ${pgm_version} server\n"
 fi
 
-reloadInstance ${pgm_version} ${pgm_sid}
+reloadInstance ${pgm_version} ${pgm_instance}
 pgm_messages=$(tail ${PGM_PG_LOG} | grep "PG-55P02" 2>&1)
 if [[ $? -eq 0 ]]; then
-  printInfo "Instance ${pgm_sid} need restart to set new parameters.\n${pgm_message} Please issue:\n\t${PRGMNAME} ${pgm_version} ${pgm_sid} restart\n"
+  printInfo "Instance ${pgm_instance} need restart to set new parameters.\n${pgm_message} Please issue:\n\t${PRGMNAME} ${pgm_version} ${pgm_instance} restart\n"
 fi

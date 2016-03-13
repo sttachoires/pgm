@@ -53,34 +53,34 @@ fi
 
 pgm_action=$3
 case ${pgm_action} in
-  "start" ) startInstance ${pgm_version} ${pgm_sid}
+  "start" ) startInstance ${pgm_version} ${pgm_instance}
             ;;
 
-  "stop" )  stopInstance ${pgm_version} ${pgm_sid}
+  "stop" )  stopInstance ${pgm_version} ${pgm_instance}
             ;;
 
-  "restart" ) stopInstance ${pgm_version} ${pgm_sid}
-              startInstance ${pgm_version} ${pgm_sid}
+  "restart" ) stopInstance ${pgm_version} ${pgm_instance}
+              startInstance ${pgm_version} ${pgm_instance}
               ;;
 
   "reload" )
-            reloadInstance ${pgm_version} ${pgm_sid}
+            reloadInstance ${pgm_version} ${pgm_instance}
             pgm_messages=$(tail ${PGM_PG_LOG} | grep "PG-55P02" 2>&1)
             if [[ $? -eq 0 ]]; then
-              printInfo "Instance ${pgm_sid} need restart to set new parameters.\n${pgm_message} Please issue:\n\t${PRGMNAME} ${pgm_version} ${pgm_sid} restart\n"
+              printInfo "Instance ${pgm_instance} need restart to set new parameters.\n${pgm_message} Please issue:\n\t${PRGMNAME} ${pgm_version} ${pgm_instance} restart\n"
             fi
             ;;
 
   "clean" )
-            killInstance ${pgm_version} ${pgm_sid}
+            killInstance ${pgm_version} ${pgm_instance}
             ;;
 
   "monitor" )
-             stateInstance ${pgm_version} ${pgm_sid}
+             stateInstance ${pgm_version} ${pgm_instance}
              ;;
 
   "promote" )
-             promoteInstance ${pgm_version} ${pgm_sid}
+             promoteInstance ${pgm_version} ${pgm_instance}
              ;;
     * ) 
        exitError "${USAGE}\n"

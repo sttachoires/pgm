@@ -31,6 +31,9 @@ export PGM_USER="@USER@"
 # Logrotare used to rotate all pgm and managed products logs
 export PGM_LOGROTATE_EXE="@LOGROTATE@"
 
+# Logrotare used to rotate all pgm and managed products logs
+export PGM_LOGROTATE_CONF="@CONFDIR@/logrotate.conf"
+
 # The base directory where everything sit except databases datas
 export PGM_HOME_DIR="@PREFIX@"
 

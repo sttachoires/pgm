@@ -279,18 +279,18 @@ $(DEST_TPLS) : $(TPLS) $(TPLDIR)
 	@echo installing template files $@ to ${TPLDIR}
 	@mkdir --parents $(dir $@)
 	@cp --force $(patsubst $(TPLDIR)/%,tplptrn/%,$@) $@
-	@chmod ug=r,o= $@
+	@chmod ug=rw,o= $@
 
 $(DEST_CONFS) : $(CONFS) $(CONFDIR)
 	@echo installing configuration file $@ to ${CONFDIR}
 	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
-	@chmod ug=r,o= $@
+	@chmod ug=rw,o= $@
 
 
 $(DEST_CONSTS) : $(CONSTS) $(CONFDIR)
 	@echo installing configuration file $@ to ${CONFDIR}
 	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
-	@chmod ug=rw,o= $@
+	@chmod ug=r,o= $@
 
 $(DEST_CONFSCRIPTS) : $(CONFSCRIPTS) $(CONFDIR)
 	@echo installing configuration script $@ to ${CONFDIR}

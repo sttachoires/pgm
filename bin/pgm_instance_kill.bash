@@ -47,4 +47,4 @@ if [[ $? -ne 0 ]]; then
   exitError "Cannot set instance ${pgm_instance} of ${pgm_version} server\n"
 fi
 
-killInstance ${pgm_version} ${pgm_sid}
+killInstance ${pgm_version} ${pgm_instance}

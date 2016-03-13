@@ -20,6 +20,7 @@ fi
 
 . ${PGM_LIB_DIR}/pgm_util.include
 . ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/pgm_server.include
 . ${PGM_LIB_DIR}/pgm_database.include
 
 function startInstance()
@@ -28,8 +29,8 @@ function startInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
@@ -49,13 +50,14 @@ function startLocalInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl -w -o "-c listen_addresses=''" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
+  #${PGM_PGBIN_DIR}/pg_ctl -w -o "-k listen_addresses=''" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
+  ${PGM_PGBIN_DIR}/pg_ctl -w -o "-h ''" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
 }
 
 function stopInstance()
@@ -64,8 +66,8 @@ function stopInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
@@ -79,8 +81,8 @@ function reloadInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
@@ -94,8 +96,8 @@ function stateInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
@@ -110,8 +112,8 @@ function promoteInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
@@ -125,8 +127,8 @@ function killInstance()
     return 1
   fi
   pgm_version=$1
-  pgm_sid=$2
-  setInstance ${pgm_version} ${pgm_sid}
+  pgm_instance=$2
+  setInstance ${pgm_version} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
@@ -151,16 +153,16 @@ function setInstance()
   fi
 
   pgm_version=$1
-  pgm_sid=$2
+  pgm_instance=$2
   
   setServer ${pgm_version}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
 
-  if [[ ${pgm_sid} =~ ${PGM_PGINSTANCE_AUTHORIZED_REGEXP} ]]; then
+  if [[ ${pgm_instance} =~ ${PGM_PGINSTANCE_AUTHORIZED_REGEXP} ]]; then
     # First set instance constants
-    export PGM_PGINSTANCE=${pgm_sid}
+    export PGM_PGINSTANCE=${pgm_instance}
 
     # Remove trailing slashes.
     for pgm_pattern in ${!PGMPG_PTRN_*}
@@ -209,7 +211,7 @@ function setInstance()
     export PGM_PGAUTOLAUNCH=$(getAutolaunchFromInstance ${PGM_PGFULL_VERSION} ${PGM_PGINSTANCE})
     return 0
   else
-    printInfo "Wrong instance name \"${pgm_sid}\"\n"
+    printInfo "Wrong instance name \"${pgm_instance}\"\n"
     return 3
   fi
 }
