@@ -11,11 +11,11 @@ if [ "${PGM_DATABASE_CONF}" == "LOADED" ]; then
   return 0
 fi
 export PGM_DATABASE_CONF="LOADED"
-
 . @CONFDIR@/pgm.conf
+. @CONFDIR@/.database.conf
+
 . @CONFDIR@/server.conf
 . @CONFDIR@/instance.conf
-. @CONFDIR@/.database.conf
 
 
 # List of allowed character (form of a regular expression) alowed to form databases name, no space

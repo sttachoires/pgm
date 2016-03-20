@@ -16,139 +16,193 @@ export PGM_PGINVENTORY_INCLUDE="LOADED"
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
+. ${PGM_LIB_DIR}/pgm_util.include
 
 function getAutolaunchFromInstance()
 {
-  if [[ $# != 2 ]]; then
+  declareFunction "-server- -instance- -result-" "$*"
+
+  if [[ $# != 3 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
+  pgm_result_var=$3
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_version}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY}
+  pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_server}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function getDatabasesFromInstance()
 {
-  if [[ $# != 2 ]]; then
+  declareFunction "-server- -instance- -result-" "$*"
+
+  if [[ $# != 3 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
+  pgm_result_var=$3
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  awk --field-separator=':' '/^..+:'${pgm_instance}':'${pgm_version}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY}
+  pgm_report=$(awk --field-separator=':' '/^..+:'${pgm_instance}':'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function getServersFromInstance()
 {
-  if [[ $# != 1 ]]; then
+  declareFunction "-instance- -result-" "$*"
+
+  if [[ $# != 2 ]]; then
     return 1
   fi
   pgm_instance=$1
+  pgm_result=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  awk --field-separator=':' '/^_:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
+  pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function getInstances()
 {
-  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+  declareFunction "-result-" "$*"
+
+  if [[ $# != 1 ]]; then
     return 1
   fi
+  pgm_result_var=$1
 
-  awk --field-separator=':' '/^_:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
+  if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
+    return 2
+  fi
+
+  pgm_report=$(awk --field-separator=':' '/^_:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function isInstanceUnknownFromServer()
 {
+  declareFunction "-server- -instance-" "$*"
+
   if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
+
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  egrep --quiet --only-matching "^.*:${pgm_instance}:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "^.*:${pgm_instance}:${pgm_server}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 function getInstancesFromServer()
 {
-  if [[ $# != 1 ]]; then
+  declareFunction "-server- -result-" "$*"
+
+  if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
+  pgm_result_var=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  awk --field-separator=':' '/^_:..+:'${pgm_version}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY}
+  pgm_report=$(awk --field-separator=':' '/^_:..+:'${pgm_server}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function getDatabasesFromServer()
 {
-  if [[ $# != 1 ]]; then
+  declareFunction "-server- -result-" "$*"
+
+  if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
+  pgm_result_var=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  awk --field-separator=':' '/^..+:.*:'${pgm_version}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY}
+  pgm_report=$(awk --field-separator=':' '/^..+:.*:'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function getServers()
 {
+  declareFunction "-result-" "$*"
+
+  if [[ $# != 1 ]]; then
+    return 1
+  fi
+  pgm_result_var=$1
+
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 1
   fi
 
-  awk --field-separator=':' '/^_:_:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY}
+  pgm_report=$(awk --field-separator=':' '/^_:_:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function isServerUnknown()
 {
+  declareFunction "-server-" "$*"
+
   if [[ $# != 1 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  egrep --quiet --only-matching "^.*:.*:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "^.*:.*:${pgm_server}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 function addServer()
 {
+  declareFunction "+server+" "$*"
+
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  isServerUnknown ${pgm_version}
+  isServerUnknown ${pgm_server}
   if [[ $? -ne 0 ]]; then
-    echo "_:_:${pgm_version}:y" >> ${PGM_PG_INVENTORY}
+    echo "_:_:${pgm_server}:y" >> ${PGM_PG_INVENTORY}
     return $?
   else
     return 0
@@ -157,26 +211,32 @@ function addServer()
 
 function isServerAlone()
 {
+  declareFunction "-server-" "$*"
+
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  egrep --quiet --only-matching "^(.*:..+|..+:.*):${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "^(.*:..+|..+:.*):${pgm_server}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 function isInstanceAlone()
 {
+  declareFunction "-instance-" "$*"
+
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_instance=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
@@ -185,18 +245,21 @@ function isInstanceAlone()
 
 function removeServer()
 {
+  declareFunction "-server-" "$*"
+
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  isServerAlone ${pgm_version}
+  isServerAlone ${pgm_server}
   if [[ $? -ne 0 ]]; then
-    sed '/^.*:.*:'${pgm_version}':[yn].*$/ s/^/#/' ${PGM_PG_INVENTORY}
+    sed '/^.*:.*:'${pgm_server}':[yn].*$/ s/^/#/' ${PGM_PG_INVENTORY}
     return $?
   else
     return 3
@@ -205,37 +268,43 @@ function removeServer()
 
 function addInstance()
 {
+  declareFunction "-server- +instance+" "$*"
+
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
+  isInstanceUnknownFromServer ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    echo "_:${pgm_instance}:${pgm_version}:y" >> ${PGM_PG_INVENTORY}
+    echo "_:${pgm_instance}:${pgm_server}:y" >> ${PGM_PG_INVENTORY}
   fi
 }
 
 function removeInstance()
 {
+  declareFunction "-server- -instance-" "$*"
+
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  isInstanceAlone ${pgm_version} ${pgm_instance}
+  isInstanceAlone ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    sed '/^.*:'${pgm_instance}':'${pgm_version}':[yn].*$/ s/^/#/' ${PGM_PG_INVENTORY}
+    sed '/^.*:'${pgm_instance}':'${pgm_server}':[yn].*$/ s/^/#/' ${PGM_PG_INVENTORY}
     return $?
   else
     return 3
@@ -244,17 +313,20 @@ function removeInstance()
 
 function isDatabaseUnknownFromInstance()
 {
+  declareFunction "-server- -instance- -database-" "$*"
+
   if [[ $# != 3 ]]; then
     return 1
   fi
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
   pgm_database=$3
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
+    printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  egrep --quiet --only-matching "${pgm_database}:${pgm_instance}:${pgm_version}:[yn]" ${PGM_PG_INVENTORY}
+  egrep --quiet --only-matching "${pgm_database}:${pgm_instance}:${pgm_server}:[yn]" ${PGM_PG_INVENTORY}
 }
 
 

@@ -13,8 +13,8 @@ fi
 export PGM_INSTANCE_CONF="LOADED"
 
 . @CONFDIR@/pgm.conf
-. @CONFDIR@/server.conf
 . @CONFDIR@/.instance.conf
+. @CONFDIR@/server.conf
 
 # PGM CONSTANTS
 # DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO
@@ -172,6 +172,9 @@ export PGM_INSTANCE_CONF="LOADED"
 
 # List of allowed character (form of a regular expression) alowed to form instances name, no space
 export PGM_PGINSTANCE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
+
+# Default port for instance (guest what: 5432 by default!)
+export PGM_PGDEFAULTPORT=5432
 
 #
 # BUILDING OPTIONS

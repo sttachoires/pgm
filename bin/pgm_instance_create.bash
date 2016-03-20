@@ -28,6 +28,8 @@ export pgm_listener=$(uname --node)
 
 function checkParameters ()
 {
+  declareFunction "checkParameters " "$*"
+
   case $# in
     4 )
        pgm_version=$1

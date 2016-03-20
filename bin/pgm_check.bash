@@ -12,7 +12,7 @@ if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
-options=""
+export PGM_LOG="${PGM_LOG_DIR}/check.log"
 
 # INCLUDE
 . @CONFDIR@/pgm.conf

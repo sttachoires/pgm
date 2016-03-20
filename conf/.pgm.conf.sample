@@ -70,3 +70,7 @@ export PGM_INVENTORY_DIR="@INVENTORYDIR@"
 export PGM_PG_INVENTORY="@INVENTORYDIR@/pginventory"
 # Must exists
 touch @INVENTORYDIR@/pginventory
+
+# Ensure that pipes (like in '|' tee) will return with first false
+# command code in "pipe line"
+set -o pipefail

@@ -22,17 +22,19 @@ fi
 
 function setDatabase()
 {
+  declareFunction "-server- -instance- -database-" "$*"
+
   if [[ $# -ne 3 ]]; then
     return 1
   else
-    pgm_version=$1
+    pgm_server=$1
     pgm_instance=$2
     pgm_database=$3  
   fi
 
-
-  pgm_report=$(setInstance ${pgm_version} ${pgm_instance})
+  setInstance ${pgm_server} ${pgm_instance} pgm_report
   if [[ $? -ne 0 ]]; then
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
     return 2
   fi
 
@@ -49,57 +51,69 @@ function setDatabase()
 
     return 0
   else
-    printInfo "Wrong database name {pgm_database}\n"
+    printError "Wrong database name ${pgm_database}\n"
     return 1
   fi
 }
 
 function databaseExec()
 {
-  if [[ $# -ne 3 ]]; then
+  declareFunction "-server- -instance- -database- -request- -result-" "$*"
+
+  if [[ $# -ne 5 ]]; then
     return 1
   fi
 
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
   pgm_database=$3
+  pgm_request=$4
+  pgm_result_var=$5
 
   if [ "${PGM_PGBIN_DIR}x" == "x" ] || [ "${PGM_PGDATA_DIR}x" == "x" ] || [ "${PGM_PORT}x" == "x" ]; then
-    setInstance ${pgm_version} ${pgm_instance}
+    setInstance ${pgm_server} ${pgm_instance} pgm_report
     if [[ $? -ne 0 ]]; then
+      printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n" 
       return 2
     fi
   fi
 
-  ${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${request}"
+  pg_request_result=$(${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} --tuples-only -v ON_ERROR_STOP=1 ${dbname} -c "${pgm_request}")
+  pgm_status=$?
+
+  eval export ${pgm_result_var}="${pg_request_result}"
+  return ${pgm_status}
 }
 
 function createExtentions()
 {
+  declareFunction "-server- -instance- -database-" "$*"
+
   if [[ $# -ne 3 ]]; then
     return 1
   fi
 
-  pgm_version=$1
+  pgm_server=$1
   pgm_instance=$2
   pgm_database=$3
 
   if [ ! -v PGM_PGEXTENSIONS_TO_CREATE ]; then
-    setInstance ${pgm_version} ${pgm_instance}
+    setInstance ${pgm_server} ${pgm_instance} pgm_report
     if [[ $? -ne 0 ]]; then
+      printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
       return 2
     fi
   fi
 
-  pgm_result=0
+  pgm_status=0
   for pgm_extention in ${PGM_PGEXTENSIONS_TO_CREATE//,/}
   do
-    databaseExec ${pgm_version} ${pgm_instance} ${pgm_database} "CREATE EXTENSION ${pgm_extention};"
+    databaseExec ${pgm_server} ${pgm_instance} ${pgm_database} "CREATE EXTENSION ${pgm_extention};" pgm_result
     if [[ $? -ne 0 ]]; then
-      pgm_result=$(( pgm_result++ ))
+      pgm_status=$(( pgm_status++ ))
     fi
   done
 
-  return ${result}
+  return ${pgm_status}
 }
 

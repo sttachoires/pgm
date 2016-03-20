@@ -11,24 +11,104 @@ fi
 export PGM_UTIL_INCLUDE="LOADED"
 
 # CONSTANTS
+PGM_LOG="default.log"
 
 # VARIABLES
+export PGM_TRACELEVEL=1
+export PGM_OUTPUT=" >> ${PGM_LOG} 2>&1 >&3 3>&- | tee -a ${PGM_LOG} 3>&-"
+
+function pgmPrint()
+{
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+  pgm_print_context="$1"
+  pgm_print_text="$2"
+  pgm_print_date=`date "+%Y.%m.%d-%H.%M.%S"`
+  pgm_print_user=`who am i | cut --delimiter=' ' --fields=1`
+  pgm_spaces="$(seq -s '.' ${BASH_SUBSHELL} | sed 's/[^.]//g')"
+  if [[ ${pgm_print_context} -le ${PGM_TRACELEVEL} ]]; then
+    printf "${pgm_print_date} ${pgm_print_user} ${pgm_print_text}\n" | tee -a ${PGM_LOG}
+  else
+    printf "${pgm_print_date} ${pgm_print_user} ${pgm_print_text}\n" >> ${PGM_LOG}
+  fi
+}
+
 function printError()
 {
-  if [ -w "${PGM_LOG}" ]; then
-    printf "$*" >&2 | tee -a ${PGM_LOG}
-  else
-    printf "$*" >&2
-  fi
+  pgmPrint 1 "$*"
+}
+
+function printTrace()
+{
+  pgmPrint 2 "$*"
 }
 
 function printInfo()
 {
-  if [ -w "${PGM_LOG}" ]; then
-    printf "$*" | tee -a ${PGM_LOG}
-  else
-    printf "$*" 
-  fi
+  pgmPrint 3 "$*"
+}
+
+function declareFunction()
+{
+  pgm_function_name="${FUNCNAME[1]}"
+  printTrace "Enter ${pgm_function_name}\n"
+  case $# in
+    0 )
+       return 1
+       ;;
+
+    1 )
+       ;;
+
+    2 )
+       analyzeStandart "$*"
+       ;;
+
+    * )
+       pgm_param_format="$2"
+       shift
+       analyzeStandart "$*"
+       ;;
+  esac
+}
+
+function analyzeStandart()
+{
+  export pgm_report=""
+  
+  for pgm_option in $*
+  do
+    case "${pgm_option}" in
+      "-h"|"-?"|"--help"|"help")
+        printf "${USAGE}\n"
+        ;;
+
+      "-v"|"--verbose"|"verbose")
+        export PGM_TRACELEVEL=3
+        PGM_OUTPUT=" 2>&1 | tee -a ${PGM_LOG}"
+        ;;
+
+      "-t"|"--trace"|"trace")
+        export PGM_TRACELEVEL=2
+        export PGM_OUTPUT=" >> ${PGM_LOG} 2>&1 >&3 3>&- | tee -a ${PGM_LOG} 3>&-"
+        ;;
+
+      "-e"|"--error"|"error")
+        export PGM_TRACELEVEL=1
+        export PGM_OUTPUT=" >> ${PGM_LOG} 2>&1 >&3 3>&- | tee -a ${PGM_LOG} 3>&-"
+        ;;
+
+      "-q"|"--quiet"|"--silent"|"silent")
+        export PGM_TRACELEVEL=0
+        PGM_OUTPUT=" 2>&1 >> ${PGM_LOG}"
+        ;;
+
+      * )
+        pgm_report="${pgm_report} ${pgm_option}"
+        ;;
+    esac
+  done
 }
 
 function exitError()
@@ -45,6 +125,8 @@ function exitError()
 
 function instantiateTemplate()
 {
+  declareFunction "instantiateTemplate" "$*"
+
   if [[ $# -ne 2 ]]; then
     return 1
   fi
@@ -82,6 +164,8 @@ function instantiateTemplate()
 
 function ensureVars()
 {
+  declareFunction "ensureVars" "$*"
+
   pgm_status=0
   pgm_report=""
 
@@ -108,6 +192,8 @@ function ensureVars()
 
 function checkEnvironment()
 {
+  declareFunction "checkEnvironment" "$*"
+
   pgm_status=0
   pgm_report=""
 

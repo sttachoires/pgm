@@ -20,6 +20,8 @@ fi
 
 function setServer()
 {
+  declareFunction "~server~" "$*"
+
   if [[ $# -ne 1 ]]; then
     return 1
   fi
@@ -39,114 +41,134 @@ function setServer()
     
     return 0
   else
+    printError "The name '${PGM_PGFULL_VERSION}' doesn't match '${PGM_PGREAL_VERSION_REGEXP}(${PGM_PGVERSION_AUTHORIZED_REGEXP})?'"
     return 2
   fi
 }
 
 function serverInfo()
 {
-  if [[ $# -ne 1 ]]; then
+  declareFunction "-server- -result-" "$*"
+
+  if [[ $# -ne 2 ]]; then
     return 1
   fi
   
-  pgm_result=$(setServer $1)
+  pgm_server=$1
+  pgm_result_var=$2
+
+  setServer ${pgm_server}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
   
   if [ -x ${PGM_PGBIN_DIR}/pg_config ]; then
-    ${PGM_PGBIN_DIR}/pg_config
+    pgm_report="$(${PGM_PGBIN_DIR}/pg_config)"
   else
-    printf "no valid pg_config\n"
+    printError "no valid pg_config in '${PGM_PGBIN_DIR}'\n"
     return 3
   fi
+
+  eval export ${pgm_result_var}="${pgm_report}"
 }
 
 function checkAllServers()
 {
+  declareFunction "-result-" "$*"
+
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  pgm_result_var=$1
   pgm_report=""
   pgm_status=0
 
-  pgm_servers="$(getServers)"
-  for pgm_version in ${pgm_servers}
+  getServers pgm_server_list
+  for pgm_server in ${pgm_server_list}
   do
-    pgm_report="${pgm_report} $(checkServer ${pgm_version})"
+    checkServer ${pgm_version} pgm_check_result
+    pgm_report="${pgm_report} ${pgm_check_result}"
     if [[ $? -ne 0 ]]; then
       pgm_status=$(( ${pgm_status} + 1 ))
     fi
   done
 
-  printf "${pgm_report//[ ][ ]+/ }"
+  eval export ${pgm_result_var}="${pgm_report//[ ][ ]+/ }"
   return ${pgm_status}
 }
 
 function checkServer()
 {
-  pgm_report=""
+  declareFunction "-server- -result-" "$*"
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+  
+  pgm_server=$1
+  pgm_result_var=$22
+  
   pgm_status=0
+
+  setServer ${pgm_server}
+  if [[ $? -ne 0 ]]; then
+    printError "Cannot set server ${pgm_server}"
+    return 2
+  fi
+
+  checkEnvironment pgm_report
+}
+
+function installServer()
+{
+  declareFunction "-server-" "$*"
 
   if [[ $# -ne 1 ]]; then
     return 1
   fi
 
-  setServer ${pgm_version}
-  if [[ $? -ne 0 ]]; then
-    return 2
-  fi
-
-  pgm_report="${pgm_report} $(checkEnvironment)"
-  if [[ $? -ne 0 ]]; then
-    return 3
-  fi
-
-  printf "${pgm_report//[ ][ ]+/ }"
-  return ${pgm_status}
-}
-
-function installServer()
-{
-  pgm_report=""
-  pgm_status=0
-
-  if [[ $# -ne 2 ]]; then
-    return 1
-  fi
-
-  pgm_srcdir=${1%/}
-  pgm_version=$2
+  pgm_server=$2
 
   if [ ! -v PGM_PGHOME_DIR ] || [ ! -v PGM_PGBIN_DIR ] || [ ! -v PGM_PGLIB_DIR ] || [ ! -v PGM_PGINCLUDE_DIR ] || [ ! -v PGM_PGSHARE_DIR ] || [ ! -v PGM_PGMAN_DIR ] || [ ! -v PGM_PGDOC_DIR ]; then
     setServer ${pgm_version}
     if [[ $? -ne 0 ]]; then
+      printError "Cannot set server ${pgm_server}"
       return 2
     fi
   fi
 
+  pgm_src_dir="${PGM_TEMP_DIR}/postgresql-${PGM_PGREAL_VERSION}"
+  pgm_src="${PGM_TEMP_DIR}/postgresql-${PGM_PGREAL_VERSION}.tar.bz2"
+
+  if [ ! -d ${pgm_src_dir} ]; then
+    if [ ! -e ${pgm_src} ]; then
+      printError "No ${pgm_src} found"
+    fi
+    tar xfj ${pgm_src}
+  fi
+
   cd ${pgm_srcdir}
-  ./configure --prefix=${PGM_PGHOME_DIR} --exec-prefix=$(dirname ${PGM_PGBIN_DIR}) --bindir=${PGM_PGBIN_DIR} --libdir=${PGM_PGLIB_DIR} --includedir=${PGM_PGINCLUDE_DIR} --datarootdir=${PGM_PGSHARE_DIR} --mandir=${PGM_PGMAN_DIR} --docdir=${PGM_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap
+  ./configure --prefix=${PGM_PGHOME_DIR} --exec-prefix=$(dirname ${PGM_PGBIN_DIR}) --bindir=${PGM_PGBIN_DIR} --libdir=${PGM_PGLIB_DIR} --includedir=${PGM_PGINCLUDE_DIR} --datarootdir=${PGM_PGSHARE_DIR} --mandir=${PGM_PGMAN_DIR} --docdir=${PGM_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap ${PGM_OUTPUT}
   if [[ $? -ne 0 ]]; then
     return 3
   fi
 
-  make world
+  make world ${PGM_OUTPUT}
   if [[ $? -ne 0 ]]; then
     return 4
   fi
 
-  make check
+  make check ${PGM_OUTPUT}
   if [[ $? -ne 0 ]]; then
     return 5
   fi
 
-  make install-world
+  make install-world ${PGM_OUTPUT}
   if [[ $? -ne 0 ]]; then
     return 6
   fi
 
-  make distclean
+  make distclean ${PGM_OUTPUT}
   if [[ $? -ne 0 ]]; then
     return 7
   fi
-
-  addServer ${pgm_version}
 }

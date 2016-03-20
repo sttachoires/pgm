@@ -27,33 +27,34 @@ fi
 
 USAGE="${PRGNAME}\n"
 
-for pgm_srv in $(getServers)
+
+declareFunction pgm_list $*
+
+pgm_server_list="$(getServers)"
+for pgm_server in ${pgm_server_list}
 do
-  printf " PostgreSQL server \"${pgm_srv}\""
-  setServer ${pgm_srv}
+  printf "\nPostgreSQL server \"${pgm_server}\"\n"
+  setServer ${pgm_server}
   if [[ $? -ne 0 ]]; then
-    printf " problem to set up\n"
+    printf "   problem to set up\n"
   else
-    pgm_report=$(checkEnvironment)
+    pgm_report="$(checkEnvironment)"
     if [[ $? -ne 0 ]]; then
-      printf " environment problem:\n${pgm_reports// /$'\n'}"
+      printf "   environment problem:\n${pgm_reports// /$'\n'}"
     else
-      for pgm_instance in $(getInstancesFromServer ${pgm_srv})
+      pgm_instance_list="$(getInstancesFromServer ${pgm_server})"
+      for pgm_instance in ${pgm_instance_list}
       do
-        setInstance ${pgm_srv} ${pgm_instance}
+        setInstance ${pgm_server} ${pgm_instance}
         if [[ $? -ne 0 ]]; then
-          printf " (Error)"
+          printf "  ${pgm_instance} problem to set up\n"
         else
           pgm_report=$(checkEnvironment)
           if [[ $? -ne 0 ]]; then
-            printf " (Env error)"
+            printf "    ${pgm_instance} environment problem:\n${pgm_reports// /$'\n'}"
           else
-            printf " ${pgm_instance} ("
-            for pgm_database in $(getDatabasesFromInstance ${pgm_srv} ${pgm_instance})
-            do
-              printf "'${pgm_database}'"
-            done
-            printf ")"
+            pgm_database_list="$(getDatabasesFromInstance ${pgm_server} ${pgm_instance})"
+            printf "   ${pgm_instance} (${pgm_database_list})\n"
           fi
         fi
       done
