@@ -27,10 +27,16 @@ fi
 
 USAGE="${PRGNAME}\n"
 
+PGM_LOG="${PGM_LOG_DIR}/pgm_list.log"
 
-declareFunction pgm_list $*
+analyzeParameters $*
 
-pgm_server_list="$(getServers)"
+getServers pgm_server_list
+if [[ $? -ne 0 ]]; then
+  printError "Error getting servers"
+  exit 2
+fi
+
 for pgm_server in ${pgm_server_list}
 do
   printf "\nPostgreSQL server \"${pgm_server}\"\n"
@@ -38,22 +44,22 @@ do
   if [[ $? -ne 0 ]]; then
     printf "   problem to set up\n"
   else
-    pgm_report="$(checkEnvironment)"
+    checkEnvironment pgm_report
     if [[ $? -ne 0 ]]; then
       printf "   environment problem:\n${pgm_reports// /$'\n'}"
     else
-      pgm_instance_list="$(getInstancesFromServer ${pgm_server})"
+      getInstancesFromServer ${pgm_server} pgm_instance_list
       for pgm_instance in ${pgm_instance_list}
       do
         setInstance ${pgm_server} ${pgm_instance}
         if [[ $? -ne 0 ]]; then
           printf "  ${pgm_instance} problem to set up\n"
         else
-          pgm_report=$(checkEnvironment)
+          checkEnvironment pgm_report
           if [[ $? -ne 0 ]]; then
-            printf "    ${pgm_instance} environment problem:\n${pgm_reports// /$'\n'}"
+            printf "   ${pgm_instance} environment problem:\n${pgm_report// /$'\n'}"
           else
-            pgm_database_list="$(getDatabasesFromInstance ${pgm_server} ${pgm_instance})"
+            getDatabasesFromInstance ${pgm_server} ${pgm_instance} pgm_database_list
             printf "   ${pgm_instance} (${pgm_database_list})\n"
           fi
         fi

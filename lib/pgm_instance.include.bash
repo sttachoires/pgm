@@ -285,7 +285,7 @@ function checkInstance()
   pgm_result_var=$3
 
   setInstance ${pgm_server} ${pgm_instance}
-  if [[ $?-ne 0 ]]; then
+  if [[ $? -ne 0 ]]; then
     eval export ${pgm_result_var}="Cannot set ${pgm_server} ${pgm_instance}"
     printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
     return 2

@@ -52,20 +52,13 @@ function printInfo()
 function declareFunction()
 {
   pgm_function_name="${FUNCNAME[1]}"
-  printTrace "Enter ${pgm_function_name}\n"
+  printTrace "Enter ${pgm_function_name} with '$*'\n"
   case $# in
-    0 )
-       return 1
-       ;;
-
     1 )
-       ;;
-
-    2 )
        analyzeStandart "$*"
        ;;
 
-    * )
+    2 )
        pgm_param_format="$2"
        shift
        analyzeStandart "$*"
@@ -73,10 +66,13 @@ function declareFunction()
   esac
 }
 
+function analyzeParameters()
+{
+  analyzeStandart $*
+}
+
 function analyzeStandart()
 {
-  export pgm_report=""
-  
   for pgm_option in $*
   do
     case "${pgm_option}" in
@@ -105,7 +101,6 @@ function analyzeStandart()
         ;;
 
       * )
-        pgm_report="${pgm_report} ${pgm_option}"
         ;;
     esac
   done

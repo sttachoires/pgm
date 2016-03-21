@@ -25,23 +25,24 @@ fi
 
 USAGE="${PRGNAME}\n"
 
-for pgm_instance in $(getInstances)
+getInstances pgm_instance_list
+if [[ $? -ne 0 ]]; then
+  exitError "Error getting instance list"
+fi
+
+for pgm_instance in ${pgm_instance_list}
 do
   printf " PostgreSQL Instance \"${pgm_instance}\""
-  for pgm_server in $(getServersFromInstance ${pgm_instance})
+  getServersFromInstance ${pgm_instance} pgm_instance_list
+  for pgm_server in ${pgm_instance_list}
   do
     setInstance ${pgm_server} ${pgm_instance}
-    pgm_errors=$(checkEnvironment)
+    checkEnvironment pgm_errors
     if [[ $? -ne 0 ]]; then
-      printf "Problem setting PostgreSQL ${pgm_server} Instance \"${pgm_instance}\" : ${pgm_errors}"
+      printf "  Problem setting PostgreSQL ${pgm_server} Instance \"${pgm_instance}\" : ${pgm_errors}"
     else
-      printf " ${pgm_server} ("
-      for pgm_database in $(getDatabasesFromInstance ${pgm_server} ${pgm_instance})
-      do
-        printf "'${pgm_database}'"
-      done
-      printf ")\n"
+      getDatabasesFromInstance ${pgm_server} ${pgm_instance} pgm_database_list
+      printf "  ${pgm_server} (${pgm_database_list})\n"
     fi
-    printf "\n"
   done
 done

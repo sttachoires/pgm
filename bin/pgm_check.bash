@@ -28,7 +28,7 @@ fi
 
 USAGE="${PRGNAME}\n"
 
-pgm_missing_envs=$(checkEnvironment)
+checkEnvironment pgm_missing_envs
 if [[ $? -ne 0 ]]; then
   printf "Configuration Error:\n\n${pgm_missing_envs// /$'\n'}\n"
 else

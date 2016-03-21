@@ -35,7 +35,7 @@ function getAutolaunchFromInstance()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_server}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function getDatabasesFromInstance()
@@ -55,7 +55,7 @@ function getDatabasesFromInstance()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^..+:'${pgm_instance}':'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function getServersFromInstance()
@@ -74,7 +74,7 @@ function getServersFromInstance()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function getInstances()
@@ -92,7 +92,7 @@ function getInstances()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^_:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function isInstanceUnknownFromServer()
@@ -129,7 +129,7 @@ function getInstancesFromServer()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^_:..+:'${pgm_server}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function getDatabasesFromServer()
@@ -148,7 +148,7 @@ function getDatabasesFromServer()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^..+:.*:'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function getServers()
@@ -166,7 +166,7 @@ function getServers()
   fi
 
   pgm_report=$(awk --field-separator=':' '/^_:_:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval export ${pgm_result_var}='${pgm_report}'
 }
 
 function isServerUnknown()
