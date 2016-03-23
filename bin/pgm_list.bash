@@ -39,7 +39,7 @@ fi
 
 for pgm_server in ${pgm_server_list}
 do
-  printf "\nPostgreSQL server \"${pgm_server}\"\n"
+  printf "PostgreSQL server \"${pgm_server}\"\n"
   setServer ${pgm_server}
   if [[ $? -ne 0 ]]; then
     printf "   problem to set up\n"
@@ -66,5 +66,4 @@ do
       done
     fi
   fi
-  printf "\n"
 done

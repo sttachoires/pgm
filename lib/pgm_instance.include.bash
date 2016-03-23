@@ -183,9 +183,9 @@ function setInstance()
   pgm_server=$1
   pgm_instance=$2
   
-  setServer ${pgm_server} pgm_report
+  setServer ${pgm_server}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set server ${pgm_server}:\n${pgm_report}\n"
+    printError "Cannot set server ${pgm_server}:\n"
     return 2
   fi
 

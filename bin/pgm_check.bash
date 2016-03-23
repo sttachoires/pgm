@@ -27,6 +27,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 USAGE="${PRGNAME}\n"
+analyzeParameters $*
 
 checkEnvironment pgm_missing_envs
 if [[ $? -ne 0 ]]; then

@@ -26,12 +26,11 @@ function pgmPrint()
   pgm_print_text="$2"
   pgm_print_date=`date "+%Y.%m.%d-%H.%M.%S"`
   pgm_print_user=`who am i | cut --delimiter=' ' --fields=1`
-  pgm_spaces="$(seq -s '.' ${BASH_SUBSHELL} | sed 's/[^.]//g')"
+  pgm_spaces=" #${BASH_SUBSHELL}# "
   if [[ ${pgm_print_context} -le ${PGM_TRACELEVEL} ]]; then
-    printf "${pgm_print_date} ${pgm_print_user} ${pgm_print_text}\n" | tee -a ${PGM_LOG}
-  else
-    printf "${pgm_print_date} ${pgm_print_user} ${pgm_print_text}\n" >> ${PGM_LOG}
+    printf "[${FUNCNAME[2]}] ${pgm_print_text}\n"
   fi
+  printf "${pgm_print_date} '${pgm_print_user}' [${FUNCNAME[2]}] ${pgm_print_text}\n" >> ${PGM_LOG}
 }
 
 function printError()
@@ -120,7 +119,7 @@ function exitError()
 
 function instantiateTemplate()
 {
-  declareFunction "instantiateTemplate" "$*"
+  declareFunction "-template- -filename-" "$*"
 
   if [[ $# -ne 2 ]]; then
     return 1
@@ -159,70 +158,77 @@ function instantiateTemplate()
 
 function ensureVars()
 {
-  declareFunction "ensureVars" "$*"
+  declareFunction "-string- -conditional-test- -result-" "$*"
 
   pgm_status=0
   pgm_report=""
 
-  if [ $# -ne 2 ]; then
+  if [ $# -ne 3 ]; then
     return 1
   fi
+  pgm_var_type=$1
+  pgm_condition=$2
+  pgm_result_var=$3
+
   pgm_all_vars="${!PGM_*}"
-  pgm_selected_vars="$(printf ${pgm_all_vars//[ ][ ]+/$'\n'} | egrep -o PGM_.*$1)"
-  echo "pgm_selected_vars=${pgm_selected_vars}"
+  pgm_selected_vars="$(printf ${pgm_all_vars//[ ][ ]+/$'\n'} | egrep -o PGM_.*${pgm_var_type})"
   for pgm_var in ${pgm_selected_vars}
   do
     if ! [ -z "${pgm_var}" ]; then
-      eval pgm_value=\"\$${pgm_var}\"
-      if ! [ $2 "${pgm_value}" ]; then
+      pgm_value="${!pgm_var}"
+      if ! [ ${pgm_condition} "${pgm_value}" ]; then
         pgm_report="${pgm_report} ${pgm_var}:'${pgm_value}'"
         pgm_status=$(( ${pgm_status} + 1 ))
       fi
     fi
   done
 
-  printf "${pgm_report//[ ][ ]+/ }"
+  eval export ${pgm_result_var}='${pgm_report//[ ][ ]+/ }'
   return ${pgm_status}
 }
 
 function checkEnvironment()
 {
-  declareFunction "checkEnvironment" "$*"
+  declareFunction "-result-" "$*"
 
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  pgm_result_var=$1
   pgm_status=0
   pgm_report=""
 
-  pgm_part_report="$(ensureVars _DIR -d)"
+  ensureVars _DIR -d pgm_part_report
   if [[ $? -ne 0 ]]; then
     pgm_report="${pgm_report} ${pgm_part_report}"
     pgm_status=$(( ${pgm_status} + 1 ))
   fi
 
-  pgm_part_report="$(ensureVars _CONF -w)"
+  ensureVars _CONF -w pgm_part_report
   if [[ $? -ne 0 ]]; then
     pgm_report="${pgm_report} ${pgm_part_report}"
     pgm_status=$(( ${pgm_status} + 1 ))
   fi
 
-  pgm_part_report="$(ensureVars _LOG -w)"
+  ensureVars _LOG -w pgm_part_report
   if [[ $? -ne 0 ]]; then
     pgm_report="${pgm_report} ${pgm_part_report}"
     pgm_status=$(( ${pgm_status} + 1 ))
   fi
 
-  pgm_part_report="$(ensureVars _EXE -x)"
+  ensureVars _EXE -x pgm_part_report
   if [[ $? -ne 0 ]]; then
     pgm_report="${pgm_report} ${pgm_part_report}"
     pgm_status=$(( ${pgm_status} + 1 ))
   fi
 
-  pgm_part_report="$(ensureVars _INVENTORY -w)"
+  ensureVars _INVENTORY -w pgm_part_report
   if [[ $? -ne 0 ]]; then
     pgm_report="${pgm_report} ${pgm_part_report}"
     pgm_status=$(( ${pgm_status} + 1 ))
   fi
 
-  printf "${pgm_report//[ ][ ]+/ }"
+  eval export ${pgm_result_var}='${pgm_report//[ ][ ]+/ }'
   return ${pgm_status}
 }
 

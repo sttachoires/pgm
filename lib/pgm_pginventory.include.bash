@@ -66,7 +66,7 @@ function getServersFromInstance()
     return 1
   fi
   pgm_instance=$1
-  pgm_result=$2
+  pgm_result_var=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
