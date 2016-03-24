@@ -21,48 +21,53 @@ fi
 USAGE="Usage: ${PRGNAME} VERSION SID \nwhere:\n\tVERSION is the full version of PostgreSQL to use (ie: 9.3.4)\n\tPGSID stands for the cluster name\n"
 
 case $# in
-  3 ) pgm_database=$3
-      pgm_version=$1
-      pgm_instance=$2
-      ;;
+  0 | 1 ) exitError "${USAGE}\n"
+      ;;    
 
-  2 ) pgm_version=$1
+  2 ) pgm_server=$1
       pgm_instance=$2
       pgm_database="postgres"
+      shift 2
       ;;
 
-  *) exitError "${USAGE}\n"
+  * ) pgm_database=$3
+      pgm_server=$1
+      pgm_instance=$2
+      shift 3
+      ;;
 esac
 
-isServerUnknown ${pgm_version}
+analyzeParameters $*
+
+isServerUnknown ${pgm_server}
 if [[ $? -ne 0 ]]; then
-  exitError "Unmanaged version pg PostgreSQL ${pgm_version}\n"
+  exitError "Unmanaged version pg PostgreSQL ${pgm_server}\n"
 fi
 
-setServer ${pgm_version}
+setServer ${pgm_server}
 if [[ $? -ne 0 ]]; then
-  exitError "Cannot set PostgreSQL ${pgm_version}\n"
-fi
-
-
-isInstanceUnknownFromServer ${pgm_version} ${pgm_instance}
-if [[ $? -ne 0 ]]; then
-  exitError "Unmanaged instance ${pgm_instance} with version ${pgm_version}\n"
-fi
-setInstance ${pgm_version} ${pgm_instance}
-if [[ $? -ne 0 ]]; then
-  exitError "Cannot set instance ${pgm_instance} with version ${pgm_version}\n"
+  exitError "Cannot set PostgreSQL ${pgm_server}\n"
 fi
 
 
-isDatabaseUnknownFromInstance ${pgm_version} ${pgm_instance} ${pgm_database}
+isInstanceUnknownFromServer ${pgm_server} ${pgm_instance}
+if [[ $? -ne 0 ]]; then
+  exitError "Unmanaged instance ${pgm_instance} with version ${pgm_server}\n"
+fi
+setInstance ${pgm_server} ${pgm_instance}
+if [[ $? -ne 0 ]]; then
+  exitError "Cannot set instance ${pgm_instance} with version ${pgm_server}\n"
+fi
+
+
+isDatabaseUnknownFromInstance ${pgm_server} ${pgm_instance} ${pgm_database}
 if [[ $? -ne 0 ]] && [[ $pgm_instance =~ (${PGM_PGADMINISTRATIVE_DATABASES// /|}) ]]; then
-  exitError "Unknown database ${pgm_database} of instance ${pgm_instance} with ${pgm_version} server\n"
+  exitError "Unknown database ${pgm_database} of instance ${pgm_instance} with ${pgm_server} server\n"
 fi
 
-setDatabase ${pgm_version} ${pgm_instance} ${pgm_database}
+setDatabase ${pgm_server} ${pgm_instance} ${pgm_database}
 if [[ $? -ne 0 ]]; then
-  exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} with ${pgm_version} server\n"
+  exitError "Cannot set database ${pgm_database} of instance ${pgm_instance} with ${pgm_server} server\n"
 fi
 
 ${PGM_PGBIN_DIR}/psql --host=${PGM_PGDATA_DIR} --port=${PGM_PGPORT} ${PGM_PGDATABASE}

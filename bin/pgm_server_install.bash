@@ -25,19 +25,25 @@ USAGE="Usage: ${PRGNAME} FULLVERSION SRCDIR\nwhere\n\tFULLVERSION is the full Po
 #
 
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -lt 2 ]]; then
   exitError "${USAGE}\n"
 fi
 
 pgm_srcdir=${1%/}
-pgm_version=$2
+pgm_server=$2
+shift 2
+
+analyzeParameters $*
 
 if [[ ! -d ${pgm_srcdir} ]]; then
   exitError "${pgm_srcdir} does not exists\n"
 elif [[ ! -x ${pgm_srcdir}/configure ]]; then
-  exitError "Something wrong with ${pgm_srcdir}. configure script cannot be found executable\n"
+  exitError "Something wrong with ${pgm_srcdir}. Configure script cannot be found executable\n"
 fi
 
-installServer ${pgm_srcdir} ${pgm_version}
-
-printInfo "PostgreSQL ${PGM_PGFULL_VERSION} is installed in ${PGM_PGHOME_DIR}\n"
+installServer ${pgm_srcdir} ${pgm_server}
+if [[ $? -ne 0 ]]; then
+  printError "Error installing ${pgm_srcdir} ${pgm_server}\n"
+else
+  printf "PostgreSQL ${PGM_PGFULL_VERSION} installed in ${PGM_PGHOME_DIR}\n"
+fi

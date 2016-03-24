@@ -30,21 +30,21 @@ function startInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
   ping -c 1 "${PGM_PGLISTENER:-${PGM_PGHOST}}" 2>&1 > /dev/null
   if [[ $? -ne 0 ]]; then
-    pgm_options="-o \"${pgm_options} --host=${PGM_PGHOST}\""
+    local pgm_options="-o \"${pgm_options} --host=${PGM_PGHOST}\""
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl -w ${pgm_options} --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/pg_ctl -w ${pgm_options} --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
 }
 
 function startLocalInstance()
@@ -54,15 +54,15 @@ function startLocalInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  local pgm_server=$1
+  local pgm_instance=$2
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl -w -o "-h ''" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/pg_ctl -w -o "-h ''" --pgdata=${PGM_PGDATA_DIR} --log=${PGM_PG_LOG} start
 }
 
 function stopInstance()
@@ -72,15 +72,15 @@ function stopInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  local pgm_server=$1
+  local pgm_instance=$2
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=fast stop ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=fast stop
 }
 
 function reloadInstance()
@@ -90,15 +90,15 @@ function reloadInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  local pgm_server=$1
+  local pgm_instance=$2
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} reload ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} reload
 }
 
 function stateInstance()
@@ -108,20 +108,20 @@ function stateInstance()
   if [[ $# -ne 3 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_result_var=$3
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_result_var=$3
 
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
-  pgm_report=$(${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} status)
+  local pgm_report="$(${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} status)"
 
-  pgm_status=$?
-  eval export ${pgm_result_var}="${pgm_report}"
+  local pgm_status=$?
+  eval export ${pgm_result_var}='${pgm_report}'
   return ${pgm_status}
 }
 
@@ -133,15 +133,15 @@ function promoteInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  local pgm_server=$1
+  local pgm_instance=$2
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} promote ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} promote
 }
 
 function killInstance()
@@ -151,22 +151,22 @@ function killInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  setInstance ${pgm_server} ${pgm_instance} pgm_report
+  local pgm_server=$1
+  local pgm_instance=$2
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}\n"
     return 2
   fi
 
-  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=immediate stop ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/pg_ctl --pgdata=${PGM_PGDATA_DIR} --mode=immediate stop
   if [[ $? -ne 0 ]]; then
     if [ -e ${PGM_PGDATA}/postmaster.pid ]; then
-      pgm_pgpid=$(head -1 ${PGM_PGDATA_DIR}/postmaster.pid)
+      local pgm_pgpid=$(head -1 ${PGM_PGDATA_DIR}/postmaster.pid)
       if [[ $? -ne 0 ]]; then
         return 3
       else
-        ${PGM_PGBIN_DIR}/pg_ctl TERM ${pgm_pgpid} kill ${PGM_OUTPUT}
+        ${PGM_PGBIN_DIR}/pg_ctl TERM ${pgm_pgpid} kill
       fi
     fi
   fi
@@ -180,8 +180,8 @@ function setInstance()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
   
   setServer ${pgm_server}
   if [[ $? -ne 0 ]]; then
@@ -196,41 +196,41 @@ function setInstance()
     # Remove trailing slashes.
     for pgm_pattern in ${!PGMPG_PTRN_*}
     do
-      eval pgm_value=\$${pgm_pattern}
+      eval local pgm_value=\$${pgm_pattern}
       eval export ${pgm_pattern/PGMPG_PTRN_/PGM_}=\"${pgm_value%/}\"
     done
 
     # Try to determine host, port, autolaunch configuration, and running configuration
-    pgm_line=$(egrep "^[[:space:]]*listen_addresses[[:space:]]*=" ${PGM_PG_CONF} 2>&1)
+    local pgm_line=$(egrep "^[[:space:]]*listen_addresses[[:space:]]*=" ${PGM_PG_CONF} 2>&1)
     if [[ $? -eq 0 ]]; then
       export PGM_PGLISTENER="$(echo ${pgm_line} | cut --delimiter='=' --fields=2)"
     fi
-    PGM_PGHOST=$(uname --nodename)
-    PGM_PGHOST="${PGM_PGHOST// /}"
-    PGM_PGLISTENER="${PGM_PGLISTENER// /}"
-    PGM_PGREALLISTENER="${PGM_PGLISTENER:-${PGM_PGHOST}}"
+    export PGM_PGHOST=$(uname --nodename)
+    export PGM_PGHOST="${PGM_PGHOST// /}"
+    export PGM_PGLISTENER="${PGM_PGLISTENER// /}"
+    export PGM_PGREALLISTENER="${PGM_PGLISTENER:-${PGM_PGHOST}}"
 
-    pgm_line=$(egrep "^[[:space:]]*port[[:space:]]*=" ${PGM_PG_CONF} 2>&1)
+    local pgm_line=$(egrep "^[[:space:]]*port[[:space:]]*=" ${PGM_PG_CONF} 2>&1)
     if [[ $? -eq 0 ]]; then
       export PGM_PGPORT="$(echo ${pgm_line} | cut --delimiter='=' --fields=2)"
     else
       export PGM_PGPORT=${PGM_PGDEFAULTPORT}
     fi
-    PGM_PGPORT=${PGM_PGPORT// /}
+    export PGM_PGPORT=${PGM_PGPORT// /}
 
     export PGM_PG_LOG=${PGM_PG_LOG_DIR}/${PGM_PG_LOG_NAME}
 
-    pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA_DIR}[[:space:]]" 2>&1)
+    local pgm_processes=$(ps -afe | egrep "-D[[:space:]][[:space:]]*${PGM_PGDATA_DIR}[[:space:]]" 2>&1)
     if [[ $? -eq 0 ]]; then
       export PGM_PGSTATUS="started"
-      pgm_hostline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-\(h|-host)[[:space:]][[:space:]]*[^[:space:]][^[:space:]]*[[:space:]]")
+      local pgm_hostline=$(echo ${pgm_processes} | egrep --only-matching "[[:space:]][[:space:]]*-(h|-host)[[:space:]][[:space:]]*[^[:space:]][^[:space:]]*[[:space:]]")
       if [[ $? -eq 0 ]]; then
-        pgm_hostline=${pgm_hostline/ -\(h|host\)[ =]/}
+        local pgm_hostline=${pgm_hostline/ -\(h|host\)[ =]/}
         export PGM_PGREALHOST=${pgm_hostline// /}
       fi
-      pgm_portline=$(echo ${pgm_processes} | grep -o "[[:space:]][[:space:]]*-\(p|-port\)[[:space:]][[:space:]]*[0-9][0-9]*[[:space:]]")
+      local pgm_portline=$(echo ${pgm_processes} | egrep --only-matching "[[:space:]][[:space:]]*-(p|-port)[[:space:]][[:space:]]*[0-9][0-9]*[[:space:]]")
       if [[ $? -eq 0 ]]; then
-        pgm_portline=${pgm_portline/ -\(p|-port\)[ =]/}
+        local pgm_portline=${pgm_portline/ -\(p|-port\)[ =]/}
         export PGM_PGREALPORT=${pgm_portline// /}
       fi
     else
@@ -253,22 +253,22 @@ function checkAllInstances()
     return 1
   fi
 
-  pgm_report=""
-  pgm_status=0
-  pgm_server=$1
-  pgm_result_var=$2
+  local pgm_report=""
+  local pgm_status=0
+  local pgm_server=$1
+  local pgm_result_var=$2
 
   getInstances ${pgm_server} pgm_instance_list
   for pgm_instance in ${pgm_instance_list}
   do
     checkInstance ${pgm_server} ${pgm_instance} pgm_result
-    pgm_report="${pgm_report} ${pgm_result}"
+    local pgm_report="${pgm_report} ${pgm_result}"
     if [[ $? -ne 0 ]]; then
-      pgm_status=$(( pgm_status++ ))
+      local pgm_status=$(( pgm_status++ ))
     fi
   done
 
-  eval ${pgm_result_var}="${pgm_report}"
+  eval ${pgm_result_var}='${pgm_report}'
   return ${pgm_status}
 }
 
@@ -280,18 +280,18 @@ function checkInstance()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_result_var=$3
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_result_var=$3
 
   setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    eval export ${pgm_result_var}="Cannot set ${pgm_server} ${pgm_instance}"
+    eval ${pgm_result_var}="Cannot set ${pgm_server} ${pgm_instance}"
     printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
     return 2
   else
     checkEnvironment pgm_report
-    eval export ${pgm_result_var}="${pgm_report}"
+    eval ${pgm_result_var}='${pgm_report}'
     return 0
   fi
 }
@@ -304,8 +304,8 @@ function initInstance ()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PGDATA_DIR}x" == "x" ] || [ "${PGM_PGXLOG_DIR}x" == "x" ] || [ "${PGM_PGDATA_DIR}x" == "x" ]; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -316,7 +316,7 @@ function initInstance ()
   fi
 
   # Create cluster
-  ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale ${PGM_OUTPUT}
+  ${PGM_PGBIN_DIR}/initdb --pgdata=${PGM_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGM_PGXLOG_DIR} --data-checksums --no-locale
 }
 
 function logrotateInstance()
@@ -327,8 +327,8 @@ function logrotateInstance()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_LOGROTATE_CONF}x" == "x" ] || [ "${PGM_PG_LOG_DIR}x" == "x" ] || [ "${PGM_PGLOGROTATE_ENTRY}x" == "x" ]; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -338,7 +338,7 @@ function logrotateInstance()
     fi
   fi
 
-  touch ${PGM_LOGROTATE_CONF} ${PGM_OUTPUT}
+  touch ${PGM_LOGROTATE_CONF} 
   egrep --quiet --only-matching "${PGM_PG_LOG_DIR}/\*.log" ${PGM_LOGROTATE_CONF}
   if [[ $? -ne 0 ]]; then
     printf "${PGM_PGLOGROTATE_ENTRY}" >> ${PGM_LOGROTATE_CONF}
@@ -354,32 +354,32 @@ function checkInstanceFS ()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_result_var=$3
-  pgm_status=0
-  pgm_report=""
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_result_var=$3
+  local pgm_status=0
+  local pgm_report=""
 
   if [ ! -v PGM_PGFSLIST ]; then
     setInstance ${pgm_server} ${pgm_instance}
     if [[ $? -ne 0 ]]; then
-      eval export ${pgm_result_var}="Cannot set ${pgm_server} ${pgm_instance}"
+      eval ${pgm_result_var}="Cannot set ${pgm_server} ${pgm_instance}"
       printError "Cannot set instance ${pgm_server} ${pgm_instance}:\n${pgm_report}\n"
-      pgm_status=1
+      local pgm_status=1
     fi
   fi
 
-  pgm_mountlst="$(mount -l)"
+  local pgm_mountlst="$(mount -l)"
   for pgm_fs in ${PGM_PGFSLIST}
   do
     echo "${pgm_mountlst}" | grep --quiet "${pgm_fs}"
     if [[ $? -ne 0 ]]; then
-      pgm_status=$(( pgm_status++ ))
-      pgm_report="${pgm_report} ${pgm_fs}"
+      local pgm_status=$(( pgm_status++ ))
+      local pgm_report="${pgm_report} ${pgm_fs}"
     fi
   done
 
-  eval export ${pgm_result_var}="${pgm_report}"
+  eval ${pgm_result_var}='${pgm_report}'
   return ${pgm_status}
 }
 
@@ -392,8 +392,8 @@ function createRecovery ()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PGRECOVER_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -402,8 +402,8 @@ function createRecovery ()
       return 2
     fi
   fi
-  pgm_name=$(basename ${PGM_PGRECOVER_CONF})
-  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  local pgm_name=$(basename ${PGM_PGRECOVER_CONF})
+  local pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   instantiateTemplate ${pgm_tpl} ${PGM_PGRECOVER_CONF}
   if [[ $? -ne 0 ]]; then
     printError "Cannot instanciate ${pgm_name} from ${pgm_tpl}\n"
@@ -423,8 +423,8 @@ function createPgConf ()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PG_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -433,8 +433,8 @@ function createPgConf ()
       return 2
     fi
   fi
-  pgm_name=$(basename ${PGM_PG_CONF})
-  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  local pgm_name=$(basename ${PGM_PG_CONF})
+  local pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
@@ -457,8 +457,8 @@ function createHBA ()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PGHBA_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -468,8 +468,8 @@ function createHBA ()
     fi
   fi
 
-  pgm_name=$(basename ${PGM_PGHBA_CONF})
-  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  local pgm_name=$(basename ${PGM_PGHBA_CONF})
+  local pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
@@ -492,8 +492,8 @@ function createIdent ()
     return 1
   fi
 
-  pgm_server=$1 
-  pgm_instance=$2
+  local pgm_server=$1 
+  local pgm_instance=$2
 
   if [ "${PGM_PGIDENT_CONF}x" == "x" ] || [ "${PGM_TEMPLATE_DIR}x" == "x" ] ; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -503,8 +503,8 @@ function createIdent ()
     fi
   fi
 
-  pgm_name=$(basename ${PGM_PGIDENT_CONF})
-  pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
+  local pgm_name=$(basename ${PGM_PGIDENT_CONF})
+  local pgm_tpl=${PGM_TEMPLATE_DIR}/${pgm_name}.tpl
   if [ "${pgm_tpl}x" == "x" ] || [ ! -r ${pgm_tpl} ]; then
     return 3
   fi
@@ -527,8 +527,8 @@ function provideInstanceDirectories()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ ! -v PGM_PGDATA_DIR ] || [ ! -v PGM_PGXLOG_DIR ] || [ ! -v PGM_PG_LOG_DIR ] || [ ! -v PGM_PGARCHIVELOG_DIR ]; then
     setInstance ${pgm_server} ${pgm_instance}
@@ -538,11 +538,11 @@ function provideInstanceDirectories()
     fi
   fi
 
-  mkdir -p ${PGM_PGDATA_DIR} ${PGM_OUTPUT}
-  chmod u=rwx,go= ${PGM_PGDATA_DIR} ${PGM_OUTPUT}
-  mkdir -p ${PGM_PGXLOG_DIR} ${PGM_OUTPUT}
-  mkdir -p ${PGM_PG_LOG_DIR} ${PGM_OUTPUT}
-  mkdir -p ${PGM_PGARCHIVELOG_DIR} ${PGM_OUTPUT}
+  mkdir -p ${PGM_PGDATA_DIR} 
+  chmod u=rwx,go= ${PGM_PGDATA_DIR} 
+  mkdir -p ${PGM_PGXLOG_DIR} 
+  mkdir -p ${PGM_PG_LOG_DIR} 
+  mkdir -p ${PGM_PGARCHIVELOG_DIR} 
 }
 
 function createInstance()
@@ -553,10 +553,10 @@ function createInstance()
     return 1
   fi
 
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_port=$3
-  pgm_listener=$4
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_port=$3
+  local pgm_listener=$4
 
   printTrace "Creating filesystems for ${pgm_server} ${pgm_instance}"
   checkInstanceFS ${pgm_server} ${pgm_instance} pgm_result
@@ -576,6 +576,15 @@ function createInstance()
     printError "Error creating instance"
     return 4
   fi
+  setInstance ${pgm_server} ${pgm_instance}
+  if [[ $? -ne 0 ]]; then
+    printError "Cannot set instance ${pgm_server} ${pgm_instance}"
+    return 9
+  fi
+  # Force port and listener that could be set previously
+  # because of abscence from configuration file
+  PGM_PGPORT=${pgm_port}
+  PGM_PGLISTENER=${pgm_listener}
   printTrace "Creating configuration for ${pgm_server} ${pgm_instance}"
   createPgConf ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then

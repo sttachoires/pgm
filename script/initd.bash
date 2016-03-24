@@ -9,14 +9,14 @@
 #set -xv
 
 # CONSTANTS
-PRGNAME=$(basename $0 2> /dev/null)
+local PRGNAME=$(basename $0 2> /dev/null)
 if [[ $? -ne 0 ]]; then
-  PRGNAME="Unknown"
+  local PRGNAME="Unknown"
 fi
 
-USAGE="${PRGNAME}\n"
+export USAGE="${PRGNAME}\n"
 
-pgm_current_user=$(/usr/bin/whoami)
+local pgm_current_user=$(/usr/bin/whoami)
 if [ "${pgm_current_user}" != "root" ]; then
   printf "${PRGNAME} should be launch as 'root' not '${pgm_current_user}'\n"
   exit 1
@@ -27,42 +27,42 @@ if [[ $# -ne 1 ]]; then
   exit 1
 fi
 
-pgm_var_lock=/var/lock/${PRGNAME}
+local pgm_var_lock=/var/lock/${PRGNAME}
 
-pgm_instance_line_list=$(egrep --only-matching "_:[^: ]*:[^: ]*:y" @INVENTORYDIR@/pginventory)
+local pgm_instance_line_list=$(egrep --only-matching "_:[^: ]*:[^: ]*:y" @INVENTORYDIR@/pginventory)
 for pgm_instance_line in "${pgm_instance_line_list}"
 do
-  pgm_instance=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 2)
-  pgm_version=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 3)
+  local pgm_instance=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 2)
+  local pgm_server=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 3)
   case "$1" in
     "stop" )
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_stop ${pgm_version} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control stop ${pgm_server} ${pgm_instance}"
       rm -f ${pgm_var_lock}
       ;;
    
     "start" )
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_start ${pgm_version} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control start ${pgm_server} ${pgm_instance}"
       touch ${pgm_var_lock}
       ;;
 
     "restart" | "force-reload" )
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_stop ${pgm_version} ${pgm_instance}"
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_start ${pgm_version} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control stop ${pgm_server} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control start ${pgm_server} ${pgm_instance}"
       touch ${pgm_var_lock}
       ;;
 
     "reload" )
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_reload ${pgm_version} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control reload ${pgm_server} ${pgm_instance}"
       touch ${pgm_var_lock}
       ;;
 
     "force-stop" )
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_kill ${pgm_version} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control kill ${pgm_server} ${pgm_instance}"
       rm ${pgm_var_lock}
       ;;
    
     "status" )
-      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_status ${pgm_version} ${pgm_instance}"
+      su - @USER@ -c "@SCRIPTDIR@/pgm_instance_control status ${pgm_server} ${pgm_instance}"
       ;;
 
     * )

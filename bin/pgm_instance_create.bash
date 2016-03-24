@@ -21,49 +21,55 @@ fi
 USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION is the major version of PostgreSQL to use (ie: 9.3)\n\tPGSID stands for the cluster name (Oracle SID equivalent)\n\tPGPORT is the port the server is listening from\n\tPGLISTENER  is the hostname/ip listening on the PGPORT (default wil be 'uname --node')\n"
 
 
-export pgm_version=""
-export pgm_instance=""
-export pgm_port=5432
-export pgm_listener=$(uname --node)
 
 function checkParameters ()
 {
   declareFunction "checkParameters " "$*"
 
+  analyzeParameters $*
   case $# in
-    4 )
-       pgm_version=$1
-       pgm_instance=$2
-       pgm_port=$3
-       pgm_listener=$4
-       ;;
-
-    3 )
-       pgm_version=$1
-       pgm_instance=$2
-       pgm_port=$3
+    0 | 1 )
+       exitError "${USAGE}\n"
        ;;
 
     2 )
-       pgm_version=$1
+       pgm_server=$1
        pgm_instance=$2
+       pgm_port=5432
+       pgm_listener=$(uname --node)
+       shift 2
        ;;
 
-    * ) exitError "${USAGE}\n"
+    3 )
+       pgm_server=$1
+       pgm_instance=$2
+       pgm_port=$3
+       pgm_listener=$(uname --node)
+       shift 3
+       ;;
+
+     * )
+       pgm_server=$1
+       pgm_instance=$2
+       pgm_port=$3
+       pgm_listener=$4
+       shift 4
+       ;;
   esac
 
-  isServerUnknown ${pgm_version}
+
+  isServerUnknown ${pgm_server}
   if [[ $? -ne 0 ]]; then
-    exitError "Unmanaged version ${pgm_version}\n"
+    exitError "Unmanaged version ${pgm_server}\n"
   fi
 
-  setInstance ${pgm_version} ${pgm_instance}
+  setInstance ${pgm_server} ${pgm_instance}
   if [[ $? -ne 0 ]]; then
-    exitError "Cannot set ${pgm_instance} version ${pgm_version} \n"
+    exitError "Cannot set ${pgm_instance} version ${pgm_server} \n"
   fi
 
   export PGM_LOG="${PGM_LOG_DIR}/create_instance.log"
-  printInfo "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_instance}'\n  VERSION : '${pgm_version}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n"
+  printInfo "\nINSTANCE CREATION ON $(date)\n  INSTANCE : '${pgm_instance}'\n  VERSION : '${pgm_server}'\n  LISTENER(S) : '${pgm_listener}'\n  PORT : '${pgm_port}'\n\n"
 }
 
 #
@@ -72,6 +78,10 @@ function checkParameters ()
 
 checkParameters $*
 
-createInstance ${pgm_version} ${pgm_instance} ${pgm_port} ${pgm_listener}
-
-printInfo "Instance ${PGM_PGINSTANCE} has been created. You have to create a database in it\n"
+addInstance ${pgm_server} ${pgm_instance}
+createInstance ${pgm_server} ${pgm_instance} ${pgm_port} ${pgm_listener}
+if [[ $? -ne 0 ]]; then
+  printError "Error creating instance ${pgm_server} ${pgm_instance} ${pgm_port} ${pgm_listener}, please check ${PGM_LOG}\n"
+else
+  printInfo "Instance ${PGM_PGINSTANCE} has been created. You have to create a database in it\n"
+fi

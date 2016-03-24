@@ -25,17 +25,17 @@ function getAutolaunchFromInstance()
   if [[ $# != 3 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_result_var=$3
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_result_var=$3
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_server}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':'${pgm_server}':[yn]/ { print $4 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function getDatabasesFromInstance()
@@ -45,17 +45,17 @@ function getDatabasesFromInstance()
   if [[ $# != 3 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_result_var=$3
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_result_var=$3
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^..+:'${pgm_instance}':'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^..+:'${pgm_instance}':'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function getServersFromInstance()
@@ -65,16 +65,16 @@ function getServersFromInstance()
   if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_instance=$1
-  pgm_result_var=$2
+  local pgm_instance=$1
+  local pgm_result_var=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^_:'${pgm_instance}':..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function getInstances()
@@ -84,15 +84,15 @@ function getInstances()
   if [[ $# != 1 ]]; then
     return 1
   fi
-  pgm_result_var=$1
+  local pgm_result_var=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^_:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^_:..+:.*:[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function isInstanceUnknownFromServer()
@@ -102,8 +102,8 @@ function isInstanceUnknownFromServer()
   if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -120,16 +120,16 @@ function getInstancesFromServer()
   if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_result_var=$2
+  local pgm_server=$1
+  local pgm_result_var=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^_:..+:'${pgm_server}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^_:..+:'${pgm_server}':[yn]/ { print $2 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function getDatabasesFromServer()
@@ -139,16 +139,16 @@ function getDatabasesFromServer()
   if [[ $# != 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_result_var=$2
+  local pgm_server=$1
+  local pgm_result_var=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^..+:.*:'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^..+:.*:'${pgm_server}':[yn]/ { print $1 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function getServers()
@@ -158,15 +158,15 @@ function getServers()
   if [[ $# != 1 ]]; then
     return 1
   fi
-  pgm_result_var=$1
+  local pgm_result_var=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 1
   fi
 
-  pgm_report=$(awk --field-separator=':' '/^_:_:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
-  eval export ${pgm_result_var}='${pgm_report}'
+  local pgm_report=$(awk --field-separator=':' '/^_:_:..+:[yn]/ { print $3 }' ${PGM_PG_INVENTORY})
+  eval ${pgm_result_var}='${pgm_report}'
 }
 
 function isServerUnknown()
@@ -176,7 +176,7 @@ function isServerUnknown()
   if [[ $# != 1 ]]; then
     return 1
   fi
-  pgm_server=$1
+  local pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -193,7 +193,7 @@ function addServer()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_server=$1
+  local pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -216,7 +216,7 @@ function isServerAlone()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_server=$1
+  local pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -233,7 +233,7 @@ function isInstanceAlone()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_instance=$1
+  local pgm_instance=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -250,7 +250,7 @@ function removeServer()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pgm_server=$1
+  local pgm_server=$1
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -273,8 +273,8 @@ function addInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -294,8 +294,8 @@ function removeInstance()
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
+  local pgm_server=$1
+  local pgm_instance=$2
 
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -w "${PGM_PG_INVENTORY}" ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
@@ -318,9 +318,9 @@ function isDatabaseUnknownFromInstance()
   if [[ $# != 3 ]]; then
     return 1
   fi
-  pgm_server=$1
-  pgm_instance=$2
-  pgm_database=$3
+  local pgm_server=$1
+  local pgm_instance=$2
+  local pgm_database=$3
   if [ "${PGM_PG_INVENTORY}x" == "x" ] || [ ! -r ${PGM_PG_INVENTORY} ]; then
     printError "Inventory '${PGM_PG_INVENTORY}' cannot be read"
     return 2

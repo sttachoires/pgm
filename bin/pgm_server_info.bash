@@ -19,30 +19,35 @@ fi
 . ${PGM_LIB_DIR}/pgm_server.include
 
 USAGE="${PRGNAME} [VERSION]\nDisplay server configuration. All if no VERSION\nwhere:\n\tVERSION the server version to check"
-
+pgm_server_list=""
 if [[ $# -gt 0 ]]; then
-  pgm_server_list=$*
-else
+  pgm_server_list=$1
+  shift
+fi
+
+analyzeParameters $*
+
+if [ "${pgm_server_list}x" == "x" ]; then
   pgm_server_list=$(getServers)
 fi
 
-for pgm_version in ${pgm_server_list}
+for pgm_server in ${pgm_server_list}
 do
-  printf "PostgreSQL server ${pgm_version}"
-  setServer ${pgm_version}
+  printf "PostgreSQL server ${pgm_server}\n"
+  setServer ${pgm_server}
   if [[ $? -ne 0 ]]; then
     printf " cannot be set\n"
   else
-    pgm_info=$(serverInfo ${pgm_version})
+    serverInfo ${pgm_server} pgm_info
     if [[ $? -ne 0 ]]; then
-      pgm_missing_envs=$(checkEnvironment)
+      checkEnvironment pgm_missing_envs
       if [[ $? -ne 0 ]]; then
-        printf " configuration error:\n\n${pgm_missing_envs// /$'\n'}\n"
+        printf " configuration error:\n  ${pgm_missing_envs// /$'\n'  }\n"
       else
         printf " environment OK\n"
       fi
     else
-      printf "\n${pgm_info}\n\n\n"
+      printf "${pgm_info}\n"
     fi
   fi
 done

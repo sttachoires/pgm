@@ -23,29 +23,28 @@ options=""
 
 USAGE="${PRGNAME}\n"
 
-for pgm_srv in $(getServers)
+analyzeParameters $*
+
+getServers pgm_server_list
+for pgm_server in ${pgm_server_list}
 do
-  printf "\n -----------------\n"
-  printf " PostgreSQL server \"${pgm_srv}\":"
-  setServer ${pgm_srv}
-  pgm_errors=$(checkEnvironment)
+  printf "PostgreSQL server '${pgm_server}'\n"
+  setServer ${pgm_server}
+  checkEnvironment pgm_errors
   if [[ $? -ne 0 ]]; then
-    printError "Problem setting PostgreSQL server \"${pgm_srv}\"\n -----------------\n"
+    printError "Problem setting PostgreSQL server '${pgm_server}'\n"
   else
-    for pgm_instance in $(getInstancesFromServer ${pgm_srv})
+    getInstancesFromServer ${pgm_server} pgm_instance_list
+    for pgm_instance in ${pgm_instance_list}
     do
       setInstance ${pgm_srv} ${pgm_instance}
-      pgm_report=$(checkEnvironment)
+      checkEnvironment pgm_report
       if [[ $? -ne 0 ]]; then
-        printError " (Error)"
+        printError " (Error)\n"
       else
-        printf "${pgm_instance} ("
-        for pgm_database in $(getDatabasesFromInstance ${pgm_srv} ${pgm_instance})
-        do
-          printf "'${pgm_instance}'"
-        done
+        getDatabasesFromInstance ${pgm_srv} ${pgm_instance} pgm_database_list
+        printf " ${pgm_instance} (${pgm_database_list})\n"
       fi
     done
-    printf "\n -----------------\n"
   fi
 done

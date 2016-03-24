@@ -12,8 +12,6 @@ if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
-options=""
-
 # INCLUDE
 . @CONFDIR@/pgm.conf
 if [[ $? -ne 0 ]]; then
@@ -26,18 +24,25 @@ fi
 
 USAGE="${PRGNAME} [VERSION]\nCheck server configuration. All if no VERSION\nwhere:\n\tVERSION the server version to check"
 
+pgm_server_list=""
+
 if [[ $# -gt 0 ]]; then
-  pgm_server_list=$*
-else
-  pgm_server_list=$(getServers)
+  pgm_server_list=$1
+  shift
 fi
 
-for pgm_version in ${pgm_server_list}
+analyzeParameters $*
+
+if [ "${pgm_server_list}x" == "x" ]; then
+  getServers pgm_server_list
+fi
+
+for pgm_server in ${pgm_server_list}
 do
-  printf "PostgreSQL server ${pgm_version}"
-  setServer ${pgm_version}
+  printf "PostgreSQL server ${pgm_server}\n"
+  setServer ${pgm_server}
   if [[ $? -eq 0 ]]; then
-    pgm_missing_envs="$(checkEnvironment)"
+    checkEnvironment pgm_missing_envs
     if [[ $? -ne 0 ]]; then
       pgm_missing_envs="${pgm_missing_envs//[ ]+/ }"
       pgm_missing_envs="${pgm_missing_envs/ /$'\t'}"

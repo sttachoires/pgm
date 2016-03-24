@@ -12,8 +12,6 @@ if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
-options=""
-
 # INCLUDE
 . @CONFDIR@/pgm.conf
 if [[ $? -ne 0 ]]; then
