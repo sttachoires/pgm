@@ -4,19 +4,23 @@ include config.mk
 
 DATE:=$(shell date +'%Y.%m.%d_%H.%M.%S')
 SRC_BINS:=$(wildcard bin/*.bash)
+SRC_COMMANDS:=$(wildcard command/*.bash)
 SRC_SCRIPTS:=$(wildcard script/*.bash)
 SRC_LIBS:=$(wildcard lib/*.include.bash)
 SRC_TPLS:=$(wildcard tplptrn/*/*.tpl.ptrn)
 SRC_CONFS:=$(wildcard conf/*.conf.sample)
+SRC_LROTCONFS:=$(wildcard logrotate/*.conf.sample)
 SRC_CONSTS:=$(wildcard conf/.*.conf.sample)
 SRC_CONFSCRIPTS:=$(wildcard conf/*.bash)
 SRC_DOCS:=COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
 SRC_MANPAGES:=$(wildcard man/*.man)
 
 BINS:=$(basename $(SRC_BINS))
+COMMANDS:=$(basename $(SRC_COMMANDS))
 SCRIPTS:=$(basename $(SRC_SCRIPTS))
 LIBS:=$(basename $(SRC_LIBS))
 CONFS:=$(basename $(SRC_CONFS))
+LROTCONFS:=$(basename $(SRC_LROTCONFS))
 CONSTS:=$(basename $(SRC_CONSTS))
 CONFSCRIPTS:=$(basename $(SRC_CONFSCRIPTS))
 MANPAGES:=$(basename $(SRC_MANPAGES))
@@ -25,9 +29,11 @@ DOCS:=$(SRC_DOCS)
 BASH_PROFILE:="$(PREFIX)/.pgm_profile"
 
 DEST_BINS:=$(BINS:bin/%=${BINDIR}/%)
+DEST_COMMANDS:=$(COMMANDS:command/%=${COMMANDDIR}/%)
 DEST_SCRIPTS:=$(SCRIPTS:script/%=${SCRIPTDIR}/%)
 DEST_LIBS:=$(LIBS:lib/%=${LIBDIR}/%)
 DEST_CONFS:=$(CONFS:conf/%=${CONFDIR}/%)
+DEST_LROTCONFS:=$(LROTCONFS:logrotate/%=${LROTCONFDIR}/%)
 DEST_CONSTS:=$(CONSTS:conf/%=${CONFDIR}/%)
 DEST_CONFSCRIPTS:=$(CONFSCRIPTS:conf/%=${CONFDIR}/%)
 DEST_MANPAGES:=$(MANPAGES:man/%=${MANDIR}/%)
@@ -43,10 +49,12 @@ options :
 	@echo "PREFIX           =${PREFIX}"
 	@echo "LOGROTATE        =${LOGROTATE}"
 	@echo "BINDIR           =${BINDIR}"
+	@echo "COMMANDDIR       =${COMMANDDIR}"
 	@echo "SCRIPTDIR        =${SCRIPTDIR}"
 	@echo "LIBDIR           =${LIBDIR}"
 	@echo "TPLDIR           =${TPLDIR}"
 	@echo "CONFDIR          =${CONFDIR}"
+	@echo "LROTCONFDIR      =${LROTCONFDIR}"
 	@echo "DOCDIR           =${DOCDIR}"
 	@echo "MANDIR           =${MANDIR}"
 	@echo "LOGDIR           =${LOGDIR}"
@@ -54,31 +62,37 @@ options :
 	@echo "BASH_PROFILE     =${BASH_PROFILE}"
 	@echo
 	@echo "SRC_BINS         =${SRC_BINS}"
+	@echo "SRC_COMMANDS     =${SRC_COMMANDS}"
 	@echo "SRC_SCRIPTS      =${SRC_SCRIPTS}"
 	@echo "SRC_LIBS         =${SRC_LIBS}"
 	@echo "SRC_TPLS         =${SRC_TPLS}"
 	@echo "SRC_CONFS        =${SRC_CONFS}"
+	@echo "SRC_LROTCONFS    =${SRC_LROTCONFS}"
 	@echo "SRC_CONSTS       =${SRC_CONSTS}"
 	@echo "SRC_CONFSCRIPTS  =${SRC_CONFSCRIPTS}"
 	@echo "SRC_DOCS         =${SRC_DOCS}"
 	@echo "SRC_MANPAGES     =${SRC_MANPAGES}"
 	@echo
 	@echo "BINS             =${BINS}"
+	@echo "COMMANDS         =${COMMANDS}"
 	@echo "SCRIPTS          =${SCRIPTS}"
 	@echo "LIBS             =${LIBS}"
 	@echo "TPLS             =${TPLS}"
 	@echo "CONFS            =${CONFS}"
+	@echo "LROTCONFS        =${LROTCONFS}"
 	@echo "CONSTS           =${CONSTS}"
 	@echo "CONFSCRIPTS      =${CONFSCRIPTS}"
 	@echo "DOCS             =${DOCS}"
 	@echo "MANPAGES         =${MANPAGES}"
 	@echo
 	@echo "DEST_BINS        =${DEST_BINS}"
+	@echo "DEST_COMMANDS    =${DEST_COMMANDS}"
 	@echo "DEST_SCRIPTS     =${DEST_SCRIPTS}"
 	@echo "DEST_LIBS        =${DEST_LIBS}"
 	@echo "DEST_TPLS        =${DEST_TPLS}"
 	@echo "DEST_CONFS       =${DEST_CONFS}"
-	@echo "DEST_CONSTS       =${DEST_CONSTS}"
+	@echo "DEST_LROTCONFS   =${DEST_LROTCONFS}"
+	@echo "DEST_CONSTS      =${DEST_CONSTS}"
 	@echo "DEST_CONFSCRIPTS =${DEST_CONFSCRIPTS}"
 	@echo "DEST_DOCS        =${DEST_DOCS}"
 	@echo "DEST_MANPAGES    =${DEST_MANPAGES}"
@@ -86,10 +100,10 @@ options :
 	@echo "######"
 	@echo
 
-all : bins scripts libs configs manpages templates docs
+all : bins commands scripts libs configs manpages templates docs
 	@echo
 
-install : all installdirs $(BASH_PROFILE) installbins installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installconfs installdocs installmans cronjobs
+install : all installdirs $(BASH_PROFILE) installbins installcommands installscripts installlibs $(BACKUP_OLD_TPLS) installtpl $(BACKUP_OLD_CONFS) installconfs installdocs installmans cronjobs
 
 
 checkinstall : 
@@ -98,9 +112,13 @@ checkinstall :
 bins : $(BINS)
 	@echo
 
+commands : $(COMMANDS)
+	@echo
+
 CRONTABTMP:=crontab.tmp
 $(CRONTABTMP) : $(DEST_CONFS)
 	@$(shell crontab -l | egrep -v "${CONFDIR}/logrotate.conf" > $@)
+	@$(shell echo "# Logrotate for PGM" >> $@)
 	@$(shell echo "*/10 * * * * ${LOGROTATE} --state=${CONFDIR}/logrotate.state ${CONFDIR}/logrotate.conf > ${LOGDIR}/logrotate.log 2>&1" >> $@)
 	@echo ${CRONTABTMP} created
 
@@ -124,7 +142,7 @@ manpages : $(MANPAGES)
 templates : $(TPLS)
 	@echo
 
-docs : $(DOC)
+docs : $(DOCS)
 	@echo
 
 
@@ -134,7 +152,7 @@ installmans : $(DEST_MANPAGES)
 installdocs : $(DEST_DOCS)
 	@echo
 
-installconfs : $(DEST_CONFS) $(DEST_CONFSCRIPTS) $(DEST_CONSTS)
+installconfs : $(DEST_CONFS) $(DEST_LROTCONFS) $(DEST_CONFSCRIPTS) $(DEST_CONSTS)
 	@echo
 
 installtpl : $(DEST_TPLS)
@@ -143,32 +161,37 @@ installtpl : $(DEST_TPLS)
 installbins : $(DEST_BINS)
 	@echo
 
+installcommands : $(DEST_COMMANDS)
+	@echo
+
 installscripts : $(DEST_SCRIPTS)
 	@echo
 
 installlibs : $(DEST_LIBS)
 	@echo
 
-installdirs : $(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR)
+installdirs : $(PREFIX) $(BINDIR) $(COMMANDDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(INVENTORYDIR) $(DOCDIR)
 	@echo
 
 uninstall :
 	@echo removing all files from ${PREFIX}
 	@rm -f $(DEST_BINS)
+	@rm -f $(DEST_COMMANDS)
 	@rm -f $(DEST_SCRIPTS)
 	@rm -f $(DEST_LIBS)
 	@rm -f $(DEST_TPLS)
-	@rm -f $(DEST_CONFS) $(DEST_CONFSCRIPTS) $(DEST_CONSTS)
+	@rm -f $(DEST_CONFS) $(DEST_LROTCONFS) $(DEST_CONFSCRIPTS) $(DEST_CONSTS)
 	@rm -f $(DEST_DOCS)
 	@rm -f $(DEST_MANPAGES)
 
 clean :
 	@echo cleaning
 	@rm -f $(BINS)
+	@rm -f $(COMMANDS)
 	@rm -f $(SCRIPTS)
 	@rm -f $(LIBS)
 	@rm -f $(TPLS)
-	@rm -f $(CONFS) $(CONFSCRIPTS)
+	@rm -f $(CONFS) $(DEST_LROTCONFS) $(CONFSCRIPTS) $(DEST_CONSTS)
 	@rm -f $(MANPAGES)
 	@rm -f crontab.tmp
 
@@ -180,9 +203,11 @@ clean :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@COMMANDDIR@%${COMMANDDIR}%" \
 		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
+		-e "s%@LROTCONFDIR@%${LROTCONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
@@ -198,9 +223,11 @@ clean :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@COMMANDDIR@%${COMMANDDIR}%" \
 		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
+		-e "s%@LROTCONFDIR@%${LROTCONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
@@ -216,9 +243,11 @@ clean :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@COMMANDDIR@%${COMMANDDIR}%" \
 		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
+		-e "s%@LROTCONFDIR@%${LROTCONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
@@ -234,9 +263,11 @@ clean :
 		-e "s%@VERSION@%${VERSION}%" \
 		-e "s%@PREFIX@%${PREFIX}%" \
 		-e "s%@BINDIR@%${BINDIR}%" \
+		-e "s%@COMMANDDIR@%${COMMANDDIR}%" \
 		-e "s%@SCRIPTDIR@%${SCRIPTDIR}%" \
 		-e "s%@LIBDIR@%${LIBDIR}%" \
 		-e "s%@CONFDIR@%${CONFDIR}%" \
+		-e "s%@LROTCONFDIR@%${LROTCONFDIR}%" \
 		-e "s%@DOCDIR@%${DOCDIR}%" \
 		-e "s%@TPLDIR@%${TPLDIR}%" \
 		-e "s%@LOGDIR@%${LOGDIR}%" \
@@ -245,7 +276,7 @@ clean :
 		-e "s%@LOGROTATE@%${LOGROTATE}%" \
 		-e "s%@MANDIR@%${MANDIR}%" $< > $@
 
-$(PREFIX) $(BINDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) :
+$(PREFIX) $(BINDIR) $(COMMANDDIR) $(SCRIPTDIR) $(LIBDIR) $(CONFDIR) $(LROTCONFDIR) $(TPLDIR) $(LOGDIR) $(MANDIR) $(DOCDIR) $(INVENTORYDIR) :
 	@echo creation of $@
 	@mkdir --parents $@
 	@chmod u=rwx,g=rx,o= $@
@@ -256,13 +287,17 @@ $(BASH_PROFILE) : $(PREFIX)
 	echo "export PATH=\"${BINDIR}:${PATH}\"" >> ${BASH_PROFILE}
 	echo "export MANPATH=\"${MANDIR}:${MANPATH}\"" >> ${BASH_PROFILE}
 	echo "alias ll='ls -laF $*'" >> ${BASH_PROFILE}
-	echo "alias pgmsql='pgm_psql $*'" >> ${BASH_PROFILE}
 	chmod u=rw,g=r,o= ${BASH_PROFILE}
 	@echo
 
 $(DEST_BINS) : $(BINS) $(BINDIR)
 	@echo installing excecutable $@ to ${BINDIR}
 	@cp --force $(patsubst $(BINDIR)/%,bin/%,$@) ${BINDIR}
+	@chmod ug=rx,o= $@
+
+$(DEST_COMMANDS) : $(COMMANDS) $(COMMANDDIR)
+	@echo installing command $@ to ${COMMANDDIR}
+	@cp --force $(patsubst $(COMMANDDIR)/%,command/%,$@) ${COMMANDDIR}
 	@chmod ug=rx,o= $@
 
 $(DEST_SCRIPTS) : $(SCRIPTS) $(SCRIPTDIR)
@@ -286,6 +321,10 @@ $(DEST_CONFS) : $(CONFS) $(CONFDIR)
 	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
 	@chmod ug=rw,o= $@
 
+$(DEST_LROTCONFS) : $(LROTCONFS) $(LROTCONFDIR)
+	@echo installing configuration file $@ to ${LROTCONFDIR}
+	@cp --force $(patsubst $(LROTCONFDIR)/%,logrotate/%,$@) ${LROTCONFDIR}
+	@chmod ug=rw,o= $@
 
 $(DEST_CONSTS) : $(CONSTS) $(CONFDIR)
 	@echo installing configuration file $@ to ${CONFDIR}

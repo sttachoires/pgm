@@ -51,11 +51,84 @@ function declareFunction()
 {
   local pgm_function_name="${FUNCNAME[1]}"
   printTrace "Enter ${pgm_function_name} with '$*'\n"
+  if [[ $# -ge 2 ]]; then
+    local pgm_arg_list="$1"
+    shift;
+  fi
+
+  analyzeParameters ${pgm_arg_list} $*
 }
 
 function analyzeParameters()
 {
+  local pgm_arg_list="$1"
+  shift
   analyzeStandart $*
+
+  for pgm_arg in ${pgm_arg_list}
+  do
+    case ${pgm_arg} in
+      "-server-" | "+server+" | "~server~" )
+        pgm_server=$1
+        shift
+        ;;
+
+      "-instance-" | "+instance+" | "~instance~" )
+        pgm_instance=$1
+        shift
+        ;;
+
+      "-database-" | "+database+" | "~database~" )
+        pgm_database=$1
+        shift
+        ;;
+
+      "-request-" )
+        pgm_request=$1
+        shift
+        ;;
+
+      "-result-" )
+        pgm_result_var=$1
+        shift
+        ;;
+
+      "-port-" | "+port+" | "~port~" )
+        pgm_port=$1
+        shift
+        ;;
+
+      "-listener-" | "+listener+" | "~listener~" )
+        pgm_listener=$1
+        shift
+        ;;
+
+      "-directory-" | "+directory+" | "~directory~" )
+        pgm_directory=$1
+        shift
+        ;;
+
+      "-template-" | "+template+" | "~template~" )
+        pgm_template=$1
+        shift
+        ;;
+
+      "-filename-" | "+filename+" | "~filename~" )
+        pgm_filename=$1
+        shift
+        ;;
+
+      "-string-" )
+        pgm_string=$1
+        shift
+        ;;
+
+      "-conditional-test-" )
+        pgm_conditional_test=$1
+        shift
+        ;;
+    esac
+  done
 }
 
 function analyzeStandart()
@@ -63,8 +136,8 @@ function analyzeStandart()
   for pgm_option in $*
   do
     case "${pgm_option}" in
-      "-h"|"-?"|"--help"|"help")
-        printf "${USAGE}\n"
+      "-h"|"-?"|"--help")
+        printf "${PGM_USAGE}\n"
         shift
         ;;
 
@@ -142,6 +215,40 @@ function instantiateTemplate()
   sed "${pgm_sed_command}" ${pgm_tpl} > ${pgm_dest}
   if [[ $? -ne 0 ]]; then
     return 5
+  fi
+}
+
+function instantiateConf()
+{
+  declareFunction "-filename- -filename-" "$*"
+
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  local pgm_src=$1
+  local pgm_dest=$2
+  if [ ! -r "${pgm_src}" ]; then
+    return 2
+  fi
+  if [ ! -w "$(dirname ${pgm_dest})" ]; then
+    return 3
+  fi
+
+  awk '/^[[:space:]]*#[[:space:]]*EDITABLES VARIABLES/ { beginconf = 1 } 
+       /^[[:space:]]*#[[:space:]]*END OF EDITABLES VARIABLES/ { beginconf = 0 }
+       beginconf && /^[[:space:]]*$/ { print $0 }
+       beginconf && /^[[:space:]]*#/ { print $0 }
+       beginconf && /^[[:space:]]*[^#]/ { print "# "$0 }' ${pgm_src} > ${pgm_dest}
+  if [[ $? -ne 0 ]]; then
+    printError "Cannot generate configuration ${pgm_dest} from ${pgm_src}"
+    return 4
+  else
+    chmod ug=rw,o= ${pgm_dest}
+    if [[ $? -ne 0 ]]; then
+      return 5
+    fi
+    printTrace "${pgm_dest} created from ${pgm_src}"
   fi
 }
 

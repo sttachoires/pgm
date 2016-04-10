@@ -1,3 +1,6 @@
+# Logrotate configuration file for PGM
+
+# Rotate PGM log files
 @LOGDIR@/*.log {
   weekly
   rotate 3
@@ -8,5 +11,4 @@
   missingok
   size 50M
 }
-
 

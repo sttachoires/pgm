@@ -6,12 +6,10 @@ VERSION:=0.02-dev
 
 # Mandatory executables should be usefull to force a static value...maybe not
 # Where is your bash. Usualy in your PATH, but who knows.
-#BASH:=/bin/bash
-BASH:=bash
+BASH:=/bin/bash
 
 # Where is logrotate. Usualy in your PATH, but who knows.
-#LOGROTATE:=/usr/sbin/logrotate
-LOGROTATE:=logrotate
+LOGROTATE:=/usr/sbin/logrotate
 
 # Path that NEEDS TO BE SET
 #
@@ -27,8 +25,11 @@ PREFIX:=SET IT NOW
 # But will never changer after that.
 
 # You have to own these directories with full rights on them
-# Where the binary will be.
+# Where the binary pgm will be.
 BINDIR:=$(PREFIX)/bin
+
+# Where the command binaries will be.
+COMMANDDIR:=$(PREFIX)/command
 
 # Where the administration scripts will be (initd for exemple)
 SCRIPTDIR:=$(PREFIX)/script
@@ -39,6 +40,9 @@ LIBDIR:=$(PREFIX)/lib/$(NAME)
 # Where the configuration files will be
 #CONFDIR:=/etc/$(NAME)
 CONFDIR:=$(PREFIX)/etc/$(NAME)
+
+# Logrotate configuration file
+LROTCONFDIR:=$(PREFIX)/etc/logrotate
 
 # Where docs will be
 DOCDIR:=$(PREFIX)/share/$(NAME)
@@ -56,7 +60,7 @@ LOGDIR:=$(PREFIX)/log/$(NAME)
 
 # Directory where pgm puts its inventory files to remembers which version of
 # which instance contains database, which 'compagnion' (perl, python) version
-# associated, what is synchronized, backuped, monitored.
+# associated, what is synchronizedi with who, autostarted, backuped, monitored.
 #INVENTORYDIR:=$(PREFIX)/share/$(NAME)/inventory
 INVENTORYDIR:=$(PREFIX)/inventory/$(NAME)
 

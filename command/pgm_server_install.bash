@@ -14,9 +14,9 @@ fi
 
 # INCLUDE
 . @CONFDIR@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_server.include
+. ${PGM_LIB_DIR}/util.include
+. ${PGM_LIB_DIR}/inventory.include
+. ${PGM_LIB_DIR}/server.include
 
 USAGE="Usage: ${PRGNAME} FULLVERSION SRCDIR\nwhere\n\tFULLVERSION is the full PostgreSQL you are about to install (9.5.0)\n\tSRCDIR is the directory where you've put uncompressed source directory (/var/tmp/postgres-9.5.0-master)"
 

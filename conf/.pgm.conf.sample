@@ -65,11 +65,9 @@ export PGM_LOG_DIR="@LOGDIR@"
 # if you change it, change it into postgresql_initd too
 export PGM_INVENTORY_DIR="@INVENTORYDIR@"
 
-# The databases per instances per versions inventory
+# The instances per versions inventory for autolaunch
 # if you change it, change it into postgresql_initd too
-export PGM_PG_INVENTORY="@INVENTORYDIR@/pginventory"
-# Must exists
-touch @INVENTORYDIR@/pginventory
+export PGM_AUTOSTART_INVENTORY="@INVENTORYDIR@/autostart"
 
 # Ensure that pipes (like in '|' tee) will return with first false
 # command code in "pipe line"

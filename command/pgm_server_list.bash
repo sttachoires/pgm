@@ -16,9 +16,9 @@ options=""
 
 # INCLUDE
 . @CONFDIR@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_database.include
+. ${PGM_LIB_DIR}/util.include
+. ${PGM_LIB_DIR}/inventory.include
+. ${PGM_LIB_DIR}/database.include
 
 
 USAGE="${PRGNAME}\n"

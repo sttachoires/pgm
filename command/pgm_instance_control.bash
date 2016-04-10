@@ -16,9 +16,9 @@ fi
 
 # INCLUDE
 . @CONFDIR@/pgm.conf
-. ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_instance.include
-. ${PGM_LIB_DIR}/pgm_pginventory.include
+. ${PGM_LIB_DIR}/util.include
+. ${PGM_LIB_DIR}/instance.include
+. ${PGM_LIB_DIR}/inventory.include
 
 export PGM_LOG="${PGM_LOG_DIR}/instance_control.log"
 

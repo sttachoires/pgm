@@ -18,9 +18,9 @@ if [[ $? -ne 0 ]]; then
   printf "Error loading configuration file\n"
   exit 1
 fi
-. ${PGM_LIB_DIR}/pgm_util.include
-. ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_database.include
+. ${PGM_LIB_DIR}/util.include
+. ${PGM_LIB_DIR}/inventory.include
+. ${PGM_LIB_DIR}/database.include
 
 
 USAGE="${PRGNAME}\n"

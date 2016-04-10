@@ -20,7 +20,7 @@ if [[ $? -ne 0 ]]; then
   printf "Error loading configuration file\n"
   exit 1
 fi
-. @LIBDIR@/pgm_util.include
+. @LIBDIR@/util.include
 if [[ $? -ne 0 ]]; then
   printf "Error loading utility library\n"
   exit 2

@@ -15,8 +15,8 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 . ${PGM_CONF_DIR}/server.conf
-. ${PGM_LIB_DIR}/pgm_pginventory.include
-. ${PGM_LIB_DIR}/pgm_util.include
+. ${PGM_LIB_DIR}/inventory.include
+. ${PGM_LIB_DIR}/util.include
 
 function setServer()
 {
