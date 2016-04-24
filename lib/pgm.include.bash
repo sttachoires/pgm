@@ -80,23 +80,33 @@ function addConfig()
     printError "${pgm_source} doesn't exists"
     return 2
   fi
-  mkdir --parents ${pgm_config_dir}
-  if [[ $? -ne 0 ]]; then
-    printError "Cannot create configuration ${pgm_config}"
-    return 3
-  fi
 
-  pgm_command_list="${pgm_source_dir}/*.conf"
-  for pgm_command in ${pgm_command_list}
-  do
-    local pgm_config_file=${pgm_config_dir}/$(basename ${pgm_command})
-    instantiateConf ${pgm_command} ${pgm_config_file}
-    if [[ $? -ne 0 ]]; then
-      printError "cannot instanciate config file ${pgm_config_file} from ${pgm_command}"
-    else
-      printTrace "${pgm_config_file} created"
+  if [ -d ${pgm_config_dir} ]; then
+    return 3
+  elif [ -d ${PGM_CONF_DIR}/.${pgm_config} ]; then
+    mv ${PGM_CONF_DIR}/.${pgm_config} ${PGM_CONF_DIR}/${pgm_config}
+    printTrace "${pgm_config} unremoved"
+  else
+    mkdir --parents ${pgm_config_dir}
+    if [ ! -d ${pgm_config_dir} ]; then
+      printError "Cannot create configuration ${pgm_config}"
+      return 3
     fi
-  done
+
+    pgm_conf_list="pgm.conf"
+
+    for pgm_conf in ${pgm_conf_list}
+    do
+      local pgm_config_file=${pgm_config_dir}/${pgm_conf}
+      local pgm_source_file=${pgm_source_dir}/${pgm_conf}
+      instantiateConf ${pgm_source_file} ${pgm_config_file}
+      if [[ $? -ne 0 ]]; then
+        printError "cannot instanciate config file ${pgm_config_file} from ${pgm_source_file}"
+      else
+        printTrace "${pgm_config} created"
+      fi
+    done
+  fi
 }
 
 function createConfig()
@@ -127,12 +137,6 @@ function createConfig()
     return 3
   fi
 
-  ensurePgInventory
-  if [[ $? -ne 0 ]]; then
-    printError "cannot create inventory for ${pgm_config}"
-    return 4
-  fi
-  
   ensureVars -d _DIR pgm_missing_dirs
   if [[ $? -ne 0 ]]; then
     printError "error ensuring directories"
@@ -240,7 +244,7 @@ function compareConfig()
   do
     local pgm_sourcefile="$PGM_CONF_DIR}/${pgm_source}/$(basename ${pgm_confile})"
     if [ -r ${pgm_sourcefile} ]; then
-      local pgm_diff=$(diff ${pgm_confile} ${pgm_sourcefile})
+      local pgm_diff=`(export PGM_CONFIG_NAME=${pgm_config}; . etc/pgm/pgm.conf; env | grep "PGM_" | sort) > /var/tmp/pg${pgm_config}.tmp; (export PGM_CONFIG_NAME=${pgm_source}; . etc/pgm/pgm.conf; env | grep "PGM_" | sort) > /var/tmp/pgm${pgm_source}.tmp; diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='%L' --new-line-format='#%L' --unchanged-line-format='' /var/tmp/pgm${pgm_config}.tmp /var/tmp/pgm${pgm_source}.tmp; rm -f /var/tmp/pgm${pgm_config}.tmp /var/tmp/pgm${pgm_source}.tmp`
       if [[ $? -ne 0 ]]; then
         pgm_report="${pgm_report} ${pgm_diff}"
       fi

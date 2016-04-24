@@ -29,45 +29,47 @@ fi
 
 local pgm_var_lock=/var/lock/${PRGNAME}
 
-local pgm_instance_line_list=$(egrep --only-matching "_:[^: ]*:[^: ]*:y" @INVENTORYDIR@/autostart)
-for pgm_instance_line in "${pgm_instance_line_list}"
+local pgm_instance_dir_list=${PGM_CONF_DIR}/*/instances/*
+
+for pgm_instance_line in "${pgm_instance_dir_list}"
 do
-  local pgm_instance=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 2)
-  local pgm_server=$(echo "${pgm_instance_line}" | cut --delimiter ':' --fields 3)
-  case "$1" in
-    "stop" )
-      su - @USER@ -c "@COMMANDDIR@/instance stop ${pgm_server} ${pgm_instance}"
-      rm -f ${pgm_var_lock}
-      ;;
+  local pgm_inid=egrep --quiet "^[[:space:]]*PGM_PGAUTOSTART[[:space:]]*=[[:space:]]*yes" ${pgm_instance_dir}/instance.conf
+  if [[ ${pgm_initd} -eq 0 ]]; then
+    case "$1" in
+      "stop" )
+        su - @USER@ -c "@COMMANDDIR@/instance stop ${pgm_server} ${pgm_instance}"
+        rm -f ${pgm_var_lock}
+        ;;
    
-    "start" )
-      su - @USER@ -c "@COMMANDDIR@/instance start ${pgm_server} ${pgm_instance}"
-      touch ${pgm_var_lock}
-      ;;
+      "start" )
+        su - @USER@ -c "@COMMANDDIR@/instance start ${pgm_server} ${pgm_instance}"
+        touch ${pgm_var_lock}
+        ;;
 
-    "restart" | "force-reload" )
-      su - @USER@ -c "@COMMANDDIR@/instance stop ${pgm_server} ${pgm_instance}"
-      su - @USER@ -c "@COMMANDDIR@/instance start ${pgm_server} ${pgm_instance}"
-      touch ${pgm_var_lock}
-      ;;
+      "restart" | "force-reload" )
+        su - @USER@ -c "@COMMANDDIR@/instance stop ${pgm_server} ${pgm_instance}"
+        su - @USER@ -c "@COMMANDDIR@/instance start ${pgm_server} ${pgm_instance}"
+        touch ${pgm_var_lock}
+        ;;
 
-    "reload" )
-      su - @USER@ -c "@COMMANDDIR@/instance reload ${pgm_server} ${pgm_instance}"
-      touch ${pgm_var_lock}
-      ;;
+      "reload" )
+        su - @USER@ -c "@COMMANDDIR@/instance reload ${pgm_server} ${pgm_instance}"
+        touch ${pgm_var_lock}
+        ;;
 
-    "force-stop" )
-      su - @USER@ -c "@COMMANDDIR@/instance kill ${pgm_server} ${pgm_instance}"
-      rm ${pgm_var_lock}
-      ;;
+      "force-stop" )
+        su - @USER@ -c "@COMMANDDIR@/instance kill ${pgm_server} ${pgm_instance}"
+        rm ${pgm_var_lock}
+        ;;
    
-    "status" )
-      su - @USER@ -c "@COMMANDDIR@/instance status ${pgm_server} ${pgm_instance}"
-      ;;
+      "status" )
+        su - @USER@ -c "@COMMANDDIR@/instance status ${pgm_server} ${pgm_instance}"
+        ;;
 
-    * )
-      printf "Unknown option $1\n"
-      exit 1
-  esac
+      * )
+        printf "Unknown option $1\n"
+        exit 1
+    esac
+  fi
 done
 

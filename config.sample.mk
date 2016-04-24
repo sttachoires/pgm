@@ -58,10 +58,4 @@ TPLDIR:=$(PREFIX)/templates/$(NAME)
 #LOGDIR:=/var/log/$(NAME)
 LOGDIR:=$(PREFIX)/log/$(NAME)
 
-# Directory where pgm puts its inventory files to remembers which version of
-# which instance contains database, which 'compagnion' (perl, python) version
-# associated, what is synchronizedi with who, autostarted, backuped, monitored.
-#INVENTORYDIR:=$(PREFIX)/share/$(NAME)/inventory
-INVENTORYDIR:=$(PREFIX)/inventory/$(NAME)
-
 # The End

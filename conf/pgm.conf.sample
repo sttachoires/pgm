@@ -21,9 +21,6 @@ export PGM_CONF="LOADED"
 # Where to put all temporary pgm stuff
 export PGM_TMP_DIR="/var/tmp"
 
-# Where to list all databases, instance, and servers
-export PGM_PG_INVENTORY="${PGM_INVENTORY}/${PGM_CONFIG_NAME}/databases"
-
 # PGM general short descriptions used for help messages
 export PGM_GENERAL_SHORT_DESCRIPTION="\
 PostgreSQL manager will help handle multiple version of multiple PostgreSQL

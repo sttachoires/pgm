@@ -67,64 +67,61 @@ function analyzeParameters()
 
   for pgm_arg in ${pgm_arg_list}
   do
+    local pgm_arg_name=""
+    local pgm_arg_constraint=""
+
     case ${pgm_arg} in
-      "-server-" | "+server+" | "~server~" )
-        pgm_server=$1
-        shift
+      "[-]..*[-]")
+        pgm_arg_constraint="EXISTS"
+        pgm_arg_name=${pgm_arg#-}
+        pgm_arg_name=${pgm_arg_name%-}
         ;;
 
-      "-instance-" | "+instance+" | "~instance~" )
-        pgm_instance=$1
-        shift
+      "[+]..*[+]")
+        pgm_arg_constraint="NEW"
+        pgm_arg_name=${pgm_arg#+}
+        pgm_arg_name=${pgm_arg_name%+}
         ;;
 
-      "-database-" | "+database+" | "~database~" )
-        pgm_database=$1
-        shift
+      "[~]..*[~]")
+        pgm_arg_constraint="ADD"
+        pgm_arg_name=${pgm_arg#~}
+        pgm_arg_name=${pgm_arg_name%~}
         ;;
 
-      "-request-" )
-        pgm_request=$1
-        shift
+      "[.]..*[.]")
+        pgm_arg_constraint="CORRECT"
+        pgm_arg_name=${pgm_arg#\.}
+        pgm_arg_name=${pgm_arg_name%\.}
         ;;
+    esac
 
-      "-result-" )
+    case ${pgm_arg_name} in
+      "result" )
         pgm_result_var=$1
         shift
         ;;
 
-      "-port-" | "+port+" | "~port~" )
-        pgm_port=$1
-        shift
-        ;;
+      *)
+        eval local pgm_arg_num_name='pgm_${pgm_arg_name}_num'
+        eval local pgm_${pgm_arg_name}_num=$(( pgm_${pgm_arg_name}_num++ ))
+        eval local pgm_arg_var_name='pgm_${pgm_arg_name}'
 
-      "-listener-" | "+listener+" | "~listener~" )
-        pgm_listener=$1
-        shift
-        ;;
+        case ${!pgm_arg_num_name} in
+          1)
+            eval ${pgm_arg_var_name}='$1'
+            ;;
 
-      "-directory-" | "+directory+" | "~directory~" )
-        pgm_directory=$1
-        shift
-        ;;
+          2)
+            eval ${pgm_arg_var_name}_1='${!pgm_arg_var_name}'
+            eval unset ${pgm_arg_var_name}
+            eval ${pgm_arg_var_name}_2='$1'
+            ;;
 
-      "-template-" | "+template+" | "~template~" )
-        pgm_template=$1
-        shift
-        ;;
-
-      "-filename-" | "+filename+" | "~filename~" )
-        pgm_filename=$1
-        shift
-        ;;
-
-      "-string-" )
-        pgm_string=$1
-        shift
-        ;;
-
-      "-conditional-test-" )
-        pgm_conditional_test=$1
+          *)
+            eval ${pgm_arg_var_name}_${!pgm_arg_num_name}='$1'
+            ;;
+        esac
         shift
         ;;
     esac

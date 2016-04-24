@@ -94,6 +94,7 @@ set default environment to 'config', if last 'config' parameter is ommited, this
 
 unset
 unset default environment
+
 shell ~config~
 open the pgm interactiv shell, allowing you yo acces command to create, install, replicate, supervise, backup...PostgreSQL databases
 "
@@ -143,6 +144,9 @@ case "${pgm_action}" in
         printf "Active configurations:\n${pgm_config_list// /$'\n'}\n"
       fi
       if [ "${pgm_removed_config_list}x" != "x" ]; then
+        if [ "${pgm_config_list}x" != "x" ]; then
+          printf "\n"
+        fi
         printf "Removed configurations:\n${pgm_removed_config_list// /$'\n'}\n"
       fi
     fi
