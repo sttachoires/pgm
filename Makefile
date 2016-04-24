@@ -287,7 +287,7 @@ $(BASH_PROFILE) : $(PREFIX)
 	echo "export PATH=\"${BINDIR}:${PATH}\"" >> ${BASH_PROFILE}
 	echo "export MANPATH=\"${MANDIR}:${MANPATH}\"" >> ${BASH_PROFILE}
 	echo "alias ll='ls -laF \$*'" >> ${BASH_PROFILE}
-	echo "alias pgmset='export PGM_CONF_NAME=\$1'" >> ${BASH_PROFILE}
+	echo "alias pgmset='. pgm set \$1'" >> ${BASH_PROFILE}
 	echo "alias pgmunset='unset PGM_CONF_NAME'"  >> ${BASH_PROFILE}
 	chmod u=rw,g=r,o= ${BASH_PROFILE}
 	@echo
