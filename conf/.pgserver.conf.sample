@@ -30,7 +30,7 @@ export PGB_PGBASE_DIR="${PGB_HOME_DIR}/server"
 # Don't put a number un first position, so pgbrewer can isolate real version number
 # Correct version could be '9.3.11', '9.6.0b', '9.5.1_perl', '9.5.3_4-ssl#4'
 # Incorrect will be 'ssl_9.3.4' or '9.5.1.python' or 'most recent with .ssl and stuff'
-export PGB_PGVERSION_AUTHORIZED_REGEXP="[a-zA-Z_][-a-zA-Z_#0-9]{3,11}"
+export PGB_PGSRV_NAME_AUTHORIZED_REGEXP="[a-zA-Z_][-a-zA-Z_#0-9]{3,11}"
 
 # SERVER PATTERN VARIABLE
 #
@@ -64,7 +64,7 @@ PGBSRV_PTRN_PGINCLUDE_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/include'
 PGBSRV_PTRN_PGDOC_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/doc'
 
 # PGB_PGBrewer.N_DIR, no, surprisingly, it for PostgreSQL man pages...
-PGBSRV_PTRN_PGBrewer.N_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/man'
+PGBSRV_PTRN_PGMAN_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/man'
 
 # PGB_TEMPLATE_DIR, where pgbrewer templates are. They are used to build other files
 # by diverse pgbrewer scripts like pgb_instance_create
@@ -72,8 +72,8 @@ PGBSRV_PTRN_TEMPLATE_DIR='${PGB_TPL_DIR}/${PGB_PGMAJOR_VERSION}'
 
 # END OF EDITABLES VARIABLES
 
-if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/server.conf ]; then
-  . @CONFDIR@/${PGB_CONFIG_NAME}/server.conf
+if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/pgserver.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME}/pgserver.conf
 fi
 
 

@@ -12,6 +12,7 @@ if [ "${PGBREWER_PROFILE}" == "LOADED" ]; then
 fi
 export PGBREWER_PROFILE="LOADED"
 export MANPATH="@MANDIR@:${MANPATH}"
+export PS1="${PS1} # "
 
 function _pgbrewer_completion()
 {

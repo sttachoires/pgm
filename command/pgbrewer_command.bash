@@ -145,10 +145,21 @@ case "${pgb_action}" in
     ;;
 
   "info")
-    if [ ! -d ${pgb_config} ]; then
+    if [[ $# -ge 1 ]]; then
+      pgb_config=$1
+      shift
+    else
+      pgb_config=${PGB_CONFIG_NAME:-default}
+    fi
+    if [ "${pgb_config}x" == "defaultx" ]; then
+      pgb_config_dir=${PGB_CONF_DIR}
+    else
+      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
+    fi
+    if [ ! -d ${pgb_config_dir} ]; then
       exitError "No config ${pgb_config}"
     fi
-    for pgb_orig in ${PGB_CONF_DIR}/${pgb_config}/*.conf
+    for pgb_orig in ${pgb_config_dir}/*.conf
     do
       printf "$(basename ${pgb_orig%\.conf})\n"
     done
@@ -159,38 +170,56 @@ case "${pgb_action}" in
       pgb_config=$1
       shift
     else
-      exitError "No config name"
+      pgb_config=${PGB_CONFIG_NAME:-default}
+    fi
+    if [ ! -d ${PGB_CONF_DIR}/${pgb_config} ]; then
+      exitError "No config ${pgb_config}"
     fi
     pgb_env_check="$(unset PGB_CONF && export PGB_CONFIG_NAME=${pgb_config} && . ${PGB_CONF_DIR}/pgbrewer.conf && . ${PGB_LIB_DIR}/util.include && checkEnvironment pgb_env_check; echo ${pgb_env_check})"
     if [[ $? -ne 0 ]]; then
       printError "error config ${pgb_config}:\n${pgb_env_check}"
       return 3
     fi
-
-    export PGB_CONF
     ;;
 
   "add")
-    if [[ $# -lt 1 ]]; then
-      exitError "No config name"
-    fi
-    case "$1" in
-      "as")
+    if [[ $# -eq 0 ]]; then
+      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgb_source=default
+    elif [[ $# -eq 1 ]]; then
+      if [ "${1}x" == "asx" ]; then
+        pgb_config=${PGB_CONFIG_NAME:-default}
+        pgb_source=default
+        shift
+      else
+        pgb_config=${PGB_CONFIG_NAME:-default}
+        pgb_source=$1
+        shift
+      fi
+    elif [[ $# -eq 2 ]]; then
+      if [ "${1}x" == "asx" ]; then
+        shift
+        pgb_config=${PGB_CONFIG_NAME:-default}
+        pgb_source=$1
+        shift
+      else
+        pgb_source=$1
+        shift
+        pgb_config=$1
+        shift
+      fi
+    else
+      if [ "${1}x" == "asx" ]; then
         shift
         pgb_source=$1
         shift
-        if [[ $# -ge 1 ]]; then
-          pgb_config=$1
-        fi
-        ;;
-
-      *)
         pgb_config=$1
         shift
-        pgb_source=default
-        ;; 
-    esac
-    
+      else
+        exitError "${USAGE}\n"
+      fi
+    fi
+
     addConfig "${pgb_source}" "${pgb_config}"
     if [[ $? -ne 0 ]]; then
       exitError " problem creating ${pgb_config} from ${pgb_source}"
@@ -209,10 +238,14 @@ case "${pgb_action}" in
     if [[ $# -ge 1 ]]; then
       pgb_config=$1
       shift
-      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
     else
-      pgb_config="default"
+      pgb_config="${PGB_CONFIG_NAME:-default}"
+    fi
+
+    if [ "${pgb_config}" == "default" ]; then
       pgb_config_dir=${PGB_CONF_DIR}
+    else
+      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
     fi
     if [ "${pgb_command}x" == "listx" ]; then
       if [ ! -d ${pgb_config_dir} ]; then
@@ -223,7 +256,7 @@ case "${pgb_action}" in
         printf "$(basename ${pgb_orig%\.conf})\n"
       done
     else
-      editConfig ${pgb_config} ${pgb_command}
+      editConfig ${pgb_command} ${pgb_config} 
       if [[ $? -ne 0 ]]; then
           exitError " problem editing ${pgb_config} ${pgb_command} configuration"
       fi
@@ -238,7 +271,7 @@ case "${pgb_action}" in
       shift
     fi
     if [[ $# -lt 1 ]]; then
-      pgb_config=default
+      pgb_config=${PGB_CONFIG_NAME:-default}
     else
       pgb_config=$1
       shift
@@ -259,7 +292,7 @@ case "${pgb_action}" in
       shift
     fi
     if [[ $# -lt 1 ]]; then
-      pgb_config=default
+      pgb_config=${PGB_CONFIG_NAME:-default}
     else
       pgb_config=$1
       shift
@@ -271,20 +304,15 @@ case "${pgb_action}" in
     if [[ $# -ge 1 ]]; then
       pgb_config=$1
       shift
-      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
     else
-      pgb_config="default"
-      pgb_config_dir=${PGB_CONF_DIR}
+      pgb_config=${PGB_CONFIG_NAME:-default}
     fi
-    if [ -d "${pgb_config_dir}" ]; then
-      createConfig ${pgb_config}
-      if [[ $? -ne 0 ]]; then
-        exitError " problem creating ${pgb_config}"
-      else
-        printTrace " ${pgb_config} created"
-      fi
+    
+    createConfig ${pgb_config}
+    if [[ $? -ne 0 ]]; then
+      exitError " problem creating ${pgb_config}"
     else
-      exitError " ${pgb_config} has to be added first"
+      printTrace " ${pgb_config} created"
     fi
     ;;
 
@@ -293,7 +321,7 @@ case "${pgb_action}" in
       pgb_config=$1
       shift
     else
-      pgb_config="default"
+      pgb_config=${PGB_CONFIG_NAME:-default}
     fi
     removeConfig ${pgb_config}
     if [[ $? -ne 0 ]]; then
@@ -306,7 +334,7 @@ case "${pgb_action}" in
       pgb_config=$1
       shift
     else
-      pgb_config="default"
+      pgb_config=${PGB_CONFIG_NAME:-default}
     fi
     deleteConfig ${pgb_config}
     if [[ $? -ne 0 ]]; then

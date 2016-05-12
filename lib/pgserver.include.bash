@@ -14,9 +14,65 @@ export PGB_SERVER_INCLUDE="LOADED"
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
-. ${PGB_CONF_DIR}/server.conf
-. ${PGB_LIB_DIR}/inventory.include
+. ${PGB_CONF_DIR}/pgserver.conf
 . ${PGB_LIB_DIR}/util.include
+
+function getRemovedServers()
+{
+  declareFunction "+config+ -result-" "$*"
+
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  local pgb_config=$1
+  local pgb_result_var=$2
+  local pgb_report=""
+
+  if [ "${pgb_config}x" == "defaultx" ]; then
+    pgb_conf_dir=${PGB_CONF_DIR}/pgserver
+  else
+     pgb_conf_dir=${PGB_CONF_DIR}/${pgb_config}/pgserver
+  fi
+
+  for pgb_server_dir in ${pgb_conf_dir}/\.??*
+  do
+    if [ "${pgb_server_dir%/}x" != "x" ] && [ -d ${pgb_server_dir%/} ]; then
+      pgb_tempo=$(basename ${pgb_server_dir%/})
+      pgb_report="${pgb_report} ${pgb_tempo#.}"
+    fi
+  done
+
+  eval ${pgb_result_var}='${pgb_report## }'
+}
+
+function getServers()
+{
+  declareFunction "+config+ -result-" "$*"
+
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  local pgb_config=$1
+  local pgb_result_var=$2
+  local pgb_report=""
+
+  if [ "${pgb_config}x" == "defaultx" ]; then
+    pgb_conf_dir=${PGB_CONF_DIR}
+  else
+     pgb_conf_dir=${PGB_CONF_DIR}/${pgb_config}
+  fi
+
+  for pgb_server_dir in ${pgb_conf_dir}/pgserver/*
+  do
+    if [ "${pgb_server_dir%/}x" != "x" ] && [ -d ${pgb_server_dir%/} ]; then
+      pgb_report="${pgb_report} $(basename ${pgb_server_dir%/})"
+    fi
+  done
+
+  eval ${pgb_result_var}='${pgb_report## }'
+}
 
 function setServer()
 {

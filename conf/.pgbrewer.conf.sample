@@ -61,14 +61,6 @@ export PGB_TPL_DIR="@TPLDIR@"
 # All pgbrewer's log, rotated, by command name
 export PGB_LOG_DIR="@LOGDIR@"
 
-# pgbrewer's inventory files, with "which version of what for who" informations
-# if you change it, change it into postgresql_initd too
-export PGB_INVENTORY_DIR="@INVENTORYDIR@"
-
-# The instances per versions inventory for autolaunch
-# if you change it, change it into postgresql_initd too
-export PGB_AUTOSTART_INVENTORY="@INVENTORYDIR@/autostart"
-
 # Ensure that pipes (like in '|' tee) will return with first false
 # command code in "pipe line"
 set -o pipefail

@@ -1,0 +1,79 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGB_SERVER_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGB_SERVER_CONF="LOADED"
+. @CONFDIR@/pgbrewer.conf
+. @CONFDIR@/.server.conf
+
+#
+# EDITABLES VARIABLES
+
+# The starting point of every instance directory
+# If you want one.
+export PGB_PGDBBASE_DIR="${PGB_HOME_DIR}/db"
+
+# Where the servers will stand (usualy with full version appended)
+export PGB_PGBASE_DIR="${PGB_HOME_DIR}/server"
+
+# Allowed PostgreSQL PGBrewer version format. Real full version name (ex 9.5.1) will
+# be prepended.
+# No '.' as it throw out the last '.' part to determine major version.
+# Don't put a number un first position, so pgbrewer can isolate real version number
+# Correct version could be '9.3.11', '9.6.0b', '9.5.1_perl', '9.5.3_4-ssl#4'
+# Incorrect will be 'ssl_9.3.4' or '9.5.1.python' or 'most recent with .ssl and stuff'
+export PGB_PGVERSION_AUTHORIZED_REGEXP="[a-zA-Z_][-a-zA-Z_#0-9]{3,11}"
+
+# SERVER PATTERN VARIABLE
+#
+# Be sure to run a check after altering these pattern
+#
+# Pattern 'PGBSRV_PTRN_name' will be expanded into 'PGB_name'
+# after setServer call
+#
+# In those patterns you can use the previous PGB_ constants and variables
+# but never refered to each other because you don't know in which order
+# they will be expanded
+# PGB_PGHOME_DIR, the base directory for the PostgreSQL server
+PGBSRV_PTRN_PGHOME_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}'
+
+# PGB_PGBIN_DIR, the binary PostgreSQL directory
+PGBSRV_PTRN_PGBIN_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/bin'
+
+# PGB_PGLIB_DIR, the library PostgreSQL directory
+PGBSRV_PTRN_PGLIB_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/lib'
+
+# PGB_PGSHARE_DIR, where PostgreSQL store his datas (DATAROOTDIR)
+PGBSRV_PTRN_PGSHARE_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/share/postgresql'
+
+# PGB_PGEXTENSION_DIR, extension...
+PGBSRV_PTRN_PGEXTENSION_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/share/postgresql/extension'
+
+# PGB_PGINCLUDE_DIR, need to say?
+PGBSRV_PTRN_PGINCLUDE_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/include'
+
+# PGB_PGDOC_DIR, ok
+PGBSRV_PTRN_PGDOC_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/doc'
+
+# PGB_PGBrewer.N_DIR, no, surprisingly, it for PostgreSQL man pages...
+PGBSRV_PTRN_PGBrewer.N_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/man'
+
+# PGB_TEMPLATE_DIR, where pgbrewer templates are. They are used to build other files
+# by diverse pgbrewer scripts like pgb_instance_create
+PGBSRV_PTRN_TEMPLATE_DIR='${PGB_TPL_DIR}/${PGB_PGMAJOR_VERSION}'
+
+# END OF EDITABLES VARIABLES
+
+if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/pgserver.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME}/pgserver.conf
+fi
+
+

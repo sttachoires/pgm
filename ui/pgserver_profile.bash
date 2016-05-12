@@ -7,13 +7,100 @@
 #
 #set -xv
 
-if [ "${COMMANDS_PROFILE}" == "LOADED" ]; then
+if [ "${PGSERVER_PROFILE}" == "LOADED" ]; then
   return 0
 fi
-export COMMANDS_PROFILE="LOADED"
+export PGSERVER_PROFILE="LOADED"
 
-export PS1='[${PGB_CONFIG_NAME}]-${PGB_PGFULL_VERSION}:${PGB_PGINSTANCE}:${PGB_DATABASE} # '
-export PS2='# '
+function _pgserver_completion()
+{
+  COMPREPLY=()
 
-source @UIDIR@/*
+  local pgb_current="${COMP_WORDS[COMP_CWORD]}"
+  local pgb_previous="${COMP_WORDS[COMP_CWORD-1]}"
+  local pgb_actions="$(pgserver actions)"
+
+  if [ "${pgb_previous}x" == "pgserverx" ]; then
+    local pgb_completion=$(printf "${pgb_actions}" | awk '{ print $1 }')
+    COMPREPLY=( $(compgen -W "${pgb_completion//$'\n'/ }" -- ${pgb_current} ) )
+  else
+    local pgb_line=$(printf "${pgb_actions}" | grep ^${pgb_previous})
+    local pgb_completion=$(printf "${pgb_line}" | awk '{ print $2 }')
+  fi
+  return 0
+}
+
+complete -F _pgserver_completion pgserver
+
+function pgserver()
+{
+  local pgb_actions="$(@COMMANDDIR@/pgserver_command actions)"
+  local pgb_actions="\
+help
+usage
+actions
+default ?server?
+undefault
+${pgb_actions}"
+
+  local pgb_actions_description="\
+help
+explain you how this works
+
+usage
+will provide this text:)
+
+actions
+list all possible actions and parameters with this command
+
+default ?config?
+remember default server (PGB_PGSRV_NAME) so you can ommit this parameter. Will unset if no config
+
+undefault
+unset default configuration
+
+$(@COMMANDDIR@/pgserver_command usage)"
+
+
+  local pgb_help="pgserver is a helper for human interfacing PostgreSQL server management, adding and handle interface's command and redirecting other to pgserver_command\n\n${pgb_actions_description}"
+
+  if [ $# -eq 0 ]; then
+    local pgb_action="help"
+  else
+    local pgb_action="$1"
+    shift
+  fi
+
+  case "${pgb_action}" in
+    "help" )
+      printf "${pgb_help}\n"
+      ;;
+
+    "usage" )
+      printf "pgserver action [parameters]
+Where actions are:
+${pgb_actions//$'\n'/$'\n'$'\t'}\n"
+      ;;
+
+    "actions" )
+      printf "${pgb_actions}\n"
+      ;;
+
+    "default" )
+      if [ $# -ge 1 ]; then
+        export PGB_PGSRV_NAME="$1"
+      else
+        unset PGB_PGSRV_NAME
+      fi
+      ;;
+
+    "undefault" )
+      unset PGB_PGSRV_NAME
+      ;;
+
+    *)
+      @COMMANDDIR@/pgserver_command ${pgb_action} $*
+      ;;
+  esac
+}
 
