@@ -1,0 +1,50 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGB_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGB_CONF="LOADED"
+
+. @CONFDIR@/.pgbrewer.conf
+
+# EDITABLES VARIABLES
+# You can edit them
+# don't forget to issue a pgb_check after changer, to be sure.
+
+# Where to put all temporary pgbrewer stuff
+export PGB_TMP_DIR="/var/tmp"
+
+# PGBrewer general short descriptions used for help messages
+export PGB_GENERAL_SHORT_DESCRIPTION="\
+pgbrewer will help handle multiple version of multiple PostgreSQL
+with multiple instances (cluster) and multiple databases
+"
+
+# PGBrewer general user interface philosophy
+PGB_GENERAL_PHILOSOPHY_DESCRIPTION="\
+Parameters description is of the form '-parameter-' or '+parameter+'.
+The meaning of the surroundings '.', '!', '+', '?' or '-' sign are:
+  '.': must exists, that is '.database.' must have been created before,
+       '.server.' has to be already installed (pg_config exists)
+  '!': must be totaly new, not even added. No configuration, no inventory
+       for '!instance!'
+  '+': must at least have been added. '+server+' has to have configurations,
+       inventory, but no mandatory pg_config executable
+  '?': whatever, this will be checked as a correct value for the purpose,
+       but not for existence
+  '.': not checked at all. A string for example
+"
+
+# END OF EDITABLES VARIABLES
+
+# If exists load configuration
+if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/pgbrewer.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME}/pgbrewer.conf
+fi

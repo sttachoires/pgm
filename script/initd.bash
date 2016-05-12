@@ -16,9 +16,9 @@ fi
 
 export USAGE="${PRGNAME}\n"
 
-local pgm_current_user=$(/usr/bin/whoami)
-if [ "${pgm_current_user}" != "root" ]; then
-  printf "${PRGNAME} should be launch as 'root' not '${pgm_current_user}'\n"
+local pgb_current_user=$(/usr/bin/whoami)
+if [ "${pgb_current_user}" != "root" ]; then
+  printf "${PRGNAME} should be launch as 'root' not '${pgb_current_user}'\n"
   exit 1
 fi
 
@@ -27,43 +27,43 @@ if [[ $# -ne 1 ]]; then
   exit 1
 fi
 
-local pgm_var_lock=/var/lock/${PRGNAME}
+local pgb_var_lock=/var/lock/${PRGNAME}
 
-local pgm_instance_dir_list=${PGM_CONF_DIR}/*/instances/*
+local pgb_instance_dir_list=${PGB_CONF_DIR}/*/instances/*
 
-for pgm_instance_line in "${pgm_instance_dir_list}"
+for pgb_instance_line in "${pgb_instance_dir_list}"
 do
-  local pgm_inid=egrep --quiet "^[[:space:]]*PGM_PGAUTOSTART[[:space:]]*=[[:space:]]*yes" ${pgm_instance_dir}/instance.conf
-  if [[ ${pgm_initd} -eq 0 ]]; then
+  local pgb_inid=egrep --quiet "^[[:space:]]*PGB_PGAUTOSTART[[:space:]]*=[[:space:]]*yes" ${pgb_instance_dir}/instance.conf
+  if [[ ${pgb_initd} -eq 0 ]]; then
     case "$1" in
       "stop" )
-        su - @USER@ -c "@COMMANDDIR@/instance stop ${pgm_server} ${pgm_instance}"
-        rm -f ${pgm_var_lock}
+        su - @USER@ -c "@COMMANDDIR@/instance stop ${pgb_server} ${pgb_instance}"
+        rm -f ${pgb_var_lock}
         ;;
    
       "start" )
-        su - @USER@ -c "@COMMANDDIR@/instance start ${pgm_server} ${pgm_instance}"
-        touch ${pgm_var_lock}
+        su - @USER@ -c "@COMMANDDIR@/instance start ${pgb_server} ${pgb_instance}"
+        touch ${pgb_var_lock}
         ;;
 
       "restart" | "force-reload" )
-        su - @USER@ -c "@COMMANDDIR@/instance stop ${pgm_server} ${pgm_instance}"
-        su - @USER@ -c "@COMMANDDIR@/instance start ${pgm_server} ${pgm_instance}"
-        touch ${pgm_var_lock}
+        su - @USER@ -c "@COMMANDDIR@/instance stop ${pgb_server} ${pgb_instance}"
+        su - @USER@ -c "@COMMANDDIR@/instance start ${pgb_server} ${pgb_instance}"
+        touch ${pgb_var_lock}
         ;;
 
       "reload" )
-        su - @USER@ -c "@COMMANDDIR@/instance reload ${pgm_server} ${pgm_instance}"
-        touch ${pgm_var_lock}
+        su - @USER@ -c "@COMMANDDIR@/instance reload ${pgb_server} ${pgb_instance}"
+        touch ${pgb_var_lock}
         ;;
 
       "force-stop" )
-        su - @USER@ -c "@COMMANDDIR@/instance kill ${pgm_server} ${pgm_instance}"
-        rm ${pgm_var_lock}
+        su - @USER@ -c "@COMMANDDIR@/instance kill ${pgb_server} ${pgb_instance}"
+        rm ${pgb_var_lock}
         ;;
    
       "status" )
-        su - @USER@ -c "@COMMANDDIR@/instance status ${pgm_server} ${pgm_instance}"
+        su - @USER@ -c "@COMMANDDIR@/instance status ${pgb_server} ${pgb_instance}"
         ;;
 
       * )

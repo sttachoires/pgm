@@ -1,125 +1,130 @@
 #! @BASH@
 # 
-# Bash library for PGM scripts
+# Bash library for PGBrewer scripts
 #
 # S. Tachoires		19/02/2016	Initial version
 #
 #set -xv
-if [ "${PGM_UTIL_INCLUDE}" == "LOADED" ]; then
+if [ "${PGB_UTIL_INCLUDE}" == "LOADED" ]; then
   return
 fi
-export PGM_UTIL_INCLUDE="LOADED"
+export PGB_UTIL_INCLUDE="LOADED"
 
 # CONSTANTS
-PGM_LOG="default.log"
+PGB_LOG="default.log"
 
 # VARIABLES
-export PGM_TRACELEVEL=1
+export PGB_TRACELEVEL=1
 
-function pgmPrint()
+function pgbPrint()
 {
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  local pgm_print_context="$1"
-  local pgm_print_text="$2"
-  local pgm_print_date=`date "+%Y.%m.%d-%H.%M.%S"`
-  local pgm_print_user=`who am i | cut --delimiter=' ' --fields=1`
-  local pgm_spaces=" #${BASH_SUBSHELL}# "
-  if [[ ${pgm_print_context} -le ${PGM_TRACELEVEL} ]]; then
-    printf "[${FUNCNAME[2]}] ${pgm_spaces} ${pgm_print_text}\n"
+  local pgb_print_context="$1"
+  local pgb_print_text="$2"
+  local pgb_print_date=`date "+%Y.%m.%d-%H.%M.%S"`
+  local pgb_print_user=`who am i | cut --delimiter=' ' --fields=1`
+  local pgb_spaces=" #${BASH_SUBSHELL}# "
+  if [[ ${pgb_print_context} -le ${PGB_TRACELEVEL} ]]; then
+    printf "[${FUNCNAME[2]}] ${pgb_spaces} ${pgb_print_text}\n"
   fi
-  printf "${pgm_print_date} '${pgm_print_user}' ${pgm_spaces} [${FUNCNAME[2]}] ${pgm_print_text}\n" >> ${PGM_LOG}
+  printf "${pgb_print_date} '${pgb_print_user}' ${pgb_spaces} [${FUNCNAME[2]}] ${pgb_print_text}\n" >> ${PGB_LOG}
 }
 
 function printError()
 {
-  pgmPrint 1 "$*"
+  pgbPrint 1 "$*"
 }
 
 function printTrace()
 {
-  pgmPrint 2 "$*"
+  pgbPrint 2 "$*"
 }
 
 function printInfo()
 {
-  pgmPrint 3 "$*"
+  pgbPrint 3 "$*"
 }
 
 function declareFunction()
 {
-  local pgm_function_name="${FUNCNAME[1]}"
-  printTrace "Enter ${pgm_function_name} with '$*'\n"
+  local pgb_function_name="${FUNCNAME[1]}"
+  printTrace "Enter ${pgb_function_name} with '$*'\n"
   if [[ $# -ge 2 ]]; then
-    local pgm_arg_list="$1"
+    local pgb_arg_list="$1"
     shift;
   fi
-
-  analyzeParameters ${pgm_arg_list} $*
 }
 
 function analyzeParameters()
 {
-  local pgm_arg_list="$1"
+  local pgb_arg_list="$1"
   shift
   analyzeStandart $*
 
-  for pgm_arg in ${pgm_arg_list}
+  for pgb_arg in ${pgb_arg_list}
   do
-    local pgm_arg_name=""
-    local pgm_arg_constraint=""
+    local pgb_arg_name=""
+    local pgb_arg_constraint=""
 
-    case ${pgm_arg} in
-      "[-]..*[-]")
-        pgm_arg_constraint="EXISTS"
-        pgm_arg_name=${pgm_arg#-}
-        pgm_arg_name=${pgm_arg_name%-}
+    case ${pgb_arg} in
+      "[.]..*[.]")
+        pgb_arg_constraint="EXISTS"
+        pgb_arg_name=${pgb_arg#-}
+        pgb_arg_name=${pgb_arg_name%-}
+        ;;
+
+      "[!]..*[!]")
+        pgb_arg_constraint="NOTEXISTS"
+        pgb_arg_name=${pgb_arg#+}
+        pgb_arg_name=${pgb_arg_name%+}
         ;;
 
       "[+]..*[+]")
-        pgm_arg_constraint="NEW"
-        pgm_arg_name=${pgm_arg#+}
-        pgm_arg_name=${pgm_arg_name%+}
+        pgb_arg_constraint="ADDED"
+        pgb_arg_name=${pgb_arg#~}
+        pgb_arg_name=${pgb_arg_name%~}
         ;;
 
-      "[~]..*[~]")
-        pgm_arg_constraint="ADD"
-        pgm_arg_name=${pgm_arg#~}
-        pgm_arg_name=${pgm_arg_name%~}
+      "[?]..*[?]")
+        pgb_arg_constraint="CORRECT"
+        pgb_arg_name=${pgb_arg#\.}
+        pgb_arg_name=${pgb_arg_name%\.}
         ;;
 
-      "[.]..*[.]")
-        pgm_arg_constraint="CORRECT"
-        pgm_arg_name=${pgm_arg#\.}
-        pgm_arg_name=${pgm_arg_name%\.}
+      "[-]..*[-]")
+        pgb_arg_constraint="NOCHECK"
+        pgb_arg_name=${pgb_arg#\.}
+        pgb_arg_name=${pgb_arg_name%\.}
         ;;
+
     esac
 
-    case ${pgm_arg_name} in
+    case ${pgb_arg_name} in
       "result" )
-        pgm_result_var=$1
+        pgb_result_var=$1
         shift
         ;;
 
       *)
-        eval local pgm_arg_num_name='pgm_${pgm_arg_name}_num'
-        eval local pgm_${pgm_arg_name}_num=$(( pgm_${pgm_arg_name}_num++ ))
-        eval local pgm_arg_var_name='pgm_${pgm_arg_name}'
+        eval local pgb_arg_num_name='pgb_${pgb_arg_name}_num'
+        eval local pgb_${pgb_arg_name}_num=$(( pgb_${pgb_arg_name}_num++ ))
+        eval local pgb_arg_var_name='pgb_${pgb_arg_name}'
 
-        case ${!pgm_arg_num_name} in
+        case ${!pgb_arg_num_name} in
           1)
-            eval ${pgm_arg_var_name}='$1'
+            eval ${pgb_arg_var_name}='$1'
             ;;
 
           2)
-            eval ${pgm_arg_var_name}_1='${!pgm_arg_var_name}'
-            eval unset ${pgm_arg_var_name}
-            eval ${pgm_arg_var_name}_2='$1'
+            eval ${pgb_arg_var_name}_1='${!pgb_arg_var_name}'
+            eval unset ${pgb_arg_var_name}
+            eval ${pgb_arg_var_name}_2='$1'
             ;;
 
           *)
-            eval ${pgm_arg_var_name}_${!pgm_arg_num_name}='$1'
+            eval ${pgb_arg_var_name}_${!pgb_arg_num_name}='$1'
             ;;
         esac
         shift
@@ -130,31 +135,31 @@ function analyzeParameters()
 
 function analyzeStandart()
 {
-  for pgm_option in $*
+  for pgb_option in $*
   do
-    case "${pgm_option}" in
+    case "${pgb_option}" in
       "-h"|"-?"|"--help")
-        printf "${PGM_USAGE}\n"
+        printf "${PGB_USAGE}\n"
         shift
         ;;
 
       "-v"|"--verbose"|"verbose")
-        export PGM_TRACELEVEL=3
+        export PGB_TRACELEVEL=3
         shift
         ;;
 
       "-t"|"--trace"|"trace")
-        export PGM_TRACELEVEL=2
+        export PGB_TRACELEVEL=2
         shift
         ;;
 
       "-e"|"--error"|"error")
-        export PGM_TRACELEVEL=1
+        export PGB_TRACELEVEL=1
         shift
         ;;
 
       "-q"|"--quiet"|"--silent"|"silent")
-        export PGM_TRACELEVEL=0
+        export PGB_TRACELEVEL=0
         shift
         ;;
 
@@ -178,38 +183,38 @@ function exitError()
 
 function instantiateTemplate()
 {
-  declareFunction "-template- -filename-" "$*"
+  declareFunction ".template. !filename!" "$*"
 
   if [[ $# -ne 2 ]]; then
     return 1
   fi
 
-  local pgm_tpl=$1
-  local pgm_dest=$2
-  if [ ! -r "${pgm_tpl}" ]; then
+  local pgb_tpl=$1
+  local pgb_dest=$2
+  if [ ! -r "${pgb_tpl}" ]; then
     return 2
   fi
-  if [ ! -w "$(dirname ${pgm_dest})" ]; then
+  if [ ! -w "$(dirname ${pgb_dest})" ]; then
     return 3
   fi
 
-  local pgm_sed_command=""
-  for pgm_var in ${!PGM_*}
+  local pgb_sed_command=""
+  for pgb_var in ${!PGB_*}
   do
-    if ! [[ ${!pgm_var} =~ .*[/].* ]]; then
-      local pgm_sed_command="${pgm_sed_command} s/\${${pgm_var}}/${!pgm_var}/;"
-    elif ! [[ ${!pgm_var} =~ .*[%].* ]]; then
-      local pgm_sed_command="${pgm_sed_command} s%\${${pgm_var}}%${!pgm_var}%;"
+    if ! [[ ${!pgb_var} =~ .*[/].* ]]; then
+      local pgb_sed_command="${pgb_sed_command} s/\${${pgb_var}}/${!pgb_var}/;"
+    elif ! [[ ${!pgb_var} =~ .*[%].* ]]; then
+      local pgb_sed_command="${pgb_sed_command} s%\${${pgb_var}}%${!pgb_var}%;"
     fi
   done
   
-  if [ -e "${pgm_dest}" ]; then
-    cp ${pgm_dest} ${pgm_dest}.orig
+  if [ -e "${pgb_dest}" ]; then
+    cp ${pgb_dest} ${pgb_dest}.orig
     if [[ $? -ne 0 ]]; then
       return 4
     fi
   fi
-  sed "${pgm_sed_command}" ${pgm_tpl} > ${pgm_dest}
+  sed "${pgb_sed_command}" ${pgb_tpl} > ${pgb_dest}
   if [[ $? -ne 0 ]]; then
     return 5
   fi
@@ -217,18 +222,18 @@ function instantiateTemplate()
 
 function instantiateConf()
 {
-  declareFunction "-filename- -filename-" "$*"
+  declareFunction ".confname. !filename!" "$*"
 
   if [[ $# -ne 2 ]]; then
     return 1
   fi
 
-  local pgm_src=$1
-  local pgm_dest=$2
-  if [ ! -r "${pgm_src}" ]; then
+  local pgb_src=$1
+  local pgb_dest=$2
+  if [ ! -r "${pgb_src}" ]; then
     return 2
   fi
-  if [ ! -w "$(dirname ${pgm_dest})" ]; then
+  if [ ! -w "$(dirname ${pgb_dest})" ]; then
     return 3
   fi
 
@@ -236,16 +241,16 @@ function instantiateConf()
        /^[[:space:]]*#[[:space:]]*END OF EDITABLES VARIABLES/ { beginconf = 0 }
        beginconf && /^[[:space:]]*$/ { print $0 }
        beginconf && /^[[:space:]]*#/ { print $0 }
-       beginconf && /^[[:space:]]*[^#]/ { print "# "$0 }' ${pgm_src} > ${pgm_dest}
+       beginconf && /^[[:space:]]*[^#]/ { print "# "$0 }' ${pgb_src} > ${pgb_dest}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot generate configuration ${pgm_dest} from ${pgm_src}"
+    printError "Cannot generate configuration ${pgb_dest} from ${pgb_src}"
     return 4
   else
-    chmod ug=rw,o= ${pgm_dest}
+    chmod ug=rw,o= ${pgb_dest}
     if [[ $? -ne 0 ]]; then
       return 5
     fi
-    printTrace "${pgm_dest} created from ${pgm_src}"
+    printTrace "${pgb_dest} created from ${pgb_src}"
   fi
 }
 
@@ -253,31 +258,31 @@ function ensureVars()
 {
   declareFunction "-string- -conditional-test- -result-" "$*"
 
-  local pgm_status=0
-  local pgm_report=""
+  local pgb_status=0
+  local pgb_report=""
 
   if [ $# -ne 3 ]; then
     return 1
   fi
-  local pgm_var_type=$1
-  local pgm_condition=$2
-  local pgm_result_var=$3
+  local pgb_var_type=$1
+  local pgb_condition=$2
+  local pgb_result_var=$3
 
-  local pgm_all_vars="${!PGM_*}"
-  local pgm_selected_vars="$(printf ${pgm_all_vars//[ ][ ]+/$'\n'} | egrep -o PGM_.*${pgm_var_type})"
-  for pgm_var in ${pgm_selected_vars}
+  local pgb_all_vars="${!PGB_*}"
+  local pgb_selected_vars="$(printf ${pgb_all_vars//[ ][ ]+/$'\n'} | egrep -o PGB_.*${pgb_var_type})"
+  for pgb_var in ${pgb_selected_vars}
   do
-    if ! [ -z "${pgm_var}" ]; then
-      local pgm_value="${!pgm_var}"
-      if ! [ ${pgm_condition} "${pgm_value}" ]; then
-        local pgm_report="${pgm_report} ${pgm_var}:'${pgm_value}'"
-        local pgm_status=$(( ${pgm_status} + 1 ))
+    if ! [ -z "${pgb_var}" ]; then
+      local pgb_value="${!pgb_var}"
+      if ! [ ${pgb_condition} "${pgb_value}" ]; then
+        local pgb_report="${pgb_report} ${pgb_var}:'${pgb_value}'"
+        local pgb_status=$(( ${pgb_status} + 1 ))
       fi
     fi
   done
 
-  eval ${pgm_result_var}='${pgm_report//[ ][ ]+/ }'
-  return ${pgm_status}
+  eval ${pgb_result_var}='${pgb_report//[ ][ ]+/ }'
+  return ${pgb_status}
 }
 
 function checkEnvironment()
@@ -287,41 +292,41 @@ function checkEnvironment()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  local pgm_result_var=$1
-  local pgm_status=0
-  local pgm_report=""
+  local pgb_result_var=$1
+  local pgb_status=0
+  local pgb_report=""
 
-  ensureVars _DIR -d pgm_part_report
+  ensureVars _DIR -d pgb_part_report
   if [[ $? -ne 0 ]]; then
-    local pgm_report="${pgm_report} ${pgm_part_report}"
-    local pgm_status=$(( ${pgm_status} + 1 ))
+    local pgb_report="${pgb_report} ${pgb_part_report}"
+    local pgb_status=$(( ${pgb_status} + 1 ))
   fi
 
-  ensureVars _CONF -w pgm_part_report
+  ensureVars _CONF -w pgb_part_report
   if [[ $? -ne 0 ]]; then
-    local pgm_report="${pgm_report} ${pgm_part_report}"
-    local pgm_status=$(( ${pgm_status} + 1 ))
+    local pgb_report="${pgb_report} ${pgb_part_report}"
+    local pgb_status=$(( ${pgb_status} + 1 ))
   fi
 
-  ensureVars _LOG -w pgm_part_report
+  ensureVars _LOG -w pgb_part_report
   if [[ $? -ne 0 ]]; then
-    local pgm_report="${pgm_report} ${pgm_part_report}"
-    local pgm_status=$(( ${pgm_status} + 1 ))
+    local pgb_report="${pgb_report} ${pgb_part_report}"
+    local pgb_status=$(( ${pgb_status} + 1 ))
   fi
 
-  ensureVars _EXE -x pgm_part_report
+  ensureVars _EXE -x pgb_part_report
   if [[ $? -ne 0 ]]; then
-    local pgm_report="${pgm_report} ${pgm_part_report}"
-    local pgm_status=$(( ${pgm_status} + 1 ))
+    local pgb_report="${pgb_report} ${pgb_part_report}"
+    local pgb_status=$(( ${pgb_status} + 1 ))
   fi
 
-  ensureVars _INVENTORY -w pgm_part_report
+  ensureVars _INVENTORY -w pgb_part_report
   if [[ $? -ne 0 ]]; then
-    local pgm_report="${pgm_report} ${pgm_part_report}"
-    local pgm_status=$(( ${pgm_status} + 1 ))
+    local pgb_report="${pgb_report} ${pgb_part_report}"
+    local pgb_status=$(( ${pgb_status} + 1 ))
   fi
 
-  eval ${pgm_result_var}='${pgm_report//[ ][ ]+/ }'
-  return ${pgm_status}
+  eval ${pgb_result_var}='${pgb_report//[ ][ ]+/ }'
+  return ${pgb_status}
 }
 

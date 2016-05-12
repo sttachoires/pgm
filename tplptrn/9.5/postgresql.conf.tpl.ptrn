@@ -21,9 +21,9 @@ logging_collector = on                  # Enable capturing of stderr and csvlog
 #syslog_ident = 'postgres'
 
 # These are only used if logging_collector is on:
-log_directory = '${PGM_PG_LOG_DIR}'   # directory where log files are written,
+log_directory = '${PGB_PG_LOG_DIR}'   # directory where log files are written,
                                         # can be absolute or relative to PGDATA
-log_filename = '${PGM_PG_LOG_NAME}'   # log file name pattern,
+log_filename = '${PGB_PG_LOG_NAME}'   # log file name pattern,
                                         # can include strftime() escapes
 log_truncate_on_rotation = on           # If on, an existing log file of the
                                         # same name as the new log file will be
@@ -88,10 +88,10 @@ lc_messages = 'C'	                        # locale for system error message
 default_text_search_config = 'pg_catalog.english'
 
 # Connection
-listen_addresses = ${PGM_PGHOST}
-port = ${PGM_PGPORT}
+listen_addresses = ${PGB_PGHOST}
+port = ${PGB_PGPORT}
 superuser_reserved_connections = 3
-unix_socket_directories = '${PGM_PGDATA_DIR}'
+unix_socket_directories = '${PGB_PGDATA_DIR}'
 
 # - Security and Authentication -
 ssl = off                                       # (change requires restart)
@@ -119,7 +119,7 @@ checkpoint_warning = 30s               # 0 disables
 wal_level = hot_standby
 archive_mode = on
 archive_command = 'true'
-#archive_command = 'rsync %p ${PGM_PGARCHIVELOG_DIR}/%f'
+#archive_command = 'rsync %p ${PGB_PGARCHIVELOG_DIR}/%f'
 # WAL sender
 max_wal_senders = 2
 
@@ -174,7 +174,7 @@ log_autovacuum_min_duration = 0         # -1 disables, 0 logs all actions and
 #------------------------------------------------------------------------------
 # Preload shared libraries that extents PostgreSQL capabilities
 #------------------------------------------------------------------------------
-shared_preload_libraries = '${PGM_PGEXTENSIONS}'
+shared_preload_libraries = '${PGB_PGEXTENSIONS}'
 
 # Libraries parameters
 auto_explain.log_min_duration = '1s'   # Request min duration to be explained

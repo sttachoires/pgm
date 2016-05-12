@@ -7,11 +7,11 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGM_DATABASE_CONF}" == "LOADED" ]; then
+if [ "${PGB_DATABASE_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGM_DATABASE_CONF="LOADED"
-. @CONFDIR@/pgm.conf
+export PGB_DATABASE_CONF="LOADED"
+. @CONFDIR@/pgbrewer.conf
 . @CONFDIR@/server.conf
 . @CONFDIR@/instance.conf
 . @CONFDIR@/.database.conf
@@ -20,19 +20,19 @@ export PGM_DATABASE_CONF="LOADED"
 # YOU CAN EDIT THEM TO FIT YOUR NEEDS
 
 # List of allowed character (form of a regular expression) alowed to form databases name, no space
-export PGM_PGDATABASE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
+export PGB_PGDATABASE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 
 # List of administrative databases alway listed in fact
-export PGM_PGADMINISTRATIVE_DATABASES="postgres template1 template0"
+export PGB_PGADMINISTRATIVE_DATABASES="postgres template1 template0"
 
 # END OF EDITABLES VARIABLES
 
 # DATABASES CONSTANTS set after setDatabase call
 
 # The database name
-# PGM_PGDATABASE
+# PGB_PGDATABASE
 
 
-if [ -v PGM_CONFIG_NAME ] && [ -r @CONFDIR@/${PGM_CONFIG_NAME}/database.conf ]; then
-  . @CONFDIR@/${PGM_CONFIG_NAME}/database.conf
+if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/database.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME}/database.conf
 fi

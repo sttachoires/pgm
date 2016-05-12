@@ -1,6 +1,6 @@
 #! @BASH@
 #
-# Check configuration of PGM.
+# Check configuration of PGBrewer.
 #
 # S. Tachoires          20/02/2016      Initial version
 #
@@ -12,10 +12,10 @@ if [[ $? -ne 0 ]]; then
   PRGNAME="Unknown"
 fi
 
-export PGM_LOG="${PGM_LOG_DIR}/check.log"
+export PGB_LOG="${PGB_LOG_DIR}/check.log"
 
 # INCLUDE
-. @CONFDIR@/pgm.conf
+. @CONFDIR@/pgbrewer.conf
 if [[ $? -ne 0 ]]; then
   printf "Error loading configuration file\n"
   exit 1
@@ -29,9 +29,9 @@ fi
 USAGE="${PRGNAME}\n"
 analyzeParameters $*
 
-checkEnvironment pgm_missing_envs
+checkEnvironment pgb_missing_envs
 if [[ $? -ne 0 ]]; then
-  printf "Configuration Error:\n\n${pgm_missing_envs// /$'\n'}\n"
+  printf "Configuration Error:\n\n${pgb_missing_envs// /$'\n'}\n"
 else
   printf "Environment OK\n"
 fi

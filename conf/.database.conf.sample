@@ -7,10 +7,10 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGM_DOT_DATABASE_CONF}" == "LOADED" ]; then
+if [ "${PGB_DOT_DATABASE_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGM_DOT_DATABASE_CONF="LOADED"
+export PGB_DOT_DATABASE_CONF="LOADED"
 
 # DATABASES CONSTANTS
 

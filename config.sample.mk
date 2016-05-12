@@ -1,4 +1,4 @@
-NAME:=pgm
+NAME:=pgbrewer
 VERSION:=0.02-dev
 
 # Customize below to fit your system
@@ -17,7 +17,7 @@ LOGROTATE:=/usr/sbin/logrotate
 # You have to own this directory with full rights on it
 #PREFIX:=/usr/local
 #PREFIX:=/home/${USER}
-#PREFIX:=/home/pgm
+#PREFIX:=/home/pgbrewer
 PREFIX:=SET IT NOW
 
 
@@ -25,11 +25,14 @@ PREFIX:=SET IT NOW
 # But will never changer after that.
 
 # You have to own these directories with full rights on them
-# Where the binary pgm will be.
+# Where the binary pgbrewer will be.
 BINDIR:=$(PREFIX)/bin
 
 # Where the command binaries will be.
 COMMANDDIR:=$(PREFIX)/command
+
+# Where the user interface profiles will be.
+UIDIR:=$(PREFIX)/ui
 
 # Where the administration scripts will be (initd for exemple)
 SCRIPTDIR:=$(PREFIX)/script
@@ -50,11 +53,11 @@ DOCDIR:=$(PREFIX)/share/$(NAME)
 # Where the manpages will be
 MANDIR:=$(PREFIX)/share/$(NAME)/man/man1
 
-# pgm templates directories place where dbas could edit them
+# pgbrewer templates directories place where dbas could edit them
 #TPLDIR:=$(PREFIX)/share/$(NAME)/templates
 TPLDIR:=$(PREFIX)/templates/$(NAME)
 
-# pgm log directory
+# pgbrewer log directory
 #LOGDIR:=/var/log/$(NAME)
 LOGDIR:=$(PREFIX)/log/$(NAME)
 

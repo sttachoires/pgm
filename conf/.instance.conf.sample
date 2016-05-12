@@ -7,11 +7,11 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGM_DOT_INSTANCE_CONF}" == "LOADED" ]; then
+if [ "${PGB_DOT_INSTANCE_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGM_DOT_INSTANCE_CONF="LOADED"
+export PGB_DOT_INSTANCE_CONF="LOADED"
 
-# PGM_TEMPLATE_DIR, where pgm templates are. They are used to build other files
-# by diverse pgm scripts like pgm_instance_create
-PGMSRV_PTRN_TEMPLATE_DIR='${PGM_TPL_DIR}/${PGM_PGMAJOR_VERSION}'
+# PGB_TEMPLATE_DIR, where pgbrewer templates are. They are used to build other files
+# by diverse pgbrewer scripts like pgb_instance_create
+PGBSRV_PTRN_TEMPLATE_DIR='${PGB_TPL_DIR}/${PGB_PGMAJOR_VERSION}'

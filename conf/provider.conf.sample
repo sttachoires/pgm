@@ -1,0 +1,29 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PROVIDER_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PROVIDER_CONF="LOADED"
+
+source @CONFDIR@/.provider.conf
+
+# EDITABLES VARIABLES
+# You can edit them
+# don't forget to issue a pgb_check after changer, to be sure.
+
+# Provide real name for user (the one who hides behind PG_USER)
+export PGB_REAL_USER=$(id -na)
+
+# END OF EDITABLES VARIABLES
+
+# If exists load configuration
+if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/provider.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME}/provider.conf
+fi

@@ -1,11 +1,11 @@
-PGM Set of scripts to help manage  PostgreSQL
+PGBrewer Set of scripts to help manage  PostgreSQL
 ==============================================
 
 
 FEATURES
 --------
 
-pgm is a set of bash scripts that helps manage multiple version
+pgbrewer is a set of bash scripts that helps manage multiple version
 of PostgreSQL with multiple instances, all on the same server.
 
 All install with current user.
@@ -25,13 +25,13 @@ QUICK SETUP
 
 3. Run `make` and `make install`
 
-4. `source .pgm_profile`
+4. `source .pgb_profile`
 
-5. Run `pgm_server_install /path/to/package/dir versionlabel`
+5. Run `pgb_server_install /path/to/package/dir versionlabel`
 
-6. Try `pgm_instance_create versionlabel instancename`
+6. Try `pgb_instance_create versionlabel instancename`
 
-7. Try `pgm_<TAB>`, test, and tell me.
+7. Try `pgb_<TAB>`, test, and tell me.
 
 
 DEVELOPMENT
@@ -39,5 +39,5 @@ DEVELOPMENT
 
 The source code is available on github: https://github.com/sttachoires
 
-pgm is developped by Stephane Tachoires under a classic 2 clauses BSD
+pgbrewer is developped by Stephane Tachoires under a classic 2 clauses BSD
 license. See license block in the scripts or the COPYRIGHT file.

@@ -7,84 +7,84 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGM_INSTANCE_CONF}" == "LOADED" ]; then
+if [ "${PGB_INSTANCE_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGM_INSTANCE_CONF="LOADED"
+export PGB_INSTANCE_CONF="LOADED"
 
-. @CONFDIR@/pgm.conf
+. @CONFDIR@/pgbrewer.conf
 . @CONFDIR@/.instance.conf
 . @CONFDIR@/server.conf
 
 # EDITABLES VARIABLES
 
 # List of allowed character (form of a regular expression) alowed to form instances name, no space
-export PGM_PGINSTANCE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
+export PGB_PGINSTANCE_AUTHORIZED_REGEXP="[a-zA-Z0-9_][-a-zA-Z._#0-9]{4,7}"
 
 # Default port for instance (guest what: 5432 by default!)
-export PGM_PGDEFAULTPORT=5432
+export PGB_PGDEFAULTPORT=5432
 
 #
 # BUILDING OPTIONS
 #
 # Those are be enriched and ported to template dir regarding version
 # List of extensions to load for every instances (shared_preload_libraries)
-export PGM_PGEXTENSIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
+export PGB_PGEXTENSIONS="adminpack, auto_explain, pg_stat_statements, postgres_fdw, sslinfo, btree_gin, btree_gist"
 # List of extensions to create for every databases (in template1)
-export PGM_PGEXTENSIONS_TO_CREATE="adminpack pg_stat_statements"
+export PGB_PGEXTENSIONS_TO_CREATE="adminpack pg_stat_statements"
 
 # INSTANCES PATTERN VARIABLES
 #
-# Be sure to run a pgm_check after altering these pattern
+# Be sure to run a pgb_check after altering these pattern
 #
-# Pattern 'PGMPG_PTRN_name' will be expanded into 'PGM_name'
-# In those patterns you can use the previous PGM_ constants and variables
+# Pattern 'PGBPG_PTRN_name' will be expanded into 'PGB_name'
+# In those patterns you can use the previous PGB_ constants and variables
 # but never refered to each other because you don't know in which order
 # they will be expanded
 
-# PGM_PGDATA_DIR the instance directory (PGDATA)
-PGMPG_PTRN_PGDATA_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data'
+# PGB_PGDATA_DIR the instance directory (PGDATA)
+PGBPG_PTRN_PGDATA_DIR='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/data'
 
-# PGM_PG_LOG_DIR the log directory (PGM_PG_LOG_NAME will be append to form the logfile
-PGMPG_PTRN_PG_LOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/log'
+# PGB_PG_LOG_DIR the log directory (PGB_PG_LOG_NAME will be append to form the logfile
+PGBPG_PTRN_PG_LOG_DIR='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/log'
 
-# PGM_PGXLOG_DIR where the instance put his wals
-PGMPG_PTRN_PGXLOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/xlog/wal'
+# PGB_PGXLOG_DIR where the instance put his wals
+PGBPG_PTRN_PGXLOG_DIR='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/xlog/wal'
 
-# PGM_PGARCHIVELOG used to backup wal for PITR needs
-PGMPG_PTRN_PGARCHIVELOG_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/archivelog'
+# PGB_PGARCHIVELOG used to backup wal for PITR needs
+PGBPG_PTRN_PGARCHIVELOG_DIR='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/archivelog'
 
-# PGM_PGHOME_DIR the base directory for the databases
-PGMPG_PTRN_PGDBHOME_DIR='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}'
+# PGB_PGHOME_DIR the base directory for the databases
+PGBPG_PTRN_PGDBHOME_DIR='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}'
 
 # Where exported database will end
-PGMSRV_PGEXPORT_DIR='${PGM_PGDBBASE_DIR}/export'
+PGBSRV_PGEXPORT_DIR='${PGB_PGDBBASE_DIR}/export'
 
-# PGM_PGFSLIST the list of directory you need to be filesystem. Used for approvision needs
-#PGMPG_PTRN_PGFSLIST='"${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE} ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/xlog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/archivelog ${PGM_PGBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/log"'
-PGMPG_PTRN_PGFSLIST=''
+# PGB_PGFSLIST the list of directory you need to be filesystem. Used for approvision needs
+#PGBPG_PTRN_PGFSLIST='"${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE} ${PGB_PGBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/xlog ${PGB_PGBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/archivelog ${PGB_PGBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/log"'
+PGBPG_PTRN_PGFSLIST=''
 
-# PGM_PGRECOVER_CONF The recovery.conf file, not recommanded to change
-PGMPG_PTRN_PGRECOVER_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/recovery.conf.bak'
+# PGB_PGRECOVER_CONF The recovery.conf file, not recommanded to change
+PGBPG_PTRN_PGRECOVER_CONF='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/data/recovery.conf.bak'
 
-# PGM_PG_CONF Instance configuration file (postgresql.conf)
-PGMPG_PTRN_PG_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/postgresql.conf'
+# PGB_PG_CONF Instance configuration file (postgresql.conf)
+PGBPG_PTRN_PG_CONF='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/data/postgresql.conf'
 
-# PGM_PGHBA_CONF Instance security file (pg_hba.conf), not recommanded to change
-PGMPG_PTRN_PGHBA_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/pg_hba.conf'
+# PGB_PGHBA_CONF Instance security file (pg_hba.conf), not recommanded to change
+PGBPG_PTRN_PGHBA_CONF='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/data/pg_hba.conf'
 
-# PGM_PGIDENT_CONF Instance identity file (pg_ident.conf), not recommanded to change
-PGMPG_PTRN_PGIDENT_CONF='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/data/pg_ident.conf'
+# PGB_PGIDENT_CONF Instance identity file (pg_ident.conf), not recommanded to change
+PGBPG_PTRN_PGIDENT_CONF='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/data/pg_ident.conf'
 
-# PGM_PG_LOG_NAME The instance log file name, will be in directory PGM_PG_LOG_DIR 
-PGMPG_PTRN_PG_LOG_NAME='${PGM_PGINSTANCE}.${PGM_PGFULL_VERSION}.log'
-#PGMPG_PTRN_PG_LOG_NAME='postgresql.log'
+# PGB_PG_LOG_NAME The instance log file name, will be in directory PGB_PG_LOG_DIR 
+PGBPG_PTRN_PG_LOG_NAME='${PGB_PGINSTANCE}.${PGB_PGFULL_VERSION}.log'
+#PGBPG_PTRN_PG_LOG_NAME='postgresql.log'
 
-# PGM_PGLOGROTATE_ENTRY The logrotate configuration entry that will be added for each new instance
-PGMPG_PTRN_PGLOGROTATE_ENTRY='${PGM_PGDBBASE_DIR}/${PGM_PGMAJOR_VERSION}/${PGM_PGINSTANCE}/log/*.log { weekly rotate 7 copytruncate delaycompress compress notifempty missingok size 50M }'
+# PGB_PGLOGROTATE_ENTRY The logrotate configuration entry that will be added for each new instance
+PGBPG_PTRN_PGLOGROTATE_ENTRY='${PGB_PGDBBASE_DIR}/${PGB_PGMAJOR_VERSION}/${PGB_PGINSTANCE}/log/*.log { weekly rotate 7 copytruncate delaycompress compress notifempty missingok size 50M }'
 
 # END OF EDITABLES VARIABLES
 
-if [ -v PGM_CONFIG_NAME ] && [ -r @CONFDIR@/${PGM_CONFIG_NAME}/instance.conf ]; then
-  . @CONFDIR@/${PGM_CONFIG_NAME}/instance.conf
+if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/instance.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME}/instance.conf
 fi

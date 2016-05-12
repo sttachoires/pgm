@@ -1,22 +1,22 @@
 #! @BASH@
 
-# Differents constants to fit pgm scripts
+# Differents constants to fit pgbrewer scripts
 
 # 19.02.2016	S. Tachoires	Initiate
 #set -xv
 
-if [ "${PGM_SERVER_INCLUDE}" == "LOADED" ]; then
+if [ "${PGB_SERVER_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
-export PGM_SERVER_INCLUDE="LOADED"
+export PGB_SERVER_INCLUDE="LOADED"
 
-. @CONFDIR@/pgm.conf
+. @CONFDIR@/pgbrewer.conf
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
-. ${PGM_CONF_DIR}/server.conf
-. ${PGM_LIB_DIR}/inventory.include
-. ${PGM_LIB_DIR}/util.include
+. ${PGB_CONF_DIR}/server.conf
+. ${PGB_LIB_DIR}/inventory.include
+. ${PGB_LIB_DIR}/util.include
 
 function setServer()
 {
@@ -26,22 +26,22 @@ function setServer()
     return 1
   fi
 
-  export PGM_PGFULL_VERSION=$1
-  if [[ "${PGM_PGFULL_VERSION}" =~ ^${PGM_PGREAL_VERSION_REGEXP}(${PGM_PGVERSION_AUTHORIZED_REGEXP})*$ ]]; then
+  export PGB_PGFULL_VERSION=$1
+  if [[ "${PGB_PGFULL_VERSION}" =~ ^${PGB_PGREAL_VERSION_REGEXP}(${PGB_PGVERSION_AUTHORIZED_REGEXP})*$ ]]; then
     # First set versions constants
-    export PGM_PGREAL_VERSION=$(echo "${PGM_PGFULL_VERSION}" | egrep --only-matching "^${PGM_PGREAL_VERSION_REGEXP}")
-    export PGM_PGMAJOR_VERSION=${PGM_PGREAL_VERSION%.*}
+    export PGB_PGREAL_VERSION=$(echo "${PGB_PGFULL_VERSION}" | egrep --only-matching "^${PGB_PGREAL_VERSION_REGEXP}")
+    export PGB_PGMAJOR_VERSION=${PGB_PGREAL_VERSION%.*}
 
     # Remove trailing slashes.
-    for pgm_pattern in ${!PGMSRV_PTRN_*}
+    for pgb_pattern in ${!PGBSRV_PTRN_*}
     do
-      eval pgm_value=\$${pgm_pattern}
-      eval export ${pgm_pattern/#PGMSRV_PTRN_/PGM_}=\"${pgm_value%/}\"
+      eval pgb_value=\$${pgb_pattern}
+      eval export ${pgb_pattern/#PGBSRV_PTRN_/PGB_}=\"${pgb_value%/}\"
     done
     
     return 0
   else
-    printError "The name '${PGM_PGFULL_VERSION}' doesn't match '^${PGM_PGREAL_VERSION_REGEXP}(${PGM_PGVERSION_AUTHORIZED_REGEXP})*$'"
+    printError "The name '${PGB_PGFULL_VERSION}' doesn't match '^${PGB_PGREAL_VERSION_REGEXP}(${PGB_PGVERSION_AUTHORIZED_REGEXP})*$'"
     return 2
   fi
 }
@@ -54,22 +54,22 @@ function serverInfo()
     return 1
   fi
   
-  local pgm_server=$1
-  local pgm_result_var=$2
+  local pgb_server=$1
+  local pgb_result_var=$2
 
-  setServer ${pgm_server}
+  setServer ${pgb_server}
   if [[ $? -ne 0 ]]; then
     return 2
   fi
   
-  if [ -x ${PGM_PGBIN_DIR}/pg_config ]; then
-    local pgm_report="$(${PGM_PGBIN_DIR}/pg_config)"
+  if [ -x ${PGB_PGBIN_DIR}/pg_config ]; then
+    local pgb_report="$(${PGB_PGBIN_DIR}/pg_config)"
   else
-    printError "no valid pg_config in '${PGM_PGBIN_DIR}'\n"
+    printError "no valid pg_config in '${PGB_PGBIN_DIR}'\n"
     return 3
   fi
 
-  eval ${pgm_result_var}='${pgm_report}'
+  eval ${pgb_result_var}='${pgb_report}'
 }
 
 function checkAllServers()
@@ -79,22 +79,22 @@ function checkAllServers()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  local pgm_result_var=$1
-  local pgm_report=""
-  local pgm_status=0
+  local pgb_result_var=$1
+  local pgb_report=""
+  local pgb_status=0
 
-  getServers pgm_server_list
-  for pgm_server in ${pgm_server_list}
+  getServers pgb_server_list
+  for pgb_server in ${pgb_server_list}
   do
-    checkServer ${pgm_server} pgm_check_result
-    local pgm_report="${pgm_report} ${pgm_check_result}"
+    checkServer ${pgb_server} pgb_check_result
+    local pgb_report="${pgb_report} ${pgb_check_result}"
     if [[ $? -ne 0 ]]; then
-      local pgm_status=$(( ${pgm_status} + 1 ))
+      local pgb_status=$(( ${pgb_status} + 1 ))
     fi
   done
 
-  eval ${pgm_result_var}='${pgm_report//[ ][ ]+/ }'
-  return ${pgm_status}
+  eval ${pgb_result_var}='${pgb_report//[ ][ ]+/ }'
+  return ${pgb_status}
 }
 
 function checkServer()
@@ -104,18 +104,18 @@ function checkServer()
     return 1
   fi
   
-  local pgm_server=$1
-  local pgm_result_var=$2
+  local pgb_server=$1
+  local pgb_result_var=$2
   
-  local pgm_status=0
+  local pgb_status=0
 
-  setServer ${pgm_server}
+  setServer ${pgb_server}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot set server ${pgm_server}"
+    printError "Cannot set server ${pgb_server}"
     return 2
   fi
 
-  checkEnvironment pgm_report
+  checkEnvironment pgb_report
 }
 
 function installServer()
@@ -126,19 +126,19 @@ function installServer()
     return 1
   fi
 
-  local pgm_src_dir=$1
-  local pgm_server=$2
+  local pgb_src_dir=$1
+  local pgb_server=$2
 
-  if [ ! -v PGM_PGHOME_DIR ] || [ ! -v PGM_PGBIN_DIR ] || [ ! -v PGM_PGLIB_DIR ] || [ ! -v PGM_PGINCLUDE_DIR ] || [ ! -v PGM_PGSHARE_DIR ] || [ ! -v PGM_PGMAN_DIR ] || [ ! -v PGM_PGDOC_DIR ]; then
-    setServer ${pgm_server}
+  if [ ! -v PGB_PGHOME_DIR ] || [ ! -v PGB_PGBIN_DIR ] || [ ! -v PGB_PGLIB_DIR ] || [ ! -v PGB_PGINCLUDE_DIR ] || [ ! -v PGB_PGSHARE_DIR ] || [ ! -v PGB_PGBrewer.N_DIR ] || [ ! -v PGB_PGDOC_DIR ]; then
+    setServer ${pgb_server}
     if [[ $? -ne 0 ]]; then
-      printError "Cannot set server ${pgm_server}"
+      printError "Cannot set server ${pgb_server}"
       return 2
     fi
   fi
 
-  cd ${pgm_src_dir}
-  ./configure --prefix=${PGM_PGHOME_DIR} --exec-prefix=$(dirname ${PGM_PGBIN_DIR}) --bindir=${PGM_PGBIN_DIR} --libdir=${PGM_PGLIB_DIR} --includedir=${PGM_PGINCLUDE_DIR} --datarootdir=${PGM_PGSHARE_DIR} --mandir=${PGM_PGMAN_DIR} --docdir=${PGM_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap 
+  cd ${pgb_src_dir}
+  ./configure --prefix=${PGB_PGHOME_DIR} --exec-prefix=$(dirname ${PGB_PGBIN_DIR}) --bindir=${PGB_PGBIN_DIR} --libdir=${PGB_PGLIB_DIR} --includedir=${PGB_PGINCLUDE_DIR} --datarootdir=${PGB_PGSHARE_DIR} --mandir=${PGB_PGBrewer.N_DIR} --docdir=${PGB_PGDOC_DIR} --with-openssl --with-perl --with-python --with-ldap 
   if [[ $? -ne 0 ]]; then
     return 3
   fi
@@ -162,5 +162,5 @@ function installServer()
   if [[ $? -ne 0 ]]; then
     return 7
   fi
-  addServer ${pgm_server}
+  addServer ${pgb_server}
 }

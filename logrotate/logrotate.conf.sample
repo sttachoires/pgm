@@ -1,6 +1,6 @@
-# Logrotate configuration file for PGM
+# Logrotate configuration file for PGBrewer
 
-# Rotate PGM log files
+# Rotate PGBrewer log files
 @LOGDIR@/*.log {
   weekly
   rotate 3
