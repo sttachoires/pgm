@@ -130,7 +130,7 @@ case "${pgb_action}" in
     if [[ $? -ne 0 ]]; then
       exitError 2 "error getting server list"
     fi
-    getRemovedConfigurations ${pgb_config} pgb_removed_server_list
+    getRemovedServers ${pgb_config} pgb_removed_server_list
     if [[ $? -ne 0 ]]; then
       exitError 3 "error getting removed server list"
     fi
@@ -305,6 +305,9 @@ case "${pgb_action}" in
     ;;
 
   "merge")
+    printError "Not implemented yet\n"
+    ;;
+
   "create" )
     if [[ $# -ge 1 ]]; then
       pgb_config=$1
@@ -313,6 +316,19 @@ case "${pgb_action}" in
       pgb_config=${PGB_CONFIG_NAME:-default}
     fi
 
+    if [[ $# -ge 1 ]]; then
+      pgb_server=$1
+      shift
+    else
+      pgb_server=${PGB_SERVER_NAME:-default}
+    fi
+
+    installServer ${pgb_config} ${pgb_server}
+if [[ $? -ne 0 ]]; then
+  printError "Error installing ${pgb_srcdir} ${pgb_server}\n"
+else
+  printf "PostgreSQL ${PGB_PGFULL_VERSION} installed in ${PGB_PGHOME_DIR}\n"
+fi
     createConfig ${pgb_config}
     if [[ $? -ne 0 ]]; then
       exitError " problem creating ${pgb_config}"
@@ -350,33 +366,4 @@ case "${pgb_action}" in
   *) exitError "${USAGE}\n"
     ;;
 esac
-                                                                                                 73,1           6%
-"Usage: ${PRGNAME} FULLVERSION SRCDIR\nwhere\n\tFULLVERSION is the full PostgreSQL you are about to install (9.5.0)\n\tSRCDIR is the directory where you've put uncompressed source directory (/var/tmp/postgres-9.5.0-master)"
 
-#
-# M A I N
-#
-
-
-if [[ $# -lt 2 ]]; then
-  exitError "${USAGE}\n"
-fi
-
-pgb_srcdir=${1%/}
-pgb_server=$2
-shift 2
-
-analyzeParameters $*
-
-if [[ ! -d ${pgb_srcdir} ]]; then
-  exitError "${pgb_srcdir} does not exists\n"
-elif [[ ! -x ${pgb_srcdir}/configure ]]; then
-  exitError "Something wrong with ${pgb_srcdir}. Configure script cannot be found executable\n"
-fi
-
-installServer ${pgb_srcdir} ${pgb_server}
-if [[ $? -ne 0 ]]; then
-  printError "Error installing ${pgb_srcdir} ${pgb_server}\n"
-else
-  printf "PostgreSQL ${PGB_PGFULL_VERSION} installed in ${PGB_PGHOME_DIR}\n"
-fi

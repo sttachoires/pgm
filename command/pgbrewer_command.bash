@@ -64,10 +64,10 @@ merge +config+ +config+
 merge first pgbrewer environment into the second one, configurations by configurations
 
 create +config+
-validate, set read only configuration, allow usage of a pgbrewer environment
+validate, set read only configuration.
 
 remove +config+
-remove environment be no deletion, listed a removed, but be empty, no database, replication, whatsoever
+uncreate environment, set read/write.
  
 drop -config-
 perform actual environment removal by deletion
@@ -108,6 +108,80 @@ else
 fi
 
 case "${pgb_action}" in
+  "completion")
+    if [[ $# -ge 1 ]]; then
+      pgb_comp_cword=$#
+    else
+      pgb_comp_cword=0
+    fi
+
+    pgb_var_name="pgb_previous"
+    for ((; ${pgb_comp_cword} > 0; pgb_comp_cword-- ))
+    do
+      eval ${pgb_var_name}=${!pgb_comp_cword}
+      pgb_var_name="${pgb_var_name}_previous"
+    done
+    pgb_completion=""
+    case "${pgb_previous}" in
+      "pgbrewer" )
+        pgb_completion=`printf "${PGB_ACTIONS}\n" | awk '{ print $1 }'`
+        pgb_completion="${pgb_actions//$'\n'/' '}"
+        ;;
+
+      "actions" | "usage" | "help")
+        pgb_completion=""
+        ;;
+
+      "info"|"check"|"create"|"remove"|"drop"|"compare"|"merge")
+        getAllConfigurations pgb_config_list
+        pgb_completion="${pgb_config_list//$'\n'/' '}"
+        ;;
+
+      "add")
+        pgb_completion="as NAME"
+        ;;
+
+      "list")
+        if [ "${pgb_previous_previous}x" == "configurex" ]; then
+          getAllConfigurations pgb_config_list
+          pgb_completion="${pgb_config_list//$'\n'/' '}"
+        else
+          pgb_completion="all NOTHING"
+        fi
+        ;;
+
+      "configure")
+        pgb_info_list=""
+        for pgb_orig in ${pgb_config_dir}/*.conf
+        do
+          pgb_info_list="${pgb_info_list} ${pgb_orig%\.conf}"
+        done
+        pgb_completion="list ${pgb_info_list% }"
+        ;;
+
+      "as")
+        if [ "${pgb_previous_previous}x" == "addx" ]; then
+          getAllConfigurations pgb_config_list
+          pgb_completion="${pgb_config_list//$'\n'/' '}"
+        else
+          pgb_completion=""
+        fi
+        ;;
+
+      *)
+        if [ "${pgb_previous_previous_previous}x" == "configurex" ] ||
+           [ "${pgb_previous_previous_previous}x" == "comparex" ] ||
+           [ "${pgb_previous_previous_previous}x" == "mergex" ]; then
+          getAllConfigurations pgb_config_list
+          pgb_completion="${pgb_config_list//$'\n'/' '}"
+        else
+          pgb_completion=""
+        fi
+        ;;
+    esac
+    echo "${pgb_completion}"
+    ;;
+
   "actions")
     printf "${PGB_ACTIONS}\n"
     ;;
@@ -121,25 +195,35 @@ case "${pgb_action}" in
     ;;
 
   "list")
-    getConfigurations pgb_config_list
-    if [[ $? -ne 0 ]]; then
-      exitError 2 "error"
-    fi
-    getRemovedConfigurations pgb_removed_config_list
-    if [[ $? -ne 0 ]]; then
-      exitError 2 "error"
-    fi
-    if [ "${pgb_config_list// }x" == "x" ] && [ "${pgb_removed_config_list// }x" == "x" ]; then
-      printf "No config.\n"
-    else
-      if [ "${pgb_config_list}x" != "x" ]; then
-        printf "Active configurations:\n${pgb_config_list// /$'\n'}\n"
-      fi
-      if [ "${pgb_removed_config_list}x" != "x" ]; then
-        if [ "${pgb_config_list}x" != "x" ]; then
-          printf "\n"
+    if [[ $# -ge 1 ]]; then
+      if [ "${1}x" == "allx" ]; then
+        getAllConfigurations pgb_config_list
+        if [[ $? -ne 0 ]]; then
+          exitError 2 "error"
         fi
-        printf "Removed configurations:\n${pgb_removed_config_list// /$'\n'}\n"
+        printf "${pgb_config_list// /$'\n'}\n"
+      fi
+    else
+      getCreatedConfigurations pgb_created_config_list
+      if [[ $? -ne 0 ]]; then
+        exitError 2 "error"
+      fi 
+      getAddedConfigurations pgb_added_config_list
+      if [[ $? -ne 0 ]]; then
+        exitError 2 "error"
+      fi
+      if [ "${pgb_created_config_list// }x" == "x" ] && [ "${pgb_added_config_list// }x" == "x" ]; then
+        printf "No config.\n"
+      else
+        if [ "${pgb_created_config_list// }x" != "x" ]; then
+          printf "Created configurations:\n${pgb_created_config_list// /$'\n'}\n"
+          if [ "${pgb_added_config_list// }x" != "x" ]; then
+            printf "\n"
+          fi
+        fi
+        if [ "${pgb_added_config_list// }x" != "x" ]; then
+          printf "Added configurations:\n${pgb_added_config_list// /$'\n'}\n"
+        fi
       fi
     fi
     ;;

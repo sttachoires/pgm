@@ -18,17 +18,11 @@ function _pgbrewer_completion()
 {
   COMPREPLY=()
 
-  local pgb_current="${COMP_WORDS[COMP_CWORD]}"
-  local pgb_previous="${COMP_WORDS[COMP_CWORD-1]}"
-  local pgb_actions="$(pgbrewer actions)"
+  local pgb_current=${COMP_WORDS[COMP_CWORD]}
+  local pgb_completion=$(pgbrewer completion)
 
-  if [ "${pgb_previous}x" == "pgbrewerx" ]; then
-    local pgb_completion=$(printf "${pgb_actions}" | awk '{ print $1 }')
-    COMPREPLY=( $(compgen -W "${pgb_completion//$'\n'/ }" -- ${pgb_current} ) )
-  else
-    local pgb_line=$(printf "${pgb_actions}" | grep ^${pgb_previous})
-    local pgb_completion=$(printf "${pgb_line}" | awk '{ print $2 }')
-  fi
+  COMPREPLY=( $(compgen -W "${pgb_completion}" -- ${pgb_current} ) )
+
   return 0
 }
 
@@ -38,24 +32,12 @@ function pgbrewer()
 {
   local pgb_actions="$(@COMMANDDIR@/pgbrewer_command actions)"
   local pgb_actions="\
-help
-usage
-actions
+${pgb_actions}
 default ?config?
 undefault
-shell ?config?
-${pgb_actions}"
+shell ?config?"
 
   local pgb_actions_description="\
-help
-explain you how this works
-
-usage
-will provide this text:)
-
-actions
-list all possible actions and parameters with this command
-
 default ?config?
 remember default configuration (PGB_CONFIG_NAME) so you can ommit this parameter. Will unset if no config
 
@@ -72,7 +54,7 @@ $(@COMMANDDIR@/pgbrewer_command usage)"
 
   if [ $# -eq 0 ]; then
     if [ -v PGB_CONFIG_NAME ] && [ "${PGB_CONFIG_NAME}x" != "x" ]; then
-      local pgb_action="shell ${PGB_CONFIG_NAME}"
+      local pgb_action="shell"
     else
       local pgb_action="help"
     fi
@@ -89,11 +71,35 @@ $(@COMMANDDIR@/pgbrewer_command usage)"
     "usage" )
       printf "pgbrewer action [parameters]
 Where actions are:
-${pgb_actions//$'\n'/$'\n'$'\t'}\n"
+	${pgb_actions//$'\n'/$'\n'$'\t'}\n"
       ;;
 
     "actions" )
       printf "${pgb_actions}\n"
+      ;;
+
+    "completion" )
+      local pgb_previous="${COMP_WORDS[COMP_CWORD-1]}"
+      case "${pgb_previous}" in
+        "pgbrewer" )
+          local pgb_created_config="$(@COMMANDDIR@/pgbrewer_command list all)"
+          local pgb_actions_completion=`printf "${pgb_actions}\n" | awk '{ print $1 }'`
+          local pgb_completion="default ${pgb_created_config//$'\n'/' '} ${pgb_actions_completion//$'\n'/' '}"
+          ;;
+
+        "help"|"usage"|"actions"|"completion")
+          local pgb_completion=""
+          ;;
+
+        "default"|"shell")
+          local pgb_created_config="$(@COMMANDDIR@/pgbrewer_command list all)"
+          local pgb_completion="default ${pgb_created_config//$'\n'/ }"
+          ;;
+
+        *)
+          local pgb_completion="$(@COMMANDDIR@/pgbrewer_command completion ${COMP_WORDS[@]})"
+      esac
+      echo "${pgb_completion}"
       ;;
 
     "default" )
@@ -112,11 +118,13 @@ ${pgb_actions//$'\n'/$'\n'$'\t'}\n"
       if [ $# -ge 1 ]; then
         export PGB_CONFIG_NAME="$1"
       fi
+      unset PGBREWER_PROFILE # ensure pgbrewer ui will be loaded
       ${BASH} --init-file @UIDIR@/commands_profile
       ;;
 
     *)
-      @COMMANDDIR@/pgbrewer_command ${pgb_action} $* ${PGB_CONFIG_NAME}
+      pgb_config=${PGB_CONFIG_NAME:-default}
+      (export PGB_CONFIG_NAME="${pgb_config}"; @COMMANDDIR@/pgbrewer_command ${pgb_action} $*)
       ;;
   esac
 }

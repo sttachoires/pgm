@@ -16,7 +16,7 @@ if [[ $? -ne 0 ]]; then
 fi
 . ${PGB_LIB_DIR}/util.include
 
-function getRemovedConfigurations()
+function getAllConfigurations()
 {
   declareFunction "-result-" "$*"
 
@@ -27,7 +27,7 @@ function getRemovedConfigurations()
   local pgb_result_var=$1
   local pgb_report=""
 
-  for pgb_config_dir in ${PGB_CONF_DIR}/\.??*
+  for pgb_config_dir in ${PGB_CONF_DIR}/??*
   do
     if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ]; then
       pgb_tempo=$(basename ${pgb_config_dir%/})
@@ -38,7 +38,7 @@ function getRemovedConfigurations()
   eval ${pgb_result_var}='${pgb_report## }'
 }
 
-function getConfigurations()
+function getAddedConfigurations()
 {
   declareFunction "-result-" "$*"
 
@@ -51,13 +51,34 @@ function getConfigurations()
 
   for pgb_config_dir in ${PGB_CONF_DIR}/*
   do
-    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ]; then
+    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -w ${pgb_config_dir%/} ]; then
       pgb_report="${pgb_report} $(basename ${pgb_config_dir%/})"
     fi
   done
 
   eval ${pgb_result_var}='${pgb_report## }'
 }
+
+function getCreatedConfigurations()
+{
+  declareFunction "-result-" "$*"
+
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+
+  local pgb_result_var=$1
+  local pgb_report=""
+
+  for pgb_config_dir in ${PGB_CONF_DIR}/*
+  do
+    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -r${pgb_config_dir%/} ] && [ ! -w ${pgb_config_dir%/} ]; then      pgb_report="${pgb_report} $(basename ${pgb_config_dir%/})"
+    fi
+  done
+
+  eval ${pgb_result_var}='${pgb_report## }'
+}
+
 
 function addConfig()
 {
@@ -172,8 +193,8 @@ function editConfig()
     return 1
   fi
 
-  local pgb_config=$1
-  local pgb_command=$2
+  local pgb_command=$1
+  local pgb_config=$2
 
   if [ "${pgb_config}x" == "defaultx" ]; then
     local pgb_config_dir=${PGB_CONF_DIR}

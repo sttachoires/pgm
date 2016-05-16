@@ -63,8 +63,8 @@ PGBSRV_PTRN_PGINCLUDE_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/include'
 # PGB_PGDOC_DIR, ok
 PGBSRV_PTRN_PGDOC_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/doc'
 
-# PGB_PGBrewer.N_DIR, no, surprisingly, it for PostgreSQL man pages...
-PGBSRV_PTRN_PGBrewer.N_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/man'
+# PGB_PGMAN_DIR, no, surprisingly, it for PostgreSQL man pages...
+PGBSRV_PTRN_PGMAN_DIR='${PGB_PGBASE_DIR}/${PGB_PGFULL_VERSION}/man'
 
 # PGB_TEMPLATE_DIR, where pgbrewer templates are. They are used to build other files
 # by diverse pgbrewer scripts like pgb_instance_create
