@@ -97,7 +97,7 @@ Where actions are:
           ;;
 
         *)
-          local pgb_completion="$(@COMMANDDIR@/pgbrewer_command completion ${COMP_WORDS[@]})"
+          local pgb_completion="$(@COMMANDDIR@/pgbrewer_command completion ${COMP_CWORD} ${COMP_WORDS[@]})"
       esac
       echo "${pgb_completion}"
       ;;

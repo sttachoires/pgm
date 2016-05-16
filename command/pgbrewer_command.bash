@@ -110,7 +110,8 @@ fi
 case "${pgb_action}" in
   "completion")
     if [[ $# -ge 1 ]]; then
-      pgb_comp_cword=$#
+      pgb_comp_cword=$1
+      shift
     else
       pgb_comp_cword=0
     fi
@@ -151,10 +152,14 @@ case "${pgb_action}" in
         ;;
 
       "configure")
+        pgb_config_dir=${PGB_CONF_DIR}/${PGB_CONFIG_NAME}
+        if [ ! -d ${pgb_config_dir} ]; then
+          exitError "No config ${PGB_CONFIG_NAME}"
+        fi
         pgb_info_list=""
         for pgb_orig in ${pgb_config_dir}/*.conf
         do
-          pgb_info_list="${pgb_info_list} ${pgb_orig%\.conf}"
+          pgb_info_list="${pgb_info_list} $(basename ${pgb_orig%\.conf})"
         done
         pgb_completion="list ${pgb_info_list% }"
         ;;
@@ -169,9 +174,9 @@ case "${pgb_action}" in
         ;;
 
       *)
-        if [ "${pgb_previous_previous_previous}x" == "configurex" ] ||
-           [ "${pgb_previous_previous_previous}x" == "comparex" ] ||
-           [ "${pgb_previous_previous_previous}x" == "mergex" ]; then
+        if [ "${pgb_previous_previous}x" == "configurex" ] ||
+           [ "${pgb_previous_previous}x" == "comparex" ] ||
+           [ "${pgb_previous_previous}x" == "mergex" ]; then
           getAllConfigurations pgb_config_list
           pgb_completion="${pgb_config_list//$'\n'/' '}"
         else
@@ -361,7 +366,7 @@ case "${pgb_action}" in
       shift
     fi
     compareConfig ${pgb_source} ${pgb_config} pgb_compare_config
-    if [[ $? -ne 0 ]]; then
+    if [ "${pgb_compare_config}x" != "x" ]; then
       printf "Configurations differs:\n${pgb_compare_config}\n"
     else
       printf "Same configuration\n"

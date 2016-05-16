@@ -253,7 +253,7 @@ function editConfig()
 function compareConfig()
 {
   declareFunction "+config+ +config+ -result-" "$*"
-  if [[ $# -ne 2 ]]; then
+  if [[ $# -ne 3 ]]; then
     return 1
   fi
 
@@ -261,18 +261,15 @@ function compareConfig()
   local pgb_config=$2
   local pgb_result_var=$3
 
-  for pgb_confile in ${PGB_CONF_DIR}/${pgb_config}/*.conf
-  do
-    local pgb_sourcefile="$PGB_CONF_DIR}/${pgb_source}/$(basename ${pgb_confile})"
-    if [ -r ${pgb_sourcefile} ]; then
-      local pgb_diff=`(export PGB_CONFIG_NAME=${pgb_config}; . etc/pgbrewer/pgbrewer.conf; env | grep "PGB_" | sort) > /var/tmp/pg${pgb_config}.tmp; (export PGB_CONFIG_NAME=${pgb_source}; . etc/pgbrewer/pgbrewer.conf; env | grep "PGB_" | sort) > /var/tmp/pgbrewer${pgb_source}.tmp; diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='%L' --new-line-format='#%L' --unchanged-line-format='' /var/tmp/pgbrewer${pgb_config}.tmp /var/tmp/pgbrewer${pgb_source}.tmp; rm -f /var/tmp/pgbrewer${pgb_config}.tmp /var/tmp/pgbrewer${pgb_source}.tmp`
-      if [[ $? -ne 0 ]]; then
-        pgb_report="${pgb_report} ${pgb_diff}"
-      fi
-    else
-      pgb_report="${pgb_report} missing ${pgb_sourcefile}"
-    fi
-  done
+  
+  local pgb_diff="`(export PGB_CONFIG_NAME=${pgb_config}; . etc/pgbrewer/pgbrewer.conf; env | grep "PGB_" | sort) > /var/tmp/pgbrewer${pgb_config}.$$.tmp; (export PGB_CONFIG_NAME=${pgb_source}; . etc/pgbrewer/pgbrewer.conf; env | grep "PGB_" | sort) > /var/tmp/pgbrewer${pgb_source}.$$.tmp; diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='%L' --new-line-format='#%L' --unchanged-line-format='' /var/tmp/pgbrewer${pgb_config}.$$.tmp /var/tmp/pgbrewer${pgb_source}.$$.tmp; rm -f /var/tmp/pgbrewer${pgb_config}.$$.tmp /var/tmp/pgbrewer${pgb_source}.$$.tmp`"
+  if [[ $? -eq 0 ]] && [ "${pgb_diff}x" != "x" ]; then
+    eval ${pgb_result_var}='${pgb_diff}'
+  else
+    eval ${pgb_result_var}=""
+  fi
+ 
+  return 0
 }
 
 function removeConfig()
