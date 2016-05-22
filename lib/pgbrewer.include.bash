@@ -5,10 +5,10 @@
 # 19.02.2016	S. Tachoires	Initiate
 #set -xv
 
-if [ "${PGB_INCLUDE}" == "LOADED" ]; then
+if [ "${PGB_PGBREWER_INCLUDE}" == "LOADED" ]; then
   return 0
 fi
-export PGB_INCLUDE="LOADED"
+export PGB_PGBREWER_INCLUDE="LOADED"
 
 . @CONFDIR@/pgbrewer.conf
 if [[ $? -ne 0 ]]; then
@@ -72,13 +72,44 @@ function getCreatedConfigurations()
 
   for pgb_config_dir in ${PGB_CONF_DIR}/*
   do
-    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -r${pgb_config_dir%/} ] && [ ! -w ${pgb_config_dir%/} ]; then      pgb_report="${pgb_report} $(basename ${pgb_config_dir%/})"
+    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -r${pgb_config_dir%/} ] && [ ! -w ${pgb_config_dir%/} ]; then
+      pgb_report="${pgb_report} $(basename ${pgb_config_dir%/})"
     fi
   done
 
   eval ${pgb_result_var}='${pgb_report## }'
 }
 
+function getCommands()
+{
+  declareFunction "+config+ -result-" "$*"
+
+  if  [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  local pgb_config=$1
+  local pgb_result_var=$2
+
+  if [ "${pgb_config}x" == "defaultx" ]; then
+    pgb_config_dir=${PGB_CONF_DIR}
+  else
+    pgb_config_dir=${PGB_CONF_DIR}/${PGB_CONFIG_NAME}
+  fi
+
+  if [ ! -d ${pgb_config_dir} ]; then
+    return 2
+  fi
+
+  pgb_command_list=""
+  for pgb_command in ${pgb_config_dir}/*.conf
+  do
+    pgb_command_list="${pgb_command_list} $(basename ${pgb_command%\.conf})"
+  done
+
+  eval export ${pgb_result_var}='${pgb_command_list## }'
+  return 0
+}
 
 function addConfig()
 {
@@ -250,6 +281,37 @@ function editConfig()
   fi
 }
 
+function setConfig()
+{
+  declareFunction "+config+" "$*"
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  pg_config=$1
+  unset PGB_CONF
+  unset PGB_DOT_CONF
+  if [[ "${PGB_CONFIG_NAME}x" != "x" ]]; then
+    export PGB_CONFIG_NAME=${pgb_config}
+  fi
+  source ${PGB_CONF_DIR}/pgbrewer.conf
+}
+
+function getVars()
+{
+  declareFunction "+config+ .result." "$*"
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+  pgb_config=$1
+  pgb_result_var=$2
+
+  pgb_vars="(setConfig ${pgb_config}; pgb_vars="${!PGB_*}"; for pgb_var in $(printf "${pgb_vars}" | sort); do pgb_value="${!pgb_var}"; printf "${pgb_var}=\"${pgb_value}\"\n"; done)"
+
+  eval export ${pgb_result_var}="${pgb_vars}"
+
+  return 0
+}
+
 function compareConfig()
 {
   declareFunction "+config+ +config+ -result-" "$*"
@@ -261,12 +323,14 @@ function compareConfig()
   local pgb_config=$2
   local pgb_result_var=$3
 
-  
-  local pgb_diff="`(export PGB_CONFIG_NAME=${pgb_config}; . etc/pgbrewer/pgbrewer.conf; env | grep "PGB_" | sort) > /var/tmp/pgbrewer${pgb_config}.$$.tmp; (export PGB_CONFIG_NAME=${pgb_source}; . etc/pgbrewer/pgbrewer.conf; env | grep "PGB_" | sort) > /var/tmp/pgbrewer${pgb_source}.$$.tmp; diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='%L' --new-line-format='#%L' --unchanged-line-format='' /var/tmp/pgbrewer${pgb_config}.$$.tmp /var/tmp/pgbrewer${pgb_source}.$$.tmp; rm -f /var/tmp/pgbrewer${pgb_config}.$$.tmp /var/tmp/pgbrewer${pgb_source}.$$.tmp`"
+  getVars ${pgb_source} pgb_source_vars
+  getVars ${pgb_config} pgb_config_vars
+
+  local pgb_diff=$(diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='#%L' --new-line-format='%L' --unchanged-line-format='' <(printf "${pgb_source_vars}\n") <(printf "${pgb_config_vars}\n") )
   if [[ $? -eq 0 ]] && [ "${pgb_diff}x" != "x" ]; then
-    eval ${pgb_result_var}='${pgb_diff}'
+    eval export ${pgb_result_var}="'${pgb_diff}'"
   else
-    eval ${pgb_result_var}=""
+    eval export ${pgb_result_var}=''
   fi
  
   return 0

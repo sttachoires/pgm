@@ -7,10 +7,10 @@
 #
 #set -xv
 
-if [ "${PGBREWER_PROFILE}" == "LOADED" ]; then
+if [ "${PGB_PGBREWER_PROFILE}" == "LOADED" ]; then
   return 0
 fi
-export PGBREWER_PROFILE="LOADED"
+export PGB_PGBREWER_PROFILE="LOADED"
 export MANPATH="@MANDIR@:${MANPATH}"
 export PS1="${PS1} # "
 
@@ -36,6 +36,9 @@ ${pgb_actions}
 default ?config?
 undefault
 shell ?config?"
+
+  local pgb_actions_list=`printf "${pgb_actions}\n" | awk '{ print $1 }'`
+        pgb_actions_list="${pgb_actions_list//$'\n'/ }"
 
   local pgb_actions_description="\
 default ?config?
@@ -78,13 +81,20 @@ Where actions are:
       printf "${pgb_actions}\n"
       ;;
 
+    "actionlist" )
+      printf "${pgb_actions_list}\n"
+      ;;
+
     "completion" )
       local pgb_previous="${COMP_WORDS[COMP_CWORD-1]}"
       case "${pgb_previous}" in
         "pgbrewer" )
-          local pgb_created_config="$(@COMMANDDIR@/pgbrewer_command list all)"
-          local pgb_actions_completion=`printf "${pgb_actions}\n" | awk '{ print $1 }'`
-          local pgb_completion="default ${pgb_created_config//$'\n'/' '} ${pgb_actions_completion//$'\n'/' '}"
+          if [[ ${COMP_CWORD} -eq 1 ]]; then
+            local pgb_created_config="$(@COMMANDDIR@/pgbrewer_command list all)"
+            local pgb_completion="default ${pgb_created_config//$'\n'/' '} ${pgb_actions_list}"
+          else
+            local pgb_completion="$(@COMMANDDIR@/pgbrewer_command completion ${COMP_CWORD} ${COMP_WORDS[@]})"
+          fi
           ;;
 
         "help"|"usage"|"actions"|"completion")
@@ -118,13 +128,12 @@ Where actions are:
       if [ $# -ge 1 ]; then
         export PGB_CONFIG_NAME="$1"
       fi
-      unset PGBREWER_PROFILE # ensure pgbrewer ui will be loaded
+      unset PGB_PGBREWER_PROFILE # ensure pgbrewer ui will be loaded
       ${BASH} --init-file @UIDIR@/commands_profile
       ;;
 
     *)
-      pgb_config=${PGB_CONFIG_NAME:-default}
-      (export PGB_CONFIG_NAME="${pgb_config}"; @COMMANDDIR@/pgbrewer_command ${pgb_action} $*)
+      (@COMMANDDIR@/pgbrewer_command ${pgb_action} $*)
       ;;
   esac
 }

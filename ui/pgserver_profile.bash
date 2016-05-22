@@ -16,17 +16,11 @@ function _pgserver_completion()
 {
   COMPREPLY=()
 
-  local pgb_current="${COMP_WORDS[COMP_CWORD]}"
-  local pgb_previous="${COMP_WORDS[COMP_CWORD-1]}"
-  local pgb_actions="$(pgserver actions)"
+  local pgb_current=${COMP_WORDS[COMP_CWORD]}
+  local pgb_completion=$(pgbrewer completion)
 
-  if [ "${pgb_previous}x" == "pgserverx" ]; then
-    local pgb_completion=$(printf "${pgb_actions}" | awk '{ print $1 }')
-    COMPREPLY=( $(compgen -W "${pgb_completion//$'\n'/ }" -- ${pgb_current} ) )
-  else
-    local pgb_line=$(printf "${pgb_actions}" | grep ^${pgb_previous})
-    local pgb_completion=$(printf "${pgb_line}" | awk '{ print $2 }')
-  fi
+  COMPREPLY=( $(compgen -W "${pgb_completion}" -- ${pgb_current} ) )
+
   return 0
 }
 
@@ -54,7 +48,7 @@ actions
 list all possible actions and parameters with this command
 
 default ?config?
-remember default server (PGB_PGSRV_NAME) so you can ommit this parameter. Will unset if no config
+remember default server (PGBSRV_NAME) so you can ommit this parameter. Will unset if no config
 
 undefault
 unset default configuration

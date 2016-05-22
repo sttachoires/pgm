@@ -123,6 +123,10 @@ case "${pgb_action}" in
       pgb_var_name="${pgb_var_name}_previous"
     done
     pgb_completion=""
+    # correct case of command to configure is same as current
+    if [ "${pgb_previous}x" == "pgbrewer" ] && [[ ${pgb_comp_cword} -ne 1 ]]; then
+      pgb_previous="pgb_previous"
+    fi
     case "${pgb_previous}" in
       "pgbrewer" )
         pgb_completion=`printf "${PGB_ACTIONS}\n" | awk '{ print $1 }'`
@@ -152,16 +156,8 @@ case "${pgb_action}" in
         ;;
 
       "configure")
-        pgb_config_dir=${PGB_CONF_DIR}/${PGB_CONFIG_NAME}
-        if [ ! -d ${pgb_config_dir} ]; then
-          exitError "No config ${PGB_CONFIG_NAME}"
-        fi
-        pgb_info_list=""
-        for pgb_orig in ${pgb_config_dir}/*.conf
-        do
-          pgb_info_list="${pgb_info_list} $(basename ${pgb_orig%\.conf})"
-        done
-        pgb_completion="list ${pgb_info_list% }"
+        getCommands ${PGB_CONF_DIR:-default} pgb_command_list
+        pgb_completion="list ${pgb_command_list//$'\n'/ }"
         ;;
 
       "as")
@@ -179,6 +175,8 @@ case "${pgb_action}" in
            [ "${pgb_previous_previous}x" == "mergex" ]; then
           getAllConfigurations pgb_config_list
           pgb_completion="${pgb_config_list//$'\n'/' '}"
+        elif [ "${pgb_previous_previous}x" == "asx" ]; then
+          pgb_completion="NAME"
         else
           pgb_completion=""
         fi
@@ -240,18 +238,13 @@ case "${pgb_action}" in
     else
       pgb_config=${PGB_CONFIG_NAME:-default}
     fi
-    if [ "${pgb_config}x" == "defaultx" ]; then
-      pgb_config_dir=${PGB_CONF_DIR}
+    getCommands ${pgb_config} pgb_command_list
+
+    if [ "${pgb_command_list}x" == "x" ]; then
+      printf "No command for ${pgb_config}"
     else
-      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
+       printf "${pgb_command_list// /$'\n'}\n"
     fi
-    if [ ! -d ${pgb_config_dir} ]; then
-      exitError "No config ${pgb_config}"
-    fi
-    for pgb_orig in ${pgb_config_dir}/*.conf
-    do
-      printf "$(basename ${pgb_orig%\.conf})\n"
-    done
     ;;
 
   "check")
@@ -281,8 +274,13 @@ case "${pgb_action}" in
         pgb_source=default
         shift
       else
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_source=$1
+        if [ "${PGB_CONFIG_NAME}x" == "x" ]; then
+          pgb_config=$1
+          pgb_source=default
+        else
+          pgb_config=${PGB_CONFIG_NAME:-default}
+          pgb_source=$1
+        fi
         shift
       fi
     elif [[ $# -eq 2 ]]; then
