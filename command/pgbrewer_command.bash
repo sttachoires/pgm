@@ -23,12 +23,12 @@ export PGB_LOG="${PGB_LOG_DIR}/pgbrewer.log"
 
 export PGB_ACTIONS="\
 list
+command +config+
 info +config+
 check +config+
 add !config!
 add as +config+ !config!
-configure list +config+
-configure .configfilename. +config+
+configure +config+
 compare +config+ +config+
 merge +config+ +config+
 create +config+
@@ -39,8 +39,11 @@ export PGB_ACTIONS_DESCRIPTION="\
 list
 list available ${PRGNAME} environments actives or removed
 
+command +config+
+list available commands for config
+
 info +config+
-will provide information about a environment, that is, differences from default
+will provide information about a environment
 
 check +config+
 will check for the environment configuration validity, missing directories or files, etc...
@@ -51,11 +54,8 @@ add (reference) a new environment from default one, allow configuration edition
 add as +config+ !config!
 same as above but will inspire from first environement
 
-configure list +config+
-list available configurations, environment or commands one
-
-configure .configfilename. +config+
-edit command configuration file, could be 'pgbrewer' to edit environment configuration
+configure +config+
+edit command configuration file
 
 compare +config+ +config+
 compare two pgbrewer environments, issuing every differents parameters
@@ -133,11 +133,11 @@ case "${pgb_action}" in
         pgb_completion="${pgb_actions//$'\n'/' '}"
         ;;
 
-      "actions" | "usage" | "help")
+      "actions"|"usage"|"help")
         pgb_completion=""
         ;;
 
-      "info"|"check"|"create"|"remove"|"drop"|"compare"|"merge")
+      "info"|"command"|"configure"|"check"|"create"|"remove"|"drop"|"compare"|"merge")
         getAllConfigurations pgb_config_list
         pgb_completion="${pgb_config_list//$'\n'/' '}"
         ;;
@@ -147,17 +147,7 @@ case "${pgb_action}" in
         ;;
 
       "list")
-        if [ "${pgb_previous_previous}x" == "configurex" ]; then
-          getAllConfigurations pgb_config_list
-          pgb_completion="${pgb_config_list//$'\n'/' '}"
-        else
-          pgb_completion="all NOTHING"
-        fi
-        ;;
-
-      "configure")
-        getCommands ${PGB_CONF_DIR:-default} pgb_command_list
-        pgb_completion="list ${pgb_command_list//$'\n'/ }"
+        pgb_completion="all NOTHING"
         ;;
 
       "as")
@@ -170,8 +160,7 @@ case "${pgb_action}" in
         ;;
 
       *)
-        if [ "${pgb_previous_previous}x" == "configurex" ] ||
-           [ "${pgb_previous_previous}x" == "comparex" ] ||
+        if [ "${pgb_previous_previous}x" == "comparex" ] ||
            [ "${pgb_previous_previous}x" == "mergex" ]; then
           getAllConfigurations pgb_config_list
           pgb_completion="${pgb_config_list//$'\n'/' '}"
@@ -231,7 +220,7 @@ case "${pgb_action}" in
     fi
     ;;
 
-  "info")
+  "command")
     if [[ $# -ge 1 ]]; then
       pgb_config=$1
       shift
@@ -243,8 +232,19 @@ case "${pgb_action}" in
     if [ "${pgb_command_list}x" == "x" ]; then
       printf "No command for ${pgb_config}"
     else
-       printf "${pgb_command_list// /$'\n'}\n"
+      printf "${pgb_command_list}\n"
     fi
+    ;;
+
+  "info")
+    if [[ $# -ge 1 ]]; then
+      pgb_config=$1
+      shift
+    else
+      pgb_config=${PGB_CONFIG_NAME:-default}
+    fi
+    getVars ${pgb_config} pgb_vars_list
+    printf "${pgb_vars_list// /$'\n'}\n"
     ;;
 
   "check")
@@ -317,36 +317,15 @@ case "${pgb_action}" in
 
   "configure")
     if [[ $# -ge 1 ]]; then
-      pgb_command=$1
-      shift
-    else
-      pgb_command=pgbrewer
-    fi
-    if [[ $# -ge 1 ]]; then
       pgb_config=$1
       shift
     else
       pgb_config="${PGB_CONFIG_NAME:-default}"
     fi
 
-    if [ "${pgb_config}" == "default" ]; then
-      pgb_config_dir=${PGB_CONF_DIR}
-    else
-      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
-    fi
-    if [ "${pgb_command}x" == "listx" ]; then
-      if [ ! -d ${pgb_config_dir} ]; then
-        exitError "No config ${pgb_config}"
-      fi
-      for pgb_orig in ${pgb_config_dir}/*.conf
-      do
-        printf "$(basename ${pgb_orig%\.conf})\n"
-      done
-    else
-      editConfig ${pgb_command} ${pgb_config} 
-      if [[ $? -ne 0 ]]; then
-          exitError " problem editing ${pgb_config} ${pgb_command} configuration"
-      fi
+    editConfig ${pgb_config} 
+    if [[ $? -ne 0 ]]; then
+      exitError " problem editing ${pgb_config} configuration"
     fi
     ;;
 

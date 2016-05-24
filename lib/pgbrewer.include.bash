@@ -91,23 +91,16 @@ function getCommands()
   local pgb_config=$1
   local pgb_result_var=$2
 
-  if [ "${pgb_config}x" == "defaultx" ]; then
-    pgb_config_dir=${PGB_CONF_DIR}
-  else
-    pgb_config_dir=${PGB_CONF_DIR}/${PGB_CONFIG_NAME}
-  fi
+  local pgb_result_list=""
+  setConfig ${pgb_config}
 
-  if [ ! -d ${pgb_config_dir} ]; then
-    return 2
-  fi
-
-  pgb_command_list=""
-  for pgb_command in ${pgb_config_dir}/*.conf
+  for pgb_command in ${PGB_COMMAND_DIR}/*_command
   do
-    pgb_command_list="${pgb_command_list} $(basename ${pgb_command%\.conf})"
+    pgb_command="$(basename ${pgb_command%_command})"
+    pgb_result_list="${pgb_result_list} ${pgb_command}"
   done
 
-  eval export ${pgb_result_var}='${pgb_command_list## }'
+  eval export ${pgb_result_var}='${pgb_result_list## }'
   return 0
 }
 
@@ -218,14 +211,13 @@ function createConfig()
 
 function editConfig()
 {
-  declareFunction ".configfilename. +config+" "$*"
+  declareFunction "+config+" "$*"
 
-  if [[ $# -ne 2 ]]; then
+  if [[ $# -ne 1 ]]; then
     return 1
   fi
 
-  local pgb_command=$1
-  local pgb_config=$2
+  local pgb_config=$1
 
   if [ "${pgb_config}x" == "defaultx" ]; then
     local pgb_config_dir=${PGB_CONF_DIR}
@@ -234,15 +226,15 @@ function editConfig()
   fi
   local pgb_date=$(date "+%Y.%m.%d_%H.%M.%S")
 
-  local pgb_config_file=${pgb_config_dir}/${pgb_command}.conf
+  local pgb_config_file=${pgb_config_dir}/pgbrewer.conf
   if [ "${pgb_config_file}x" != "x" ]; then
     if [ -w "${pgb_config_file}" ]; then
       cp ${pgb_config_file} ${pgb_config_file}.${pgb_date}
       if [[ $? -ne 0 ]]; then
-        printError "Cannot backup ${pgb_config_dir}/${pgb_command}.conf"
+        printError "Cannot backup ${pgb_config_file}"
         return 3
       fi
-      ${EDITOR:=vi} ${pgb_config_file}
+      ${EDITOR:-vi} ${pgb_config_file}
       if [[ $? -ne 0 ]]; then
         printError " problem editing ${pgb_config_file} with ${EDITOR}"
         return 4
@@ -264,19 +256,19 @@ function editConfig()
             return 6
           fi
 
-          printError " Syntax error on ${pgb_command}.conf, old one restored, bad one saved in ${pgb_config_file}.bad.${pgb_date}"
+          printError " Syntax error in configuration, old one restored, bad one saved in ${pgb_config_file}.bad.${pgb_date}"
           return 7
         else
-          printTrace " ${pgb_config} ${pgb_command} configuration saved\n"
+          printTrace " ${pgb_config} configuration saved\n"
         fi
       else
-        printTrace " ${pgb_config} ${pgb_command} configuration saved\n"
+        printTrace " ${pgb_config} configuration saved\n"
       fi
     else
       more ${pgb_config_file}
     fi
   else
-    printError " cannot found ${pgb_config} ${pgb_command} configuration\n"
+    printError " cannot found ${pgb_config} configuration\n"
     return 2
   fi
 }

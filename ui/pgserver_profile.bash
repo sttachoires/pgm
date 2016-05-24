@@ -7,19 +7,19 @@
 #
 #set -xv
 
-if [ "${PGSERVER_PROFILE}" == "LOADED" ]; then
+if [ "${PGS_PGSERVER_PROFILE}" == "LOADED" ]; then
   return 0
 fi
-export PGSERVER_PROFILE="LOADED"
+export PGS_PGSERVER_PROFILE="LOADED"
 
 function _pgserver_completion()
 {
   COMPREPLY=()
 
-  local pgb_current=${COMP_WORDS[COMP_CWORD]}
-  local pgb_completion=$(pgbrewer completion)
+  local pgs_current=${COMP_WORDS[COMP_CWORD]}
+  local pgs_completion=$(pgbrewer completion)
 
-  COMPREPLY=( $(compgen -W "${pgb_completion}" -- ${pgb_current} ) )
+  COMPREPLY=( $(compgen -W "${pgs_completion}" -- ${pgs_current} ) )
 
   return 0
 }
@@ -28,16 +28,19 @@ complete -F _pgserver_completion pgserver
 
 function pgserver()
 {
-  local pgb_actions="$(@COMMANDDIR@/pgserver_command actions)"
-  local pgb_actions="\
+  local pgs_actions="$(@COMMANDDIR@/pgserver_command actions)"
+  local pgs_actions="\
 help
 usage
 actions
 default ?server?
 undefault
-${pgb_actions}"
+${pgs_actions}"
 
-  local pgb_actions_description="\
+  local pgs_actions_list=`printf "${pgs_actions}\n" | awk '{ print $1 }'`
+        pgs_actions_list="${pgs_actions_list//$'\n'/ }"
+
+  local pgs_actions_description="\
 help
 explain you how this works
 
@@ -56,44 +59,75 @@ unset default configuration
 $(@COMMANDDIR@/pgserver_command usage)"
 
 
-  local pgb_help="pgserver is a helper for human interfacing PostgreSQL server management, adding and handle interface's command and redirecting other to pgserver_command\n\n${pgb_actions_description}"
+  local pgs_help="pgserver is a helper for human interfacing PostgreSQL server management, adding and handle interface's command and redirecting other to pgserver_command\n\n${pgs_actions_description}"
 
   if [ $# -eq 0 ]; then
-    local pgb_action="help"
+    local pgs_action="help"
   else
-    local pgb_action="$1"
+    local pgs_action="$1"
     shift
   fi
 
-  case "${pgb_action}" in
+  case "${pgs_action}" in
     "help" )
-      printf "${pgb_help}\n"
+      printf "${pgs_help}\n"
       ;;
 
     "usage" )
       printf "pgserver action [parameters]
 Where actions are:
-${pgb_actions//$'\n'/$'\n'$'\t'}\n"
+${pgs_actions//$'\n'/$'\n'$'\t'}\n"
       ;;
 
     "actions" )
-      printf "${pgb_actions}\n"
+      printf "${pgs_actions}\n"
       ;;
+
+    "actionlist" )
+      printf "${pgs_actions_list}\n"
+      ;;
+
+    "completion" )
+      local pgs_previous="${COMP_WORDS[COMP_CWORD-1]}"
+      case "${pgs_previous}" in
+        "pgserver" )
+          if [[ ${COMP_CWORD} -eq 1 ]]; then
+            local pgs_completion="${pgb_actions_list}"
+          else
+            local pgs_completion="$(@COMMANDDIR@/pgserver_command completion ${COMP_CWORD} ${COMP_WORDS[@]})"
+          fi
+          ;;
+
+        "help"|"usage"|"actions"|"completion")
+          local pgs_completion=""
+          ;;
+
+        "default"|"shell")
+          local pgs_created_server="$(@COMMANDDIR@/pgserver_command list all)"
+          local pgs_completion="default ${pgs_created_config//$'\n'/ }"
+          ;;
+
+        *)
+          local pgs_completion="$(@COMMANDDIR@/pgserver_command completion ${COMP_CWORD} ${COMP_WORDS[@]})"
+      esac
+      echo "${pgs_completion}"
+      ;;
+
 
     "default" )
       if [ $# -ge 1 ]; then
-        export PGB_PGSRV_NAME="$1"
+        export PGS_SERVER_NAME="$1"
       else
-        unset PGB_PGSRV_NAME
+        unset PGS_SERVER_NAME
       fi
       ;;
 
     "undefault" )
-      unset PGB_PGSRV_NAME
+      unset PGS_SERVER_NAME
       ;;
 
     *)
-      @COMMANDDIR@/pgserver_command ${pgb_action} $*
+      @COMMANDDIR@/pgserver_command ${pgs_action} $*
       ;;
   esac
 }

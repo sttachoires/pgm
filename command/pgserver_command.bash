@@ -24,12 +24,11 @@ list +config+
 info +config+ +server+
 check +config+ +server+
 add +config+ !server!
-add as +config+ +server+ !server!
-configure list +config+ +server+
-configure +config+ .serverfilename. +server+
-compare +config+ +server+ +server+
-merge +config+ +server+ +server+
-create +config+ +server+
+add as +config+ +server+ +config+ !server!
+configure +config+ +server+
+compare +config+ +server+ +config+ +server+
+merge +config+ +server+ +config+ +server+
+scan +config+
 install +config+ +server+
 remove +config+ +server+
 drop +config+ -server-"
@@ -39,7 +38,7 @@ list
 list available ${PRGNAME} servers actives or removed
 
 info +config+ +server+
-will provide information about a server, that is, differences from default
+will provide information about a server
 
 check +config+ +server+
 will check for the server configuration validity, missing directories or files, etc...
@@ -56,17 +55,17 @@ list available configurations, server or instances templates
 configure .serverfilename. +config+ +server+
 edit server configuration file, could be 'server' to edit environment configuration or 'postgresql' or 'pg_hba' or 'ident'
 
-compare +server+ +config+ +server+
+compare +config+ +server+ +config+ +server+
 compare two server environments, issuing every differents parameters
 
-merge +server+ +config+ +server+
+merge +config+ +server+ +config+ +server+
 merge first server environment into the second one, configurations by configurations
 
-create +config+ +server+
-install server. Then pg_config configuration will take over configuration parameters
+scan +config+
+scan for installed server and ask to import them into config
 
 install +config+ +server+
-same as above
+install server, that's, make install
 
 remove +config+ +server+
 remove server, no deletion, listed a removed, but be empty, no database, replication, whatsoever
