@@ -13,7 +13,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # INCLUDE
-. @CONFDIR@/pgbrewer.conf
+. @CONFDIR@/pgserver.conf
 . ${PGB_LIB_DIR}/util.include
 . ${PGB_LIB_DIR}/pgserver.include
 

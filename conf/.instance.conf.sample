@@ -7,11 +7,16 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGB_DOT_INSTANCE_CONF}" == "LOADED" ]; then
+if [ "${PGI_DOT_INSTANCE_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGB_DOT_INSTANCE_CONF="LOADED"
+export PGI_DOT_INSTANCE_CONF="LOADED"
+
+# The starting point of every instance directory
+# If you want one.
+export PGI_PGDBBASE_DIR="${PGS_HOME_DIR}/db"
+
 
 # PGB_TEMPLATE_DIR, where pgbrewer templates are. They are used to build other files
 # by diverse pgbrewer scripts like pgb_instance_create
-PGBSRV_PTRN_TEMPLATE_DIR='${PGB_TPL_DIR}/${PGB_PGMAJOR_VERSION}'
+export PGI_TEMPLATE_DIR='${PGB_TPL_DIR}/${PGB_PGMAJOR_VERSION}'

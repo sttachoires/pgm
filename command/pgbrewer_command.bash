@@ -30,7 +30,6 @@ add !config!
 add as +config+ !config!
 configure +config+
 compare +config+ +config+
-merge +config+ +config+
 create +config+
 remove +config+
 drop -config-"
@@ -59,9 +58,6 @@ edit command configuration file
 
 compare +config+ +config+
 compare two pgbrewer environments, issuing every differents parameters
-
-merge +config+ +config+
-merge first pgbrewer environment into the second one, configurations by configurations
 
 create +config+
 validate, set read only configuration.
@@ -137,7 +133,7 @@ case "${pgb_action}" in
         pgb_completion=""
         ;;
 
-      "info"|"command"|"configure"|"check"|"create"|"remove"|"drop"|"compare"|"merge")
+      "info"|"command"|"configure"|"check"|"create"|"remove"|"drop"|"compare")
         getAllConfigurations pgb_config_list
         pgb_completion="${pgb_config_list//$'\n'/' '}"
         ;;
@@ -160,8 +156,7 @@ case "${pgb_action}" in
         ;;
 
       *)
-        if [ "${pgb_previous_previous}x" == "comparex" ] ||
-           [ "${pgb_previous_previous}x" == "mergex" ]; then
+        if [ "${pgb_previous_previous}x" == "comparex" ]; then
           getAllConfigurations pgb_config_list
           pgb_completion="${pgb_config_list//$'\n'/' '}"
         elif [ "${pgb_previous_previous}x" == "asx" ]; then
@@ -243,8 +238,8 @@ case "${pgb_action}" in
     else
       pgb_config=${PGB_CONFIG_NAME:-default}
     fi
-    getVars ${pgb_config} pgb_vars_list
-    printf "${pgb_vars_list// /$'\n'}\n"
+    getConfigVars ${pgb_config} pgb_vars_list
+    printf "${pgb_vars_list}\n"
     ;;
 
   "check")
@@ -348,22 +343,6 @@ case "${pgb_action}" in
     else
       printf "Same configuration\n"
     fi
-    ;;
-
-  "merge")
-    if [[ $# -lt 1 ]]; then
-      exitError "${USAGE}"
-    else
-      pgb_source=$1
-      shift
-    fi
-    if [[ $# -lt 1 ]]; then
-      pgb_config=${PGB_CONFIG_NAME:-default}
-    else
-      pgb_config=$1
-      shift
-    fi
-    mergeConfig ${pgb_source} ${pgb_config}
     ;;
 
   "create" )

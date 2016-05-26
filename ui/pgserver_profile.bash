@@ -17,7 +17,7 @@ function _pgserver_completion()
   COMPREPLY=()
 
   local pgs_current=${COMP_WORDS[COMP_CWORD]}
-  local pgs_completion=$(pgbrewer completion)
+  local pgs_completion=$(pgserver completion)
 
   COMPREPLY=( $(compgen -W "${pgs_completion}" -- ${pgs_current} ) )
 

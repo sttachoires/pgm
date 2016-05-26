@@ -92,7 +92,7 @@ function getCommands()
   local pgb_result_var=$2
 
   local pgb_result_list=""
-  setConfig ${pgb_config}
+  . setConfig ${pgb_config}
 
   for pgb_command in ${PGB_COMMAND_DIR}/*_command
   do
@@ -114,12 +114,17 @@ function addConfig()
 
   local pgb_source=$1
   local pgb_config=$2
+
   if [ "${pgb_source}x" == "defaultx" ]; then
     local pgb_source_dir=${PGB_CONF_DIR}
   else
     local pgb_source_dir=${PGB_CONF_DIR}/${pgb_source}
   fi
-  local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
+  if [ "${pgb_config}x" == "defaultx" ]; then
+    local pgb_config_dir=${PGB_CONF_DIR}
+  else
+    local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
+  fi
 
   if [ ! -d ${pgb_source_dir} ]; then
     printError "${pgb_source} doesn't exists"
@@ -167,20 +172,14 @@ function createConfig()
     return 0
   fi
 
-  local pgb_confif_dir=${PGB_CONF_DIR}/${pgb_config}
+  local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
 
   if [ ! -d ${pgb_config_dir} ]; then
     printError "unknown configuration ${pgb_config}"
     return 2
   fi
 
-  unset PGB_CONF
-  export PGB_CONFIG_NAME=${pgb_config}
-  . ${PGB_CONF_DIR}/pgbrewer.conf
-  if [[ $? -ne 0 ]]; then
-    printError "cannot load config ${pgb_config}"
-    return 3
-  fi
+  . setConfig ${pgb_config}
 
   ensureVars -d _DIR pgb_missing_dirs
   if [[ $? -ne 0 ]]; then
@@ -202,7 +201,7 @@ function createConfig()
     printError "error creating directory(ies) ${pgb_report}"
     return 6
   fi
-  chmod ug=r,o= ${pgb_confif_dir}/*.conf
+  chmod ug=r,o= ${pgb_confif_dir}/pgbrewer.conf
   if [[ $? -ne 0 ]]; then
     printError "cannot mark config as created"
     return 7
@@ -219,6 +218,7 @@ function editConfig()
 
   local pgb_config=$1
 
+  . setConfig ${pgb_config}
   if [ "${pgb_config}x" == "defaultx" ]; then
     local pgb_config_dir=${PGB_CONF_DIR}
   else
@@ -282,24 +282,28 @@ function setConfig()
   pg_config=$1
   unset PGB_CONF
   unset PGB_DOT_CONF
-  if [[ "${PGB_CONFIG_NAME}x" != "x" ]]; then
+  
+  if [ "${pgb_config}x" != "defaultx" ]; then
     export PGB_CONFIG_NAME=${pgb_config}
+  else
+    unset PGB_CONFIG_NAME
   fi
+
   source ${PGB_CONF_DIR}/pgbrewer.conf
 }
 
-function getVars()
+function getConfigVars()
 {
   declareFunction "+config+ .result." "$*"
   if [[ $# -ne 2 ]]; then
     return 1
   fi
-  pgb_config=$1
-  pgb_result_var=$2
+  local pgb_config=$1
+  local pgb_result_var=$2
 
-  pgb_vars="(setConfig ${pgb_config}; pgb_vars="${!PGB_*}"; for pgb_var in $(printf "${pgb_vars}" | sort); do pgb_value="${!pgb_var}"; printf "${pgb_var}=\"${pgb_value}\"\n"; done)"
+  local pgb_vars=`setConfig ${pgb_config}; pgb_vars="${!PGB_*}"; for pgb_var in $(printf "${pgb_vars}" | sort); do pgb_value="${!pgb_var}"; printf "${pgb_var}=\"${pgb_value}\"\n"; done`
 
-  eval export ${pgb_result_var}="${pgb_vars}"
+  eval export ${pgb_result_var}='${pgb_vars}'
 
   return 0
 }
@@ -315,10 +319,10 @@ function compareConfig()
   local pgb_config=$2
   local pgb_result_var=$3
 
-  getVars ${pgb_source} pgb_source_vars
-  getVars ${pgb_config} pgb_config_vars
+  getConfigVars ${pgb_source} pgb_source_vars
+  getConfigVars ${pgb_config} pgb_config_vars
 
-  local pgb_diff=$(diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='#%L' --new-line-format='%L' --unchanged-line-format='' <(printf "${pgb_source_vars}\n") <(printf "${pgb_config_vars}\n") )
+  local pgb_diff=`diff --suppress-common-lines --ignore-space-change --ignore-blank-lines --minimal --old-line-format='#%L' --new-line-format='%L' --unchanged-line-format='' <(printf "${pgb_source_vars}\n") <(printf "${pgb_config_vars}\n") `
   if [[ $? -eq 0 ]] && [ "${pgb_diff}x" != "x" ]; then
     eval export ${pgb_result_var}="'${pgb_diff}'"
   else

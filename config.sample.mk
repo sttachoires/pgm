@@ -1,5 +1,5 @@
 NAME:=pgbrewer
-VERSION:=0.02-dev
+VERSION:=0.1-dev
 
 # Customize below to fit your system
 # Those constant will be valued at install, no change hereafter
