@@ -1,0 +1,14 @@
+#! @BASH@
+# 
+# Bash library for PostgreSQL.
+#
+# S. Tachoires		23/02/2016	Initial version
+#
+#set -xv
+
+# INCLUDE
+if [ "${PGS_DOT_PGSERVER_CONF}" == "LOADED" ]; then
+  return 0
+fi
+export PGS_DOT_PGSERVER_CONF="LOADED"
+

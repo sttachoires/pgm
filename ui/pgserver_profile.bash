@@ -92,7 +92,7 @@ ${pgs_actions//$'\n'/$'\n'$'\t'}\n"
       case "${pgs_previous}" in
         "pgserver" )
           if [[ ${COMP_CWORD} -eq 1 ]]; then
-            local pgs_completion="${pgb_actions_list}"
+            local pgs_completion="${pgs_actions_list}"
           else
             local pgs_completion="$(@COMMANDDIR@/pgserver_command completion ${COMP_CWORD} ${COMP_WORDS[@]})"
           fi

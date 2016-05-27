@@ -7,11 +7,12 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGS_DOT_SERVER_CONF}" == "LOADED" ]; then
+if [ "${PGS_PGSERVER_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGS_DOT_SERVER_CONF="LOADED"
-. @CONFDIR@/pgbrewer.conf
+export PGS_PGSERVER_CONF="LOADED"
+. @CONFDIR@/default/pgbrewer.conf
+. @CONFDIR@/default/pgserver/default/.pgserver.conf
 
 #
 # EDITABLES VARIABLES
@@ -45,7 +46,6 @@ export PGS_PGEXTENSION_DIR='${PGS_PGBASE_DIR}/${PGS_PGSERVER_NAME}/share/postgre
 
 # PGS_PGINCLUDE_DIR, need to say?
 export PGS_PGINCLUDE_DIR='${PGS_PGBASE_DIR}/${PGS_PGSERVER_NAME}/include'
-
 # PGS_PGDOC_DIR, ok
 export PGS_PGDOC_DIR='${PGS_PGBASE_DIR}/${PGS_PGSERVER_NAME}/doc'
 
@@ -54,15 +54,8 @@ export PGS_PGMAN_DIR='${PGS_PGBASE_DIR}/${PGS_PGSERVER_NAME}/man'
 
 # END OF EDITABLES VARIABLES
 
-if [ -v PGB_CONFIG_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/pgserver.conf ]; then
-  . @CONFDIR@/${PGB_CONFIG_NAME}/pgserver.conf
-  if [ -v PGS_PGSERVER_NAME ] && [ -r @CONFDIR@/${PGB_CONFIG_NAME}/${PGS_PGSERVER_NAME}/pgserver.conf ]; then
-    . @CONFDIR@/${PGB_CONFIG_NAME}/${PGS_PGSERVER_NAME}/pgserver.conf
-  fi
-else
-  if [ -v PGS_PGSERVER_NAME ] && [ -r @CONFDIR@/${PGS_PGSERVER_NAME}/pgserver.conf ]; then
-    . @CONFDIR@/${PGS_PGSERVER_NAME}/pgserver.conf
-  fi
+if [ -r @CONFDIR@/${PGB_CONFIG_NAME:-default}/pgserver/${PGS_PGSERVER_NAME:-default}/pgserver.conf ]; then
+  . @CONFDIR@/${PGB_CONFIG_NAME:-default}/pgserver/${PGS_PGSERVER_NAME:-default}/pgserver.conf
 fi
 
 

@@ -15,7 +15,7 @@ fi
 
 
 # INCLUDE
-. @CONFDIR@/pgbrewer.conf
+. @CONFDIR@/default/pgbrewer.conf
 . ${PGB_LIB_DIR}/util.include
 . ${PGB_LIB_DIR}/pgbrewer.include
 
@@ -252,11 +252,6 @@ case "${pgb_action}" in
     if [ ! -d ${PGB_CONF_DIR}/${pgb_config} ]; then
       exitError "No config ${pgb_config}"
     fi
-    pgb_env_check="$(unset PGB_CONF && export PGB_CONFIG_NAME=${pgb_config} && . ${PGB_CONF_DIR}/pgbrewer.conf && . ${PGB_LIB_DIR}/util.include && checkEnvironment pgb_env_check; echo ${pgb_env_check})"
-    if [[ $? -ne 0 ]]; then
-      printError "error config ${pgb_config}:\n${pgb_env_check}"
-      return 3
-    fi
     ;;
 
   "add")
@@ -265,15 +260,15 @@ case "${pgb_action}" in
       pgb_source=default
     elif [[ $# -eq 1 ]]; then
       if [ "${1}x" == "asx" ]; then
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_source=default
-        shift
+          shift
+          pgb_config=${PGB_CONFIG_NAME:-default}
+          pgb_source=default
       else
-        if [ "${PGB_CONFIG_NAME}x" == "x" ]; then
+        if [ "${PGB_CONFIG_NAME}x" == "x" ] || [ "${PGB_CONFIG_NAME}x" == "defaultx" ]; then
           pgb_config=$1
           pgb_source=default
         else
-          pgb_config=${PGB_CONFIG_NAME:-default}
+          pgb_config=${PGB_CONFIG_NAME}
           pgb_source=$1
         fi
         shift
@@ -281,8 +276,13 @@ case "${pgb_action}" in
     elif [[ $# -eq 2 ]]; then
       if [ "${1}x" == "asx" ]; then
         shift
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_source=$1
+        if [ "${PGB_CONFIG_NAME}x" == "x" ] || [ "${PGB_CONFIG_NAME}x" == "defaultx" ]; then
+          pgb_config=$1
+          pgb_source=default
+        else
+          pgb_config=${PGB_CONFIG_NAME}
+          pgb_source=$1
+        fi
         shift
       else
         pgb_source=$1
@@ -302,6 +302,9 @@ case "${pgb_action}" in
       fi
     fi
 
+    if [ "${pgb_config}x" == "defaultx" ]; then
+      exitError 3 "${USAGE}\n"
+    fi
     addConfig "${pgb_source}" "${pgb_config}"
     if [[ $? -ne 0 ]]; then
       exitError " problem creating ${pgb_config} from ${pgb_source}"

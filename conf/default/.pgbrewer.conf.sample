@@ -7,10 +7,10 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGB_DOT_CONF}" == "LOADED" ]; then
+if [ "${PGB_DOT_PGBREWER_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGB_DOT_CONF="LOADED"
+export PGB_DOT_PGBREWER_CONF="LOADED"
 
 # PGBrewer CONSTANTS
 # DO NOT TOUCH UNLESS YOU KNOW WHAT YOU DO

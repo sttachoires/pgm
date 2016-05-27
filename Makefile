@@ -9,9 +9,9 @@ SRC_UIS:=$(wildcard ui/*.bash)
 SRC_SCRIPTS:=$(wildcard script/*.bash)
 SRC_LIBS:=$(wildcard lib/*.include.bash)
 SRC_TPLS:=$(wildcard tplptrn/*/*.tpl.ptrn)
-SRC_CONFS:=$(wildcard conf/*.conf.sample)
+SRC_CONFS:=$(wildcard conf/*/*.conf.sample) $(wildcard conf/*/*/*/*.conf.sample)
 SRC_LROTCONFS:=$(wildcard logrotate/*.conf.sample)
-SRC_CONSTS:=$(wildcard conf/.*.conf.sample)
+SRC_CONSTS:=$(wildcard conf/*/.*.conf.sample) $(wildcard conf/*/*/*/.*.conf.sample)
 SRC_CONFSCRIPTS:=$(wildcard conf/*.bash)
 SRC_DOCS:=COPYRIGHT INSTALL.md CONTRIBUTORS README.md TODO CHANGELOG
 SRC_MANPAGES:=$(wildcard man/*.man)
@@ -328,9 +328,10 @@ $(DEST_TPLS) : $(TPLS) $(TPLDIR)
 	@chmod ug=rw,o= $@
 
 $(DEST_CONFS) : $(CONFS) $(CONFDIR)
-	@echo installing configuration file $@ to ${CONFDIR}
-	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
-	@chmod ug=rw,o= $@
+	echo installing configuration file $@ to ${CONFDIR}
+	mkdir --parents $(dir $@)
+	cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) $@
+	chmod ug=rw,o= $@
 
 $(DEST_LROTCONFS) : $(LROTCONFS) $(LROTCONFDIR)
 	@echo installing configuration file $@ to ${LROTCONFDIR}
@@ -338,9 +339,10 @@ $(DEST_LROTCONFS) : $(LROTCONFS) $(LROTCONFDIR)
 	@chmod ug=rw,o= $@
 
 $(DEST_CONSTS) : $(CONSTS) $(CONFDIR)
-	@echo installing configuration file $@ to ${CONFDIR}
-	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) ${CONFDIR}
-	@chmod ug=r,o= $@
+	echo installing configuration file $@ to ${CONFDIR}
+	mkdir --parents $(dir $@)
+	cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) $@
+	chmod ug=r,o= $@
 
 $(DEST_CONFSCRIPTS) : $(CONFSCRIPTS) $(CONFDIR)
 	@echo installing configuration script $@ to ${CONFDIR}

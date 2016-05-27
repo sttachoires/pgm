@@ -10,7 +10,7 @@ if [ "${PGB_PGBREWER_INCLUDE}" == "LOADED" ]; then
 fi
 export PGB_PGBREWER_INCLUDE="LOADED"
 
-. @CONFDIR@/pgbrewer.conf
+. @CONFDIR@/default/pgbrewer.conf
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
@@ -51,7 +51,7 @@ function getAddedConfigurations()
 
   for pgb_config_dir in ${PGB_CONF_DIR}/*
   do
-    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -w ${pgb_config_dir%/} ]; then
+    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -w ${pgb_config_dir%/} ] && [ -w ${pgb_config_dir%/}/pgbrewer.conf ]; then
       pgb_report="${pgb_report} $(basename ${pgb_config_dir%/})"
     fi
   done
@@ -72,7 +72,7 @@ function getCreatedConfigurations()
 
   for pgb_config_dir in ${PGB_CONF_DIR}/*
   do
-    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -r${pgb_config_dir%/} ] && [ ! -w ${pgb_config_dir%/} ]; then
+    if [ "${pgb_config_dir%/}x" != "x" ] && [ -d ${pgb_config_dir%/} ] && [ -r ${pgb_config_dir%/} ] && [ ! -w ${pgb_config_dir%/}/pgbrewer.conf ]; then
       pgb_report="${pgb_report} $(basename ${pgb_config_dir%/})"
     fi
   done
@@ -92,7 +92,7 @@ function getCommands()
   local pgb_result_var=$2
 
   local pgb_result_list=""
-  . setConfig ${pgb_config}
+  setConfig ${pgb_config}
 
   for pgb_command in ${PGB_COMMAND_DIR}/*_command
   do
@@ -115,16 +115,8 @@ function addConfig()
   local pgb_source=$1
   local pgb_config=$2
 
-  if [ "${pgb_source}x" == "defaultx" ]; then
-    local pgb_source_dir=${PGB_CONF_DIR}
-  else
-    local pgb_source_dir=${PGB_CONF_DIR}/${pgb_source}
-  fi
-  if [ "${pgb_config}x" == "defaultx" ]; then
-    local pgb_config_dir=${PGB_CONF_DIR}
-  else
-    local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
-  fi
+  local pgb_source_dir=${PGB_CONF_DIR}/${pgb_source}
+  local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
 
   if [ ! -d ${pgb_source_dir} ]; then
     printError "${pgb_source} doesn't exists"
@@ -143,12 +135,12 @@ function addConfig()
       return 3
     fi
 
-    pgb_conf_list="pgbrewer.conf"
+    pgb_confile_list="pgbrewer.conf"
 
-    for pgb_conf in ${pgb_conf_list}
+    for pgb_confile in ${pgb_confile_list}
     do
-      local pgb_config_file=${pgb_config_dir}/${pgb_conf}
-      local pgb_source_file=${pgb_source_dir}/${pgb_conf}
+      local pgb_config_file=${pgb_config_dir}/${pgb_confile}
+      local pgb_source_file=${pgb_source_dir}/${pgb_confile}
       instantiateConf ${pgb_source_file} ${pgb_config_file}
       if [[ $? -ne 0 ]]; then
         printError "cannot instanciate config file ${pgb_config_file} from ${pgb_source_file}"
@@ -172,14 +164,14 @@ function createConfig()
     return 0
   fi
 
+  setConfig ${pgb_config}
+
   local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
 
   if [ ! -d ${pgb_config_dir} ]; then
     printError "unknown configuration ${pgb_config}"
     return 2
   fi
-
-  . setConfig ${pgb_config}
 
   ensureVars -d _DIR pgb_missing_dirs
   if [[ $? -ne 0 ]]; then
@@ -201,7 +193,7 @@ function createConfig()
     printError "error creating directory(ies) ${pgb_report}"
     return 6
   fi
-  chmod ug=r,o= ${pgb_confif_dir}/pgbrewer.conf
+  chmod ug=r,o= ${pgb_config_dir}/pgbrewer.conf
   if [[ $? -ne 0 ]]; then
     printError "cannot mark config as created"
     return 7
@@ -219,11 +211,7 @@ function editConfig()
   local pgb_config=$1
 
   . setConfig ${pgb_config}
-  if [ "${pgb_config}x" == "defaultx" ]; then
-    local pgb_config_dir=${PGB_CONF_DIR}
-  else
-    local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
-  fi
+  local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
   local pgb_date=$(date "+%Y.%m.%d_%H.%M.%S")
 
   local pgb_config_file=${pgb_config_dir}/pgbrewer.conf
@@ -279,17 +267,13 @@ function setConfig()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  pg_config=$1
-  unset PGB_CONF
-  unset PGB_DOT_CONF
+  local pg_config=$1
+  unset PGB_PGBREWER_CONF
+  unset PGB_DOT_PGBREWER_CONF
   
-  if [ "${pgb_config}x" != "defaultx" ]; then
-    export PGB_CONFIG_NAME=${pgb_config}
-  else
-    unset PGB_CONFIG_NAME
-  fi
+  export PGB_CONFIG_NAME=${pgb_config}
 
-  source ${PGB_CONF_DIR}/pgbrewer.conf
+  source ${PGB_CONF_DIR}/default/pgbrewer.conf
 }
 
 function getConfigVars()
@@ -346,6 +330,8 @@ function removeConfig()
     printError "default configuration cannot be removed nor dropped"
     return 2
   fi
+
+  setConfig ${pgb_config}
   local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
 
   if [ ! -d "${pgb_config_dir}" ]; then
@@ -369,6 +355,8 @@ function deleteConfig()
     printError "default configuration cannot be removed nor dropped"
     return 2
   fi
+
+  setConfig ${pgb_config}
   local pgb_config_dir=${PGB_CONF_DIR}/.${pgb_config}
 
   if [ ! -d "${pgb_config_dir}" ]; then
@@ -377,3 +365,4 @@ function deleteConfig()
   fi
   rm -rf ${pgb_config_dir}
 }
+

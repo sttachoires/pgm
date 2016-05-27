@@ -7,12 +7,12 @@
 #set -xv
 
 # INCLUDE
-if [ "${PGB_CONF}" == "LOADED" ]; then
+if [ "${PGB_PGBREWER_CONF}" == "LOADED" ]; then
   return 0
 fi
-export PGB_CONF="LOADED"
+export PGB_PGBREWER_CONF="LOADED"
 
-. @CONFDIR@/.pgbrewer.conf
+. @CONFDIR@/default/.pgbrewer.conf
 
 # EDITABLES VARIABLES
 # You can edit them

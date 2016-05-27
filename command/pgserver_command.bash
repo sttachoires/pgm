@@ -13,13 +13,13 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # INCLUDE
-. @CONFDIR@/pgserver.conf
+. @CONFDIR@/default/pgserver/default/pgserver.conf
 . ${PGB_LIB_DIR}/util.include
 . ${PGB_LIB_DIR}/pgserver.include
 
-export PGB_LOG="${PGB_LOG_DIR}/pgserver"
+export PGS_LOG="${PGB_LOG_DIR}/pgserver.log"
 
-export PGB_ACTIONS="\
+export PGS_ACTIONS="\
 list +config+
 info +config+ +server+
 check +config+ +server+
@@ -27,13 +27,12 @@ add +config+ !server!
 add as +config+ +server+ +config+ !server!
 configure +config+ +server+
 compare +config+ +server+ +config+ +server+
-merge +config+ +server+ +config+ +server+
 scan +config+
 install +config+ +server+
-remove +config+ +server+
+uninstall +config+ +server+
 drop +config+ -server-"
 
-export PGB_ACTIONS_DESCRIPTION="\
+export PGS_ACTIONS_DESCRIPTION="\
 list
 list available ${PRGNAME} servers actives or removed
 
@@ -46,20 +45,14 @@ will check for the server configuration validity, missing directories or files, 
 add +config+ !server!
 add (reference) a new server from default one, allow configuration edition
 
-add as +server+ +config+ !server!
+add as +config+ +server+ +config+ !server!
 same as above but will inspire from first server
 
-configure list +config+ +server+
-list available configurations, server or instances templates
-
-configure .serverfilename. +config+ +server+
+configure +config+ +server+
 edit server configuration file, could be 'server' to edit environment configuration or 'postgresql' or 'pg_hba' or 'ident'
 
 compare +config+ +server+ +config+ +server+
 compare two server environments, issuing every differents parameters
-
-merge +config+ +server+ +config+ +server+
-merge first server environment into the second one, configurations by configurations
 
 scan +config+
 scan for installed server and ask to import them into config
@@ -74,210 +67,210 @@ drop +config+ -server-
 perform actual server removal by deletion
 "
 
-export PGB_SHORT_DESCRIPTION="\
+export PGS_SHORT_DESCRIPTION="\
 pgserver command will help handle PostgreSQL server, with, potentialy,
 differents directory, instances configuration, compilation..."
 
-export PGB_LONG_DESCRIPTION="\
-${PGB_SHORT_DESCRIPTION}
+export PGS_LONG_DESCRIPTION="\
+${PGS_SHORT_DESCRIPTION}
 
-${PGB_GENERAL_PHILOSOPHY_DESCRIPTION}
-Actions:\n${PGB_ACTIONS_DESCRIPTION}"
+${PGS_GENERAL_PHILOSOPHY_DESCRIPTION}
+Actions:\n${PGS_ACTIONS_DESCRIPTION}"
 
-export PGB_USAGE="\
-${PGB_GENERAL_SHORT_DESCRIPTION}
+export PGS_USAGE="\
+${PGS_GENERAL_SHORT_DESCRIPTION}
 
 ${PRGNAME}
 Description:
-${PGB_SHORT_DESCRIPTION}
+${PGS_SHORT_DESCRIPTION}
 ${PRGNAME} action [parameters]
 Where actions are:
-${PGB_ACTIONS//$'\n'/$'\n'$'\t'}"
+${PGS_ACTIONS//$'\n'/$'\n'$'\t'}"
 
-export PGB_HELP="\
-${PGB_GENERAL_SHORT_DESCRIPTION}
-${PGB_LONG_DESCRIPTION}
+export PGS_HELP="\
+${PGS_GENERAL_SHORT_DESCRIPTION}
+${PGS_LONG_DESCRIPTION}
 "
 
 analyzeStandart $*
 
 if [[ $# -gt 0 ]]; then
-  pgb_action=$1
+  pgs_action=$1
   shift
 else
   exitError 1 "No action\n${PGB_USAGE}"
 fi
 
-case "${pgb_action}" in
+case "${pgs_action}" in
   "actions")
-    printf "${PGB_ACTIONS}\n"
+    printf "${PGS_ACTIONS}\n"
     ;;
 
   "usage")
-    printf "${PGB_ACTIONS_DESCRIPTION}\n"
+    printf "${PGS_ACTIONS_DESCRIPTION}\n"
     ;;
 
   "help")
-    printf "${PGB_HELP}\n"
+    printf "${PGS_HELP}\n"
     ;;
 
   "list")
     if [[ $# -eq 0 ]]; then
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     fi
-    getServers ${pgb_config} pgb_server_list
+    getInstalledServers ${pgs_config} pgs_server_list
     if [[ $? -ne 0 ]]; then
       exitError 2 "error getting server list"
     fi
-    getRemovedServers ${pgb_config} pgb_removed_server_list
+    getAddedServers ${pgs_config} pgs_added_server_list
     if [[ $? -ne 0 ]]; then
-      exitError 3 "error getting removed server list"
+      exitError 3 "error getting added server list"
     fi
-    if [ "${pgb_server_list// }x" == "x" ] && [ "${pgb_removed_server_list// }x" == "x" ]; then
+    if [ "${pgs_server_list// }x" == "x" ] && [ "${pgs_added_server_list// }x" == "x" ]; then
       printf "No server.\n"
     else
-      if [ "${pgb_server_list}x" != "x" ]; then
-        printf "Active servers:\n${pgb_server_list// /$'\n'}\n"
+      if [ "${pgs_server_list}x" != "x" ]; then
+        printf "Active servers:\n${pgs_server_list// /$'\n'}\n"
       fi
-      if [ "${pgb_removed_server_list}x" != "x" ]; then
-        if [ "${pgb_server_list}x" != "x" ]; then
+      if [ "${pgs_added_server_list}x" != "x" ]; then
+        if [ "${pgs_server_list}x" != "x" ]; then
           printf "\n"
         fi
-        printf "Removed servers:\n${pgb_removed_server_list// /$'\n'}\n"
+        printf "Added servers:\n${pgs_added_server_list// /$'\n'}\n"
       fi
     fi
     ;;
 
   "info")
     if [[ $# -ge 1 ]]; then
-      pgb_config=$1
+      pgs_config=$1
       shift
     else
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     fi
-    if [ "${pgb_config}x" == "defaultx" ]; then
-      pgb_config_dir=${PGB_CONF_DIR}/pgserver
+    if [ "${pgs_config}x" == "defaultx" ]; then
+      pgs_config_dir=${PGB_CONF_DIR}/pgserver
     else
-      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}/pgserver
+      pgs_config_dir=${PGB_CONF_DIR}/${pgs_config}/pgserver
     fi
-    if [ ! -d ${pgb_config_dir} ]; then
-      exitError "No config ${pgb_config}"
+    if [ ! -d ${pgs_config_dir} ]; then
+      exitError "No config ${pgs_config}"
     fi
-    for pgb_orig in ${pgb_config_dir}/*.conf
+    for pgs_orig in ${pgs_config_dir}/*.conf
     do
-      printf "$(basename ${pgb_orig%\.conf})\n"
+      printf "$(basename ${pgs_orig%\.conf})\n"
     done
     ;;
 
   "check")
     if [[ $# -ge 1 ]]; then
-      pgb_config=$1
+      pgs_config=$1
       shift
     else
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     fi
     ;;
 
   "add")
     if [[ $# -eq 0 ]]; then
-      pgb_config=${PGB_CONFIG_NAME:-default}
-      pgb_server=${PGB_PGSERVER_NAME:-default}
-      pgb_source=default
+      pgs_config=${PGB_CONFIG_NAME:-default}
+      pgs_server=${PGB_PGSERVER_NAME:-default}
+      pgs_source=default
     elif [[ $# -eq 1 ]]; then
       if [ "${1}x" == "asx" ]; then
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_server=${PGB_PGSERVER_NAME:-default}
-        pgb_source=default
+        pgs_config=${PGB_CONFIG_NAME:-default}
+        pgs_server=${PGB_PGSERVER_NAME:-default}
+        pgs_source=default
         shift
       else
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_server=${PGB_PGSERVER_NAME:-default}
-        pgb_source=$1
+        pgs_config=${PGB_CONFIG_NAME:-default}
+        pgs_server=${PGB_PGSERVER_NAME:-default}
+        pgs_source=$1
         shift
       fi
     elif [[ $# -eq 2 ]]; then
       if [ "${1}x" == "asx" ]; then
         shift
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_server=${PGB_PGSERVER_NAME:-default}
-        pgb_source=$1
+        pgs_config=${PGB_CONFIG_NAME:-default}
+        pgs_server=${PGB_PGSERVER_NAME:-default}
+        pgs_source=$1
         shift
       else
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_source=$1
+        pgs_config=${PGB_CONFIG_NAME:-default}
+        pgs_source=$1
         shift
-        pgb_server=$1
+        pgs_server=$1
         shift
       fi
     elif [[ $# -eq 3 ]]; then
       if [ "${1}x" == "asx" ]; then
         shift
-        pgb_config=${PGB_CONFIG_NAME:-default}
-        pgb_source=$1
+        pgs_config=${PGB_CONFIG_NAME:-default}
+        pgs_source=$1
         shift
-        pgb_server=$1
+        pgs_server=$1
         shift
       else
-        pgb_source=$1
+        pgs_source=$1
         shift
-        pgb_config=$1
+        pgs_config=$1
         shift
-        pgb_server=$1
+        pgs_server=$1
         shift
       fi
     else
       if [ "${1}x" == "asx" ]; then
         shift
-        pgb_source=$1
+        pgs_source=$1
         shift
-        pgb_config=$1
+        pgs_config=$1
         shift
-        pgb_server=$1
+        pgs_server=$1
         shift
       else
         exitError "${USAGE}\n"
       fi
     fi
 
-    addServer ${pgb_source} ${pgb_config} ${pgb_server}
+    addServer ${pgs_source} ${pgs_config} ${pgs_server}
     if [[ $? -ne 0 ]]; then
-      exitError "problem creating ${pgb_server} from ${pgb_source}"
+      exitError "problem creating ${pgs_server} from ${pgs_source}"
     else
-      printTrace "${pgb_server} added"
+      printTrace "${pgs_server} added"
     fi
     ;;
 
   "configure")
     if [[ $# -ge 1 ]]; then
-      pgb_command=$1
+      pgs_command=$1
       shift
     else
-      pgb_command=pgbrewer
+      pgs_command=pgbrewer
     fi
     if [[ $# -ge 1 ]]; then
-      pgb_config=$1
+      pgs_config=$1
       shift
     else
-      pgb_config="${PGB_CONFIG_NAME:-default}"
+      pgs_config="${PGB_CONFIG_NAME:-default}"
     fi
 
-    if [ "${pgb_config}" == "default" ]; then
-      pgb_config_dir=${PGB_CONF_DIR}
+    if [ "${pgs_config}" == "default" ]; then
+      pgs_config_dir=${PGB_CONF_DIR}
     else
-      pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
+      pgs_config_dir=${PGB_CONF_DIR}/${pgs_config}
     fi
-    if [ "${pgb_command}x" == "listx" ]; then
-      if [ ! -d ${pgb_config_dir} ]; then
-        exitError "No config ${pgb_config}"
+    if [ "${pgs_command}x" == "listx" ]; then
+      if [ ! -d ${pgs_config_dir} ]; then
+        exitError "No config ${pgs_config}"
       fi
-      for pgb_orig in ${pgb_config_dir}/*.conf
+      for pgs_orig in ${pgs_config_dir}/*.conf
       do
-        printf "$(basename ${pgb_orig%\.conf})\n"
+        printf "$(basename ${pgs_orig%\.conf})\n"
       done
     else
-      editConfig ${pgb_command} ${pgb_config}
+      editConfig ${pgs_command} ${pgs_config}
       if [[ $? -ne 0 ]]; then
-          exitError " problem editing ${pgb_config} ${pgb_command} configuration"
+          exitError " problem editing ${pgs_config} ${pgs_command} configuration"
       fi
     fi
     ;;
@@ -286,18 +279,18 @@ case "${pgb_action}" in
     if [[ $# -lt 1 ]]; then
       exitError "${USAGE}"
     else
-      pgb_source=$1
+      pgs_source=$1
       shift
     fi
     if [[ $# -lt 1 ]]; then
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     else
-      pgb_config=$1
+      pgs_config=$1
       shift
     fi
-    compareConfig ${pgb_source} ${pgb_config} pgb_compare_config
+    compareConfig ${pgs_source} ${pgs_config} pgs_compare_config
     if [[ $? -ne 0 ]]; then
-      printf "Configurations differs:\n${pgb_compare_config}\n"
+      printf "Configurations differs:\n${pgs_compare_config}\n"
     else
       printf "Same configuration\n"
     fi
@@ -309,56 +302,56 @@ case "${pgb_action}" in
 
   "create" )
     if [[ $# -ge 1 ]]; then
-      pgb_config=$1
+      pgs_config=$1
       shift
     else
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     fi
 
     if [[ $# -ge 1 ]]; then
-      pgb_server=$1
+      pgs_server=$1
       shift
     else
-      pgb_server=${PGB_SERVER_NAME:-default}
+      pgs_server=${PGB_SERVER_NAME:-default}
     fi
 
-    installServer ${pgb_config} ${pgb_server}
+    installServer ${pgs_config} ${pgs_server}
 if [[ $? -ne 0 ]]; then
-  printError "Error installing ${pgb_srcdir} ${pgb_server}\n"
+  printError "Error installing ${pgs_srcdir} ${pgs_server}\n"
 else
   printf "PostgreSQL ${PGB_PGFULL_VERSION} installed in ${PGB_PGHOME_DIR}\n"
 fi
-    createConfig ${pgb_config}
+    createConfig ${pgs_config}
     if [[ $? -ne 0 ]]; then
-      exitError " problem creating ${pgb_config}"
+      exitError " problem creating ${pgs_config}"
     else
-      printTrace " ${pgb_config} created"
+      printTrace " ${pgs_config} created"
     fi
     ;;
 
   "remove")
     if [[ $# -ge 1 ]]; then
-      pgb_config=$1
+      pgs_config=$1
       shift
     else
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     fi
-    removeConfig ${pgb_config}
+    removeConfig ${pgs_config}
     if [[ $? -ne 0 ]]; then
-        exitError " problem removing ${pgb_config}"
+        exitError " problem removing ${pgs_config}"
     fi
     ;;
 
   "drop")
     if [[ $# -ge 1 ]]; then
-      pgb_config=$1
+      pgs_config=$1
       shift
     else
-      pgb_config=${PGB_CONFIG_NAME:-default}
+      pgs_config=${PGB_CONFIG_NAME:-default}
     fi
-    deleteConfig ${pgb_config}
+    deleteConfig ${pgs_config}
     if [[ $? -ne 0 ]]; then
-        exitError " problem destroying ${pgb_config}"
+        exitError " problem destroying ${pgs_config}"
     fi
     ;;
 
