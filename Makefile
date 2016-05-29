@@ -328,10 +328,10 @@ $(DEST_TPLS) : $(TPLS) $(TPLDIR)
 	@chmod ug=rw,o= $@
 
 $(DEST_CONFS) : $(CONFS) $(CONFDIR)
-	echo installing configuration file $@ to ${CONFDIR}
-	mkdir --parents $(dir $@)
-	cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) $@
-	chmod ug=rw,o= $@
+	@echo installing configuration file $@ to ${CONFDIR}
+	@mkdir --parents $(dir $@)
+	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) $@
+	@chmod ug=rw,o= $@
 
 $(DEST_LROTCONFS) : $(LROTCONFS) $(LROTCONFDIR)
 	@echo installing configuration file $@ to ${LROTCONFDIR}
@@ -339,10 +339,10 @@ $(DEST_LROTCONFS) : $(LROTCONFS) $(LROTCONFDIR)
 	@chmod ug=rw,o= $@
 
 $(DEST_CONSTS) : $(CONSTS) $(CONFDIR)
-	echo installing configuration file $@ to ${CONFDIR}
-	mkdir --parents $(dir $@)
-	cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) $@
-	chmod ug=r,o= $@
+	@echo installing configuration file $@ to ${CONFDIR}
+	@mkdir --parents $(dir $@)
+	@cp --force $(patsubst $(CONFDIR)/%,conf/%,$@) $@
+	@chmod ug=r,o= $@
 
 $(DEST_CONFSCRIPTS) : $(CONFSCRIPTS) $(CONFDIR)
 	@echo installing configuration script $@ to ${CONFDIR}

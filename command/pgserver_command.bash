@@ -102,6 +102,50 @@ else
 fi
 
 case "${pgs_action}" in
+  "completion")
+    if [[ $# -ge 1 ]]; then
+      pgs_comp_cword=$1
+      shift
+    else
+      pgs_comp_cword=0
+    fi
+
+    pgs_var_name="pgs_previous"
+    for ((; ${pgs_comp_cword} > 0; pgs_comp_cword-- ))
+    do
+      eval ${pgs_var_name}=${!pgs_comp_cword}
+      pgs_var_name="${pgs_var_name}_previous"
+    done
+    pgs_completion=""
+    # correct case of command to configure is same as current
+    if [ "${pgs_previous}x" == "pgserverx" ] && [[ ${pgs_comp_cword} -ne 1 ]]; then
+      pgs_previous="pgs_previous"
+    fi
+    case "${pgs_previous}" in
+      "pgserver" )
+        pgs_completion=`printf "${PGS_ACTIONS}\n" | awk '{ print $1 }'`
+        pgs_completion="${pgs_completion//$'\n'/' '}"
+        ;;
+
+      "actions"|"usage"|"help")
+        pgs_completion=""
+        ;;
+
+      "info"|"configure"|"check"|"install"|"remove"|"drop"|"compare")
+        getAllConfigurations pgs_config_list
+        pgs_completion="${pgs_config_list//$'\n'/' '}"
+        ;;
+
+      "add")
+        pgs_completion="as NAME"
+        ;;
+
+      "list")
+        pgs_completion="all NOTHING"
+        ;;
+
+      "as")
+
   "actions")
     printf "${PGS_ACTIONS}\n"
     ;;
@@ -117,6 +161,8 @@ case "${pgs_action}" in
   "list")
     if [[ $# -eq 0 ]]; then
       pgs_config=${PGB_CONFIG_NAME:-default}
+    else
+      pgs_config=$1
     fi
     getInstalledServers ${pgs_config} pgs_server_list
     if [[ $? -ne 0 ]]; then
@@ -148,18 +194,16 @@ case "${pgs_action}" in
     else
       pgs_config=${PGB_CONFIG_NAME:-default}
     fi
-    if [ "${pgs_config}x" == "defaultx" ]; then
-      pgs_config_dir=${PGB_CONF_DIR}/pgserver
+    if [[ $# -ge 1 ]]; then
+      pgs_server=$1
+      shift
     else
-      pgs_config_dir=${PGB_CONF_DIR}/${pgs_config}/pgserver
+      pgs_server=${PGS_SERVER_NAME:-default}
     fi
-    if [ ! -d ${pgs_config_dir} ]; then
-      exitError "No config ${pgs_config}"
-    fi
-    for pgs_orig in ${pgs_config_dir}/*.conf
-    do
-      printf "$(basename ${pgs_orig%\.conf})\n"
-    done
+    getConfigVars ${pgs_config} pgs_config_vars_list
+    getServerVars ${pgs_config} ${pgs_server} pgs_server_vars_list
+    printf "${pgs_config_vars_list}\n"
+    printf "${pgs_server_vars_list}\n"
     ;;
 
   "check")

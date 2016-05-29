@@ -70,3 +70,10 @@ export PGB_LOG_DIR="@LOGDIR@"
 # Ensure that pipes (like in '|' tee) will return with first false
 # command code in "pipe line"
 set -o pipefail
+
+# Load default config name
+if [ -r @CONFDIR@/.defaultConfig ]; then
+  export PGB_CONFIG_NAME="$(cat @CONFDIR@/.defaultConfig)"
+else
+  export PGB_CONFIG_NAME="default"
+fi

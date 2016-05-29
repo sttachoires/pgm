@@ -23,6 +23,7 @@ export PGB_LOG="${PGB_LOG_DIR}/pgbrewer.log"
 
 export PGB_ACTIONS="\
 list
+default +config+
 command +config+
 info +config+
 check +config+
@@ -37,6 +38,9 @@ drop -config-"
 export PGB_ACTIONS_DESCRIPTION="\
 list
 list available ${PRGNAME} environments actives or removed
+
+default +config+
+change default config
 
 command +config+
 list available commands for config
@@ -120,20 +124,20 @@ case "${pgb_action}" in
     done
     pgb_completion=""
     # correct case of command to configure is same as current
-    if [ "${pgb_previous}x" == "pgbrewer" ] && [[ ${pgb_comp_cword} -ne 1 ]]; then
+    if [ "${pgb_previous}x" == "pgbrewerx" ] && [[ ${pgb_comp_cword} -ne 1 ]]; then
       pgb_previous="pgb_previous"
     fi
     case "${pgb_previous}" in
       "pgbrewer" )
         pgb_completion=`printf "${PGB_ACTIONS}\n" | awk '{ print $1 }'`
-        pgb_completion="${pgb_actions//$'\n'/' '}"
+        pgb_completion="${pgb_completion//$'\n'/' '}"
         ;;
 
       "actions"|"usage"|"help")
         pgb_completion=""
         ;;
 
-      "info"|"command"|"configure"|"check"|"create"|"remove"|"drop"|"compare")
+      "info"|"command"|"configure"|"check"|"create"|"remove"|"drop"|"compare"|"default")
         getAllConfigurations pgb_config_list
         pgb_completion="${pgb_config_list//$'\n'/' '}"
         ;;
@@ -213,6 +217,16 @@ case "${pgb_action}" in
         fi
       fi
     fi
+    ;;
+
+  "default")
+    if [[ $# -ge 1 ]]; then
+      pgb_config=$1
+      shift
+    else
+      pgb_config=${PGB_CONFIG_NAME:-default}
+    fi
+    setDefault ${pgb_config}
     ;;
 
   "command")

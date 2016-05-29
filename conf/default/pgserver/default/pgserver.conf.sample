@@ -18,16 +18,25 @@ export PGS_PGSERVER_CONF="LOADED"
 # EDITABLES VARIABLES
 
 # Full PostgreSQL version
-export PGS_PGFULL_VERSION="9.5.1"
+export PGS_PGFULL_VERSION="9.5.3"
 
 # Major PostgreSQL version
 export PGS_PGMAJOR_VERSION="${PGB_PGFULL_VERSION%.*}"
 
-# Where the servers will stand
-export PGS_PGBASE_DIR="${PGS_HOME_DIR}/server"
+# Server source name
+export PGS_PGSERVER_SOURCE="postgresql-${PGS_PGFULL_VERSION}"
+
+# How to get the server install source
+export PGS_PGSERVER_PROVIDE="wget https://www.postgresql.org/ftp/source/v${PGS_PGFULL_VERSION}/${PGS_PGSERVER_SOURCE}.tar.gz && tar xfz postgresql-${PGS_PGSERVER_SOURCE}.tar.gz"
+
+# PostgreSQL building options
+export PGS_PGSERVER_OPTIONS="--with-openssl --with-perl --with-python --with-ldap"
 
 # Allowed PostgreSQL PGBrewer version format.
 export PGS_PGNAME_AUTHORIZED_REGEXP="[a-zA-Z_][-a-zA-Z_#0-9]{2,32}"
+
+# Where the servers will stand
+export PGS_PGBASE_DIR="${PGS_HOME_DIR}/server"
 
 # PGS_PGHOME_DIR, the base directory for the PostgreSQL server
 export PGS_PGHOME_DIR='${PGS_PGBASE_DIR}/${PGS_PGSERVER_NAME}'

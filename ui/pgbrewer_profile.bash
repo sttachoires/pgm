@@ -33,18 +33,18 @@ function pgbrewer()
   local pgb_actions="$(@COMMANDDIR@/pgbrewer_command actions)"
   local pgb_actions="\
 ${pgb_actions}
-default ?config?
-undefault
+set ?config?
+unset
 shell ?config?"
 
   local pgb_actions_list=`printf "${pgb_actions}\n" | awk '{ print $1 }'`
         pgb_actions_list="${pgb_actions_list//$'\n'/ }"
 
   local pgb_actions_description="\
-default ?config?
+set ?config?
 remember default configuration (PGB_CONFIG_NAME) so you can ommit this parameter. Will unset if no config
 
-undefault
+unset
 unset default configuration
 
 shell  +config+
@@ -101,7 +101,7 @@ Where actions are:
           local pgb_completion=""
           ;;
 
-        "default"|"shell")
+        "default"|"shell"|"set")
           local pgb_created_config="$(@COMMANDDIR@/pgbrewer_command list all)"
           local pgb_completion="default ${pgb_created_config//$'\n'/ }"
           ;;
@@ -112,7 +112,7 @@ Where actions are:
       echo "${pgb_completion}"
       ;;
 
-    "default" )
+    "set" )
       if [ $# -ge 1 ]; then
         export PGB_CONFIG_NAME="$1"
       else
@@ -120,7 +120,7 @@ Where actions are:
       fi
       ;;
 
-    "undefault" )
+    "unset" )
       unset PGB_CONFIG_NAME
       ;;
 

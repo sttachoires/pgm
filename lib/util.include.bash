@@ -220,7 +220,7 @@ function instantiateTemplate()
   fi
 }
 
-function instantiateConf()
+function initiateConf()
 {
   declareFunction ".confname. !filename!" "$*"
 
@@ -243,7 +243,39 @@ function instantiateConf()
        beginconf && /^[[:space:]]*#/ { print $0 }
        beginconf && /^[[:space:]]*[^#]/ { print "# "$0 }' ${pgb_src} > ${pgb_dest}
   if [[ $? -ne 0 ]]; then
-    printError "Cannot generate configuration ${pgb_dest} from ${pgb_src}"
+    printError "Cannot initiate configuration ${pgb_dest} from ${pgb_src}"
+    return 4
+  else
+    chmod ug=rw,o= ${pgb_dest}
+    if [[ $? -ne 0 ]]; then
+      return 5
+    fi
+    printTrace "${pgb_dest} created from ${pgb_src}"
+  fi
+}
+
+function copyConf()
+{
+  declareFunction ".confname. !filename!" "$*"
+
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+
+  local pgb_src=$1
+  local pgb_dest=$2
+  if [ ! -r "${pgb_src}" ]; then
+    return 2
+  fi
+  if [ ! -w "$(dirname ${pgb_dest})" ]; then
+    return 3
+  fi
+
+  awk '/^[[:space:]]*#[[:space:]]*EDITABLES VARIABLES/ { beginconf = 1 } 
+       /^[[:space:]]*#[[:space:]]*END OF EDITABLES VARIABLES/ { beginconf = 0 }
+       beginconf { print $0 }' ${pgb_src} > ${pgb_dest}
+  if [[ $? -ne 0 ]]; then
+    printError "Cannot copy configuration ${pgb_dest} from ${pgb_src}"
     return 4
   else
     chmod ug=rw,o= ${pgb_dest}

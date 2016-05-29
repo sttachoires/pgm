@@ -141,7 +141,11 @@ function addConfig()
     do
       local pgb_config_file=${pgb_config_dir}/${pgb_confile}
       local pgb_source_file=${pgb_source_dir}/${pgb_confile}
-      instantiateConf ${pgb_source_file} ${pgb_config_file}
+      if [ "${pgb_source}x" == "defaultx" ]; then
+        initiateConf ${pgb_source_file} ${pgb_config_file}
+      else
+        copyConf ${pgb_source_file} ${pgb_config_file}
+      fi
       if [[ $? -ne 0 ]]; then
         printError "cannot instanciate config file ${pgb_config_file} from ${pgb_source_file}"
       else
@@ -267,13 +271,59 @@ function setConfig()
   if [[ $# -ne 1 ]]; then
     return 1
   fi
-  local pg_config=$1
-  unset PGB_PGBREWER_CONF
-  unset PGB_DOT_PGBREWER_CONF
-  
-  export PGB_CONFIG_NAME=${pgb_config}
+  local pgb_config=$1
 
-  source ${PGB_CONF_DIR}/default/pgbrewer.conf
+  if [ "${PGB_CONFIG_NAME}" != "${pgb_config}" ]; then
+    unset PGB_PGBREWER_CONF
+    unset PGB_DOT_PGBREWER_CONF
+  
+    export PGB_CONFIG_NAME=${pgb_config}
+
+    source ${PGB_CONF_DIR}/default/pgbrewer.conf
+  fi
+}
+
+function setDefaultConfig()
+{
+  declareFunction "+config+" "$*"
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  local pgb_config=$1
+
+  setConfig ${pgb_config}
+  local pgb_default_config=${PGB_CONFIG_DIR}/.defaultConfig
+
+  printf "${pgb_config}" > ${pgb_default_config}
+    
+  if [[ $? -ne 0 ]]; then
+    return 2
+  fi
+}
+
+function getDefaultConfig()
+{
+  declareFunction "+config+ .result." "$*"
+  if [[ $# -ne 2 ]]; then
+    return 1
+  fi
+  local pgb_config=$1
+  local pgb_result_var=$2
+
+  setConfig ${pgb_config}
+
+  local pgb_default_config=${PGB_CONFIG_DIR}/.defaultConfig
+  if [ -r ${pgb_default_config} ]; then
+    pgb_result="$(cat ${pgb_default_config})"
+    if [[ $? -ne 0 ]]; then
+      return 2
+    fi
+  else
+    pgb_result="default"
+  fi
+
+  eval export ${pgb_result_var}='${pgb_result}'
+  return 0
 }
 
 function getConfigVars()
