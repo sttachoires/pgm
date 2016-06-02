@@ -125,8 +125,10 @@ Where actions are:
       ;;
 
     "shell" )
-      if [ $# -ge 1 ]; then
+      if [[ $# -ge 1 ]]; then
         export PGB_CONFIG_NAME="$1"
+      else
+        export PGB_CONFIG_NAME=$(@COMMANDDIR@/pgbrewer_command getdefault)
       fi
       unset PGB_PGBREWER_PROFILE # ensure pgbrewer ui will be loaded
       ${BASH} --init-file @UIDIR@/commands_profile

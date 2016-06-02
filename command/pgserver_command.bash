@@ -145,6 +145,26 @@ case "${pgs_action}" in
         ;;
 
       "as")
+        getAllConfigurations pgs_config_list
+        pgs_completion="${pgs_config_list//$'\n'/' '}"
+        ;;
+
+      *)
+        if [ "${pgs_previous_previous}x" == "asx" ]; then
+          setConfig ${pgs_previous}
+          if [[ $? -ne 0 ]]; then
+            pgs_completion="NAME"
+          else
+            pgs_completion=$(${PGB_COMMAND_DIR}/pgbrewer_command listall)
+            pgs_completion="${pgs_completion/$'\n'/ }"
+          fi
+        elif [ "${pgs_previous_previous_previous}x" == "asx" ]; then
+          pgs_completion="NAME"
+        fi
+        ;;
+    esac
+    echo "${pgs_completion}"
+    ;;
 
   "actions")
     printf "${PGS_ACTIONS}\n"
@@ -399,7 +419,8 @@ fi
     fi
     ;;
 
-  *) exitError "${USAGE}\n"
+  *) 
+    exitError "${USAGE}\n"
     ;;
 esac
 

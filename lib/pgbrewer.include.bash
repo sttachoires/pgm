@@ -80,6 +80,24 @@ function getCreatedConfigurations()
   eval ${pgb_result_var}='${pgb_report## }'
 }
 
+function setConfig()
+{
+  declareFunction "+config+" "$*"
+  if [[ $# -ne 1 ]]; then
+    return 1
+  fi
+  local pgb_config=$1
+
+  if [ "${PGB_CONFIG_NAME}" != "${pgb_config}" ]; then
+    unset PGB_PGBREWER_CONF
+    unset PGB_DOT_PGBREWER_CONF
+  
+    export PGB_CONFIG_NAME=${pgb_config}
+
+    source ${PGB_CONF_DIR}/default/pgbrewer.conf
+  fi
+}
+
 function getCommands()
 {
   declareFunction "+config+ -result-" "$*"
@@ -214,7 +232,7 @@ function editConfig()
 
   local pgb_config=$1
 
-  . setConfig ${pgb_config}
+  setConfig ${pgb_config}
   local pgb_config_dir=${PGB_CONF_DIR}/${pgb_config}
   local pgb_date=$(date "+%Y.%m.%d_%H.%M.%S")
 
@@ -265,24 +283,6 @@ function editConfig()
   fi
 }
 
-function setConfig()
-{
-  declareFunction "+config+" "$*"
-  if [[ $# -ne 1 ]]; then
-    return 1
-  fi
-  local pgb_config=$1
-
-  if [ "${PGB_CONFIG_NAME}" != "${pgb_config}" ]; then
-    unset PGB_PGBREWER_CONF
-    unset PGB_DOT_PGBREWER_CONF
-  
-    export PGB_CONFIG_NAME=${pgb_config}
-
-    source ${PGB_CONF_DIR}/default/pgbrewer.conf
-  fi
-}
-
 function setDefaultConfig()
 {
   declareFunction "+config+" "$*"
@@ -292,7 +292,7 @@ function setDefaultConfig()
   local pgb_config=$1
 
   setConfig ${pgb_config}
-  local pgb_default_config=${PGB_CONFIG_DIR}/.defaultConfig
+  local pgb_default_config=${PGB_CONF_DIR}/.defaultConfig
 
   printf "${pgb_config}" > ${pgb_default_config}
     
@@ -303,18 +303,15 @@ function setDefaultConfig()
 
 function getDefaultConfig()
 {
-  declareFunction "+config+ .result." "$*"
-  if [[ $# -ne 2 ]]; then
+  declareFunction ".result." "$*"
+  if [[ $# -ne 1 ]]; then
     return 1
   fi
-  local pgb_config=$1
-  local pgb_result_var=$2
+  local pgb_result_var=$1
 
-  setConfig ${pgb_config}
-
-  local pgb_default_config=${PGB_CONFIG_DIR}/.defaultConfig
-  if [ -r ${pgb_default_config} ]; then
-    pgb_result="$(cat ${pgb_default_config})"
+  local pgb_default_file=${PGB_CONF_DIR}/.defaultConfig
+  if [ -r ${pgb_default_file} ]; then
+    pgb_result="$(cat ${pgb_default_file})"
     if [[ $? -ne 0 ]]; then
       return 2
     fi

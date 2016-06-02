@@ -23,6 +23,7 @@ export PGB_LOG="${PGB_LOG_DIR}/pgbrewer.log"
 
 export PGB_ACTIONS="\
 list
+getdefault
 default +config+
 command +config+
 info +config+
@@ -38,6 +39,9 @@ drop -config-"
 export PGB_ACTIONS_DESCRIPTION="\
 list
 list available ${PRGNAME} environments actives or removed
+
+getdefault
+get default config
 
 default +config+
 change default config
@@ -133,7 +137,7 @@ case "${pgb_action}" in
         pgb_completion="${pgb_completion//$'\n'/' '}"
         ;;
 
-      "actions"|"usage"|"help")
+      "actions"|"usage"|"help"|"getdefault")
         pgb_completion=""
         ;;
 
@@ -226,7 +230,12 @@ case "${pgb_action}" in
     else
       pgb_config=${PGB_CONFIG_NAME:-default}
     fi
-    setDefault ${pgb_config}
+    setDefaultConfig ${pgb_config}
+    ;;
+
+  "getdefault")
+    getDefaultConfig pgb_default_config
+    printf "${pgb_default_config}\n"
     ;;
 
   "command")

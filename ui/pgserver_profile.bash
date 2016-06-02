@@ -34,7 +34,9 @@ help
 usage
 actions
 default ?server?
-undefault
+getdefault
+set ?server?
+unset
 ${pgs_actions}"
 
   local pgs_actions_list=`printf "${pgs_actions}\n" | awk '{ print $1 }'`
@@ -49,6 +51,12 @@ will provide this text:)
 
 actions
 list all possible actions and parameters with this command
+
+default ?config?
+remember default server so you can ommit this parameter. Will unset if no config
+
+default ?config?
+remember default server (PGBSRV_NAME) so you can ommit this parameter. Will unset if no config
 
 default ?config?
 remember default server (PGBSRV_NAME) so you can ommit this parameter. Will unset if no config
