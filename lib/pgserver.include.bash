@@ -18,6 +18,7 @@ fi
 . ${PGB_LIB_DIR}/util.include
 . ${PGB_LIB_DIR}/pgbrewer.include
 
+declare -xf getAllServers
 function getAllServers()
 {
   declareFunction "+config+ -result-" "$*"
@@ -47,6 +48,7 @@ function getAllServers()
   eval ${pgs_result_var}='${pgs_report## }'
 }
 
+declare -xf getInstalledServers
 function getInstalledServers()
 {
   declareFunction "+config+ -result-" "$*"
@@ -79,6 +81,7 @@ function getInstalledServers()
   eval ${pgs_result_var}='${pgs_report## }'
 }
 
+declare -xf getAddedServers
 function getAddedServers()
 {
   declareFunction "+config+ -result-" "$*"
@@ -111,6 +114,7 @@ function getAddedServers()
   eval ${pgs_result_var}='${pgs_report## }'
 }
 
+declare -xf addServer
 function addServer()
 {
   declareFunction "+config+ +server+ +config+ !server!" "$*"
@@ -164,6 +168,7 @@ function addServer()
   fi
 }
 
+declare -xf installServer
 function installServer()
 {
   declareFunction "+config+ +server+" "$*"
@@ -209,6 +214,7 @@ function installServer()
   fi
 }
 
+declare -xf setServer
 function setServer()
 {
   declareFunction "+config+ ~server~" "$*"
@@ -236,6 +242,7 @@ function setServer()
   fi
 }
 
+declare -xf setDefaultServer
 function setDefaultServer()
 {
   declareFunction "+config+ +server+" "$*"
@@ -254,6 +261,7 @@ function setDefaultServer()
   fi
 }
 
+declare -xf getDefaultServer
 function getDefaultServer()
 {
   declareFunction "+config+ .result." "$*"
@@ -279,6 +287,7 @@ function getDefaultServer()
   return 0
 }
 
+declare -xf serverInfo
 function serverInfo()
 {
   declareFunction "+config+ +server+ -result-" "$*"
@@ -306,6 +315,7 @@ function serverInfo()
   eval ${pgs_result_var}='${pgs_report}'
 }
 
+declare -xf checkAllServers
 function checkAllServers()
 {
   declareFunction "-result-" "$*"
@@ -331,6 +341,7 @@ function checkAllServers()
   return ${pgs_status}
 }
 
+declare -xf checkServer
 function checkServer()
 {
   declareFunction "-server- -result-" "$*"

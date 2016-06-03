@@ -22,7 +22,8 @@ USAGE="Usage: ${PRGNAME} PGVERSION PGSID PGPORT PGLISTENER\nwhere:\n\tPGVERSION 
 
 
 
-function checkParameters ()
+declare -xf checkParameters
+function checkParameters() ()
 {
   declareFunction "checkParameters " "$*"
 

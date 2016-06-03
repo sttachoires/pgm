@@ -20,6 +20,7 @@ fi
 . ${PGB_LIB_DIR}/inventory.include
 . ${PGB_LIB_DIR}/instance.include
 
+declare -xf setDatabase
 function setDatabase()
 {
   declareFunction "-server- -instance- -database-" "$*"
@@ -56,6 +57,7 @@ function setDatabase()
   fi
 }
 
+declare -xf databaseExec
 function databaseExec()
 {
   declareFunction "-server- -instance- -database- -request- -result-" "$*"
@@ -85,6 +87,7 @@ function databaseExec()
   return ${pgb_status}
 }
 
+declare -xf createExtentions
 function createExtentions()
 {
   declareFunction "-server- -instance- -database-" "$*"

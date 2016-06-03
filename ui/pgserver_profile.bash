@@ -12,6 +12,7 @@ if [ "${PGS_PGSERVER_PROFILE}" == "LOADED" ]; then
 fi
 export PGS_PGSERVER_PROFILE="LOADED"
 
+declare -xf _pgserver_completion
 function _pgserver_completion()
 {
   COMPREPLY=()
@@ -26,6 +27,7 @@ function _pgserver_completion()
 
 complete -F _pgserver_completion pgserver
 
+declare -xf pgserver
 function pgserver()
 {
   local pgs_actions="$(@COMMANDDIR@/pgserver_command actions)"

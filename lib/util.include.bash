@@ -16,6 +16,7 @@ PGB_LOG="default.log"
 # VARIABLES
 export PGB_TRACELEVEL=1
 
+declare -xf pgbPrint
 function pgbPrint()
 {
   if [[ $# -ne 2 ]]; then
@@ -32,24 +33,29 @@ function pgbPrint()
   printf "${pgb_print_date} '${pgb_print_user}' ${pgb_spaces} [${FUNCNAME[2]}] ${pgb_print_text}\n" >> ${PGB_LOG}
 }
 
+declare -xf printError
 function printError()
 {
   pgbPrint 1 "$*"
 }
 
+declare -xf printTrace
 function printTrace()
 {
   pgbPrint 2 "$*"
 }
 
+declare -xf printInfo
 function printInfo()
 {
   pgbPrint 3 "$*"
 }
 
+declare -xf declareFunction
 function declareFunction()
 {
   local pgb_function_name="${FUNCNAME[1]}"
+  export -f ${pgb_function_name}
   printTrace "Enter ${pgb_function_name} with '$*'\n"
   if [[ $# -ge 2 ]]; then
     local pgb_arg_list="$1"
@@ -57,6 +63,7 @@ function declareFunction()
   fi
 }
 
+declare -xf analyzeParameters
 function analyzeParameters()
 {
   local pgb_arg_list="$1"
@@ -133,6 +140,7 @@ function analyzeParameters()
   done
 }
 
+declare -xf analyzeStandart
 function analyzeStandart()
 {
   for pgb_option in $*
@@ -168,7 +176,9 @@ function analyzeStandart()
     esac
   done
 }
+declare -xf analyzeStandart
 
+declare -xf exitError
 function exitError()
 {
   if [[ $# -gt 1 ]]; then
@@ -180,7 +190,9 @@ function exitError()
   printError "$*"
   exit ${exitCode}
 }
+declare -xf exitError
 
+declare -xf instantiateTemplate
 function instantiateTemplate()
 {
   declareFunction ".template. !filename!" "$*"
@@ -220,6 +232,7 @@ function instantiateTemplate()
   fi
 }
 
+declare -xf initiateConf
 function initiateConf()
 {
   declareFunction ".confname. !filename!" "$*"
@@ -254,6 +267,7 @@ function initiateConf()
   fi
 }
 
+declare -xf copyConf
 function copyConf()
 {
   declareFunction ".confname. !filename!" "$*"
@@ -286,6 +300,7 @@ function copyConf()
   fi
 }
 
+declare -xf ensureVars
 function ensureVars()
 {
   declareFunction "-string- -conditional-test- -result-" "$*"
@@ -317,6 +332,7 @@ function ensureVars()
   return ${pgb_status}
 }
 
+declare -xf checkEnvironment
 function checkEnvironment()
 {
   declareFunction "-result-" "$*"

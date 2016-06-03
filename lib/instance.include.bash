@@ -23,6 +23,7 @@ fi
 . ${PGB_LIB_DIR}/server.include
 . ${PGB_LIB_DIR}/database.include
 
+declare -xf startInstance
 function startInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -47,6 +48,7 @@ function startInstance()
   ${PGB_PGBIN_DIR}/pg_ctl -w ${pgb_options} --pgdata=${PGB_PGDATA_DIR} --log=${PGB_PG_LOG} start
 }
 
+declare -xf startLocalInstance
 function startLocalInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -65,6 +67,7 @@ function startLocalInstance()
   ${PGB_PGBIN_DIR}/pg_ctl -w -o "-h ''" --pgdata=${PGB_PGDATA_DIR} --log=${PGB_PG_LOG} start
 }
 
+declare -xf stopInstance
 function stopInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -83,6 +86,7 @@ function stopInstance()
   ${PGB_PGBIN_DIR}/pg_ctl --pgdata=${PGB_PGDATA_DIR} --mode=fast stop
 }
 
+declare -xf reloadInstance
 function reloadInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -101,6 +105,7 @@ function reloadInstance()
   ${PGB_PGBIN_DIR}/pg_ctl --pgdata=${PGB_PGDATA_DIR} reload
 }
 
+declare -xf stateInstance
 function stateInstance()
 {
   declareFunction "-server- -instance- -result-" "$*"
@@ -126,6 +131,7 @@ function stateInstance()
 }
 
 
+declare -xf promoteInstance
 function promoteInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -144,6 +150,7 @@ function promoteInstance()
   ${PGB_PGBIN_DIR}/pg_ctl --pgdata=${PGB_PGDATA_DIR} promote
 }
 
+declare -xf killInstance
 function killInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -172,6 +179,7 @@ function killInstance()
   fi
 }
 
+declare -xf setInstance
 function setInstance()
 {
   declareFunction "-server- ~instance~" "$*"
@@ -245,6 +253,7 @@ function setInstance()
   fi
 }
 
+declare -xf checkAllInstances
 function checkAllInstances()
 {
   declareFunction "-server- -result-" "$*"
@@ -272,6 +281,7 @@ function checkAllInstances()
   return ${pgb_status}
 }
 
+declare -xf checkInstance
 function checkInstance()
 {
   declareFunction "-server- ~instance~ -result-" "$*"
@@ -296,7 +306,8 @@ function checkInstance()
   fi
 }
 
-function initInstance ()
+declare -xf initInstance
+function initInstance() ()
 {
   declareFunction "-server- +instance+" "$*"
 
@@ -319,6 +330,7 @@ function initInstance ()
   ${PGB_PGBIN_DIR}/initdb --pgdata=${PGB_PGDATA_DIR} --encoding=UTF8 --xlogdir=${PGB_PGXLOG_DIR} --data-checksums --no-locale
 }
 
+declare -xf logrotateInstance
 function logrotateInstance()
 {
   declareFunction "-server- -instance-" "$*"
@@ -346,7 +358,8 @@ function logrotateInstance()
   fi
 }
 
-function checkInstanceFS ()
+declare -xf checkInstanceFS
+function checkInstanceFS() ()
 {
   declareFunction "-server- -instance- -result-" "$*"
 
@@ -384,7 +397,8 @@ function checkInstanceFS ()
 }
 
 
-function createRecovery ()
+declare -xf createRecovery
+function createRecovery() ()
 {
   declareFunction "-server- -instance-" "$*"
 
@@ -415,7 +429,8 @@ function createRecovery ()
 }
 
 
-function createPgConf ()
+declare -xf createPgConf
+function createPgConf() ()
 {
   declareFunction "-server- -instance-" "$*"
 
@@ -449,7 +464,8 @@ function createPgConf ()
 }
 
 
-function createHBA ()
+declare -xf createHBA
+function createHBA() ()
 {
   declareFunction "-server- -instance-" "$*"
 
@@ -484,7 +500,8 @@ function createHBA ()
   fi
 }
 
-function createIdent ()
+declare -xf createIdent
+function createIdent() ()
 {
   declareFunction "-server- -instance-" "$*"
 
@@ -519,6 +536,7 @@ function createIdent ()
   fi
 }
 
+declare -xf provideInstanceDirectories
 function provideInstanceDirectories()
 {
   declareFunction "-server- -instance-" "$*"
@@ -545,6 +563,7 @@ function provideInstanceDirectories()
   mkdir -p ${PGB_PGARCHIVELOG_DIR} 
 }
 
+declare -xf createInstance
 function createInstance()
 {
   declareFunction "-server- -instance- !port! !listener!" "$*"

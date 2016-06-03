@@ -16,6 +16,7 @@ if [[ $? -ne 0 ]]; then
 fi
 . ${PGB_LIB_DIR}/util.include
 
+declare -xf getAllConfigurations
 function getAllConfigurations()
 {
   declareFunction "-result-" "$*"
@@ -38,6 +39,7 @@ function getAllConfigurations()
   eval ${pgb_result_var}='${pgb_report## }'
 }
 
+declare -xf getAddedConfigurations
 function getAddedConfigurations()
 {
   declareFunction "-result-" "$*"
@@ -59,6 +61,7 @@ function getAddedConfigurations()
   eval ${pgb_result_var}='${pgb_report## }'
 }
 
+declare -xf getCreatedConfigurations
 function getCreatedConfigurations()
 {
   declareFunction "-result-" "$*"
@@ -80,6 +83,7 @@ function getCreatedConfigurations()
   eval ${pgb_result_var}='${pgb_report## }'
 }
 
+declare -xf setConfig
 function setConfig()
 {
   declareFunction "+config+" "$*"
@@ -98,6 +102,7 @@ function setConfig()
   fi
 }
 
+declare -xf getCommands
 function getCommands()
 {
   declareFunction "+config+ -result-" "$*"
@@ -122,6 +127,7 @@ function getCommands()
   return 0
 }
 
+declare -xf addConfig
 function addConfig()
 {
   declareFunction "+config+ !config!" "$*"
@@ -173,6 +179,7 @@ function addConfig()
   fi
 }
 
+declare -xf createConfig
 function createConfig()
 {
   declareFunction "+config+" "$*"
@@ -222,6 +229,7 @@ function createConfig()
   fi
 }
 
+declare -xf editConfig
 function editConfig()
 {
   declareFunction "+config+" "$*"
@@ -283,6 +291,7 @@ function editConfig()
   fi
 }
 
+declare -xf setDefaultConfig
 function setDefaultConfig()
 {
   declareFunction "+config+" "$*"
@@ -301,6 +310,7 @@ function setDefaultConfig()
   fi
 }
 
+declare -xf getDefaultConfig
 function getDefaultConfig()
 {
   declareFunction ".result." "$*"
@@ -323,6 +333,7 @@ function getDefaultConfig()
   return 0
 }
 
+declare -xf getConfigVars
 function getConfigVars()
 {
   declareFunction "+config+ .result." "$*"
@@ -339,6 +350,7 @@ function getConfigVars()
   return 0
 }
 
+declare -xf compareConfig
 function compareConfig()
 {
   declareFunction "+config+ +config+ -result-" "$*"
@@ -363,6 +375,7 @@ function compareConfig()
   return 0
 }
 
+declare -xf removeConfig
 function removeConfig()
 {
   declareFunction "+config+" "$*"
@@ -388,6 +401,7 @@ function removeConfig()
   mv ${pgb_config_dir} ${PGB_CONF_DIR}/.${pgb_config}
 }
 
+declare -xf deleteConfig
 function deleteConfig()
 {
   declareFunction "-config-" "$*"

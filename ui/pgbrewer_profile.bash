@@ -14,6 +14,7 @@ export PGB_PGBREWER_PROFILE="LOADED"
 export MANPATH="@MANDIR@:${MANPATH}"
 export PS1="${PS1} # "
 
+declare -xf _pgbrewer_completion
 function _pgbrewer_completion()
 {
   COMPREPLY=()
@@ -28,6 +29,7 @@ function _pgbrewer_completion()
 
 complete -F _pgbrewer_completion pgbrewer
 
+declare -xf pgbrewer
 function pgbrewer()
 {
   local pgb_actions="$(@COMMANDDIR@/pgbrewer_command actions)"
