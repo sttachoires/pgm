@@ -18,7 +18,7 @@ export PGS_PGSERVER_CONF="LOADED"
 # EDITABLES VARIABLES
 
 # Full PostgreSQL version
-export PGS_PGFULL_VERSION="9.5.3"
+export PGS_PGFULL_VERSION="9.4.6"
 
 # Major PostgreSQL version
 export PGS_PGMAJOR_VERSION="${PGB_PGFULL_VERSION%.*}"

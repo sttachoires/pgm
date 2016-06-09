@@ -352,7 +352,7 @@ case "${pgb_action}" in
 
   "compare")
     if [[ $# -lt 1 ]]; then
-      exitError "${USAGE}"
+      pgb_source=default
     else
       pgb_source=$1
       shift

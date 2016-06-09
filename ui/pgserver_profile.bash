@@ -35,8 +35,6 @@ function pgserver()
 help
 usage
 actions
-default ?server?
-getdefault
 set ?server?
 unset
 ${pgs_actions}"
@@ -53,12 +51,6 @@ will provide this text:)
 
 actions
 list all possible actions and parameters with this command
-
-default ?config?
-remember default server so you can ommit this parameter. Will unset if no config
-
-default ?config?
-remember default server (PGBSRV_NAME) so you can ommit this parameter. Will unset if no config
 
 default ?config?
 remember default server (PGBSRV_NAME) so you can ommit this parameter. Will unset if no config
@@ -112,7 +104,7 @@ ${pgs_actions//$'\n'/$'\n'$'\t'}\n"
           local pgs_completion=""
           ;;
 
-        "default"|"shell")
+        "default"|"shell"|"set")
           local pgs_created_server="$(@COMMANDDIR@/pgserver_command list all)"
           local pgs_completion="default ${pgs_created_config//$'\n'/ }"
           ;;
@@ -123,8 +115,7 @@ ${pgs_actions//$'\n'/$'\n'$'\t'}\n"
       echo "${pgs_completion}"
       ;;
 
-
-    "default" )
+    "set" )
       if [ $# -ge 1 ]; then
         export PGS_SERVER_NAME="$1"
       else
@@ -132,7 +123,7 @@ ${pgs_actions//$'\n'/$'\n'$'\t'}\n"
       fi
       ;;
 
-    "undefault" )
+    "unset" )
       unset PGS_SERVER_NAME
       ;;
 

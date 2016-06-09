@@ -13,9 +13,11 @@ fi
 export PGS_DOT_PGSERVER_CONF="LOADED"
 
 # Load default server name
-if [ -r @CONFDIR@/${PGB_CONFIG_NAME}/pgserver/.defaultConfig ]; then
-  export PGB_CONFIG_NAME="$(cat @CONFDIR@/${PGB_CONFIG_NAME}/pgserver/.defaultServer)"
-else
-  export PGB_CONFIG_NAME="default"
+if [ "${PGS_SERVER_NAME}x" == "x" ]; then
+  if [ -r @CONFDIR@/${PGB_CONFIG_NAME}/pgserver/.defaultConfig ]; then
+    export PGS_SERVER_NAME="$(cat @CONFDIR@/${PGB_CONFIG_NAME}/pgserver/.defaultServer)"
+  else
+    export PGS_SERVER_NAME="default"
+  fi
 fi
 
